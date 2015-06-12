@@ -6,7 +6,7 @@ from numpy.distutils.system_info import get_info, BlasNotFoundError
 define_macros = []
 extra_link_args = []
 extra_compile_args = ['-std=c++11']
-include_dirs = [numpy.get_include(),'../']
+include_dirs = [numpy.get_include(),'../','../../include/']
 library_dirs = []
 libraries = []
 
@@ -21,7 +21,7 @@ if blas_info or lapack_info:
     extra_compile_args += blas_info.pop('extra_compile_args', []) + lapack_info.pop('extra_compile_args', [])
 
 canon = Extension('_FAO_DAG',
-	sources=['FAO_DAG.i','../FAO_DAG.cpp','../LinOpOperations.cpp'],
+	sources=['FAO_DAG.i'],
 	swig_opts=['-c++','-I../','-outcurrentdir'],
     define_macros=define_macros,
 	include_dirs=include_dirs,
@@ -37,7 +37,7 @@ setup(
     author='Jack Zhu, John Miller, Paul Quigley',
     author_email='jackzhu@stanford.edu, millerjp@stanford.edu, piq93@stanford.edu',
 	ext_modules=[canon],
-    py_modules=['canonInterface','FAO_DAG'],
+    py_modules=['faoInterface','FAO_DAG'],
     description='A low-level library to perform the matrix building step in cvxpy, a convex optimization modeling software.',
     license='GPLv3',
     url='https://github.com/jacklzhu/FAO_DAG',

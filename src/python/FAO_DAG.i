@@ -29,37 +29,31 @@
 %}
 
 /* Typemap for the addDenseData C++ routine in LinOp.hpp */
-%apply (double* IN_FARRAY2, size_t DIM1, size_t DIM2) {(double* matrix, size_t rows, size_t cols)};
+%apply (double* IN_ARRAY2, int DIM1, int DIM2) {(double* data, int rows, int cols)};
 
 /* Typemap for the addSparseData C++ routine in LinOp.hpp */
-%apply (double* INPLACE_ARRAY1, size_t DIM1) {(double *data, size_t data_len)}
+%apply (double* INPLACE_ARRAY1, int DIM1) {(double *data, int data_len)}
 
-%apply (size_t* INPLACE_ARRAY1, size_t DIM1) {(size_t *indices, size_t idx_len), (size_t *ptrs, size_t ptr_len)};
+%apply (int* INPLACE_ARRAY1, int DIM1) {(int *indices, int idx_len), (int *ptrs, int ptr_len)};
 %include "FAO.hpp"
 
 
 /* Useful wrappers for the FAO class */
 namespace std {
    %template(IntVector) vector<int>;
+   %template(SizetVector) vector<size_t>;
+   %template(SizetVector2D) vector< vector<size_t> >;
    %template(DoubleVector) vector<double>;
    %template(IntVector2D) vector< vector<int> >;
    %template(DoubleVector2D) vector< vector<double> >;
+   %template(FaoVector) vector<FAO*>;
    %template(IntIntMap) map<int, int>;
    %template(ConeConstraint) pair<int, vector<int> >;
    %template(ConeConstraintVector) vector< pair<int, vector<int> > >;
 }
 
-/*namespace FAO {
-   %template(DoubleFAO) FAO<double,double>;
-   %template(DoubleVariable) Variable<double>;
-   %template(DoubleConstant) Constant<double>;
-   %template(DoubleNoOp) NoOp<double,double>;
-   %template(DoubleDenseMatMul) DenseMatMul<double>;
-   %template(DoubleSparseMatMul) SparseMatMul<double>;
-   %template(DoubleScalarMul) ScalarMul<double>;
-   %template(DoubleSum) Sum<double>;
-   %template(DoubleCopy) Copy<double>;
-   %template(DoubleVstack) Vstack<double>;
-   %template(DoubleSplit) Split<double>;
-}*/
+/* For FAO_DAG.hpp. */
+%apply (double* INPLACE_ARRAY1, int DIM1) {(double* input, int input_len)}
 
+%apply (double* INPLACE_ARRAY1, int DIM1) {(double* output, int output_len)}
+%include "FAO_DAG.hpp"

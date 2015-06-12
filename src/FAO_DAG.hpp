@@ -13,45 +13,74 @@
 //    You should have received a copy of the GNU General Public License
 //    along with CVXcanon.  If not, see <http://www.gnu.org/licenses/>.
 
-#include "FAO.hpp"
-#include "gsl/gsl_vector"
+#ifndef FAO_DAG_H
+#define FAO_DAG_H
 
-class FAO_DAG<T> {
+#include "FAO.hpp"
+#include <vector>
+#include "gsl/gsl_vector.h"
+
+class FAO_DAG {
+public:
 // TODO only expose start_node input type and end_node output type.
 /* Represents an FAO DAG. Used to evaluate FAO DAG and its adjoint. */
-	FAO<T,T> start_node;
-	FAO<T,T> end_node;
+	FAO* start_node;
+	FAO* end_node;
+
+	FAO_DAG(FAO* start, FAO* end) {
+		start_node = start;
+		end_node = end;
+		// TODO initialize all the input and output arrays.
+	}
+
+	~FAO_DAG() {
+		// TODO deallocate all the input and output arrays.
+	}
+
+	/* For interacting with Python. */
+	void copy_input(std::vector<double> input) {
+		auto input_vec = get_forward_input();
+		assert(input.size() == input_vec->size);
+		gsl::vector_memcpy<double>(input.data(), input_vec);
+	}
+
+	void copy_output(std::vector<double> output) {
+		auto output_vec = get_forward_output();
+		assert(output.size() == output_vec->size);
+		gsl::vector_memcpy<double>(output_vec, output.data());
+	}
 
 	/* Returns a pointer to the input vector for forward evaluation. */
-	gsl::vector<T>* get_forward_input() {
-		return &start_node.input_data;
+	gsl::vector<double>* get_forward_input() {
+		return &start_node->input_data;
 	}
 
 	/* Returns a pointer to the output vector for forward evaluation. */
-	gsl::vector<T>* get_forward_output() {
-		return &start_node.input_data;
+	gsl::vector<double>* get_forward_output() {
+		return &end_node->output_data;
 	}
 
 	/* Returns a pointer to the input vector for forward evaluation. */
-	gsl::vector<T>* get_adjoint_input() {
+	gsl::vector<double>* get_adjoint_input() {
 		return get_forward_output();
 	}
 
 	/* Returns a pointer to the output vector for forward evaluation. */
-	gsl::vector<T>* get_adjoint_output() {
+	gsl::vector<double>* get_adjoint_output() {
 		return get_forward_input();
 	}
 
 
 	/* Evaluate the FAO DAG. */
-	void eval_dag() {
+	void forward_eval() {
 		// TODO.
 		return;
 	}
 
 	/* Evaluate the adjoint DAG. */
-	void eval_adjoint_dag() {
+	void adjoint_eval() {
 		// TODO.
 		return;
 	}
 };
+#endif
