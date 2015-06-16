@@ -67,9 +67,7 @@
       and the semantics of SIZE, ARGS, and DATA depends on the linop TYPE. */
 class FAO {
 public:
-	// TODO add constructor that takes input and output sizes (and allocates data)
-	// and destructor that frees data.
-	virtual ~FAO() {}
+	virtual ~FAO() {};
     /* Input FAOs in the DAG */
     std::vector<FAO*> input_nodes;
     /* Output FAOs in the DAG */
@@ -115,6 +113,7 @@ public:
      */
     void alloc_data() {
         size_t input_len = get_length(input_sizes);
+        printf("alloc_data input_len=%u\n", input_len);
         input_data = gsl::vector_calloc<double>(input_len);
         size_t output_len = get_length(output_sizes);
         if (is_inplace()) {
@@ -163,16 +162,6 @@ public:
         }
         return len;
     }
-};
-
-/* TODO not technically an FAO. */
-class Variable : public FAO {
-public:
-    int var_id;
-};
-
-/* TODO not technically an FAO. */
-class Constant : public FAO {
 };
 
 class NoOp : public FAO {

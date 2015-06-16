@@ -112,7 +112,7 @@ def eval_FAO_DAG(dag, input_arr, output_arr, forward=True):
     """
     start_node, end_node = dag
     tmp = []
-    start_node, end_node = python_to_c(start_node, end_node, tmp)
+    start_node, end_node = python_to_swig(start_node, end_node, tmp)
     dag = FAO_DAG.FAO_DAG(start_node, end_node)
     input_vec = convert_to_vec(True, input_arr)
     dag.copy_input(input_vec, forward)
@@ -126,137 +126,63 @@ def eval_FAO_DAG(dag, input_arr, output_arr, forward=True):
     # Must destroy FAO DAG before calling FAO destructors.
     del dag
 
-def python_to_c(start_node, end_node, tmp):
-    """Convert an FAO DAG in Python into an FAO DAG in C++.
+# def get_problem_matrix(constrs, id_to_col=None):
+#     '''
+#     Builds a sparse representation of the problem data by calling FAO_DAG's
+#     C++ build_matrix function.
+
+#     Parameters
+#     ----------
+#         constrs: A list of python linOp trees
+#         id_to_col: A map from variable id to offset withoun our matrix
+
+#     Returns
+#     ----------
+#         V, I, J: numpy arrays encoding a sparse representation of our problem
+#         const_vec: a numpy column vector representing the constant_data in our problem
+#     '''
+#     linOps = [constr.expr for constr in constrs]
+#     lin_vec = FAO_DAG.LinOpVector()
+
+#     id_to_col_C = FAO_DAG.IntIntMap()
+#     if id_to_col is None:
+#         id_to_col = {}
+
+#     # Loading the variable offsets from our
+#     # Python map into a C++ map
+#     for id, col in id_to_col.items():
+#         id_to_col_C[id] = col
+
+#     # This array keeps variables data in scope
+#     # after build_lin_op_tree returns
+#     tmp = []
+#     for lin in linOps:
+#         tree = build_lin_op_tree(lin, tmp)
+#         tmp.append(tree)
+#         lin_vec.push_back(tree)
+
+#     problemData = FAO_DAG.build_matrix(lin_vec, id_to_col_C)
+
+#     # Unpacking
+#     V = problemData.getV(len(problemData.V))
+#     I = problemData.getI(len(problemData.I))
+#     J = problemData.getJ(len(problemData.J))
+#     const_vec = problemData.getConstVec(len(problemData.const_vec))
+
+#     return V, I, J, const_vec.reshape(-1, 1)
+
+def set_dense_data(node_c, node_py):
+    """Stores dense matrix data on the Swig FAO.
     """
+    matrix = node_py.data.astype(float, order='F')
+    node_c.set_matrix_data(matrix)
 
-def tree_to_dag(root, var_nodes, no_op_nodes, ordered_vars, x_length, tmp):
-    '''
-    Convert a LinOp tree to a LinOp DAG.
-    '''
-    start_node = FAO_DAG.Split()
-    tmp.append(start_node)
-    size_pair = FAO_DAG.SizetVector()
-    size_pair.push_back(int(x_length))
-    start_node.input_sizes.push_back(size_pair)
-    var_copies = {}
-    for var_id, size in ordered_vars:
-        size_pair = get_dims(size)
-        # Add copy node for that variable.
-        copy_node = FAO_DAG.Copy()
-        tmp.append(copy_node)
-        copy_node.input_sizes.push_back(size_pair)
-        copy_node.input_nodes.push_back(start_node)
-        start_node.output_sizes.push_back(size_pair)
-        start_node.output_nodes.push_back(copy_node)
-        var_copies[var_id] = copy_node
-    # Link copy nodes directly to outputs of variables.
-    for var in var_nodes:
-        copy_node = var_copies[var.var_id]
-        output_node = var.output_nodes[0]
-        copy_node.output_nodes.push_back(output_node)
-        copy_node.output_sizes.push_back(output_node.input_sizes[0])
-        # TODO need to track which input_node corresponds to the variable.
-        # TODO TODO put tree to DAG in CVXPY, make more direct FAO constructor.
-        output_node.input_nodes[0] = copy_node
-    # Link a copy node to all the NO_OPs.
-    copy_node = var_copies[ordered_vars[0][0]]
-    var_size = ordered_vars[0][1]
-    for no_op_node in no_op_nodes:
-        copy_node.output_nodes.push_back(no_op_node)
-        copy_node.output_sizes.push_back(var_size)
-        no_op_node.input_nodes.push_back(copy_node)
-        no_op_node.input_sizes.push_back(var_size)
-    return start_node, root
-
-def get_leaves(root):
-    '''
-    Returns the leaves of the tree.
-    '''
-    if len(root.input_nodes) == 0:
-        return [root]
-    else:
-        leaves = []
-        for arg in root.input_nodes:
-            leaves += get_leaves(arg)
-        return leaves
-
-def get_problem_matrix(constrs, id_to_col=None):
-    '''
-    Builds a sparse representation of the problem data by calling FAO_DAG's
-    C++ build_matrix function.
-
-    Parameters
-    ----------
-        constrs: A list of python linOp trees
-        id_to_col: A map from variable id to offset withoun our matrix
-
-    Returns
-    ----------
-        V, I, J: numpy arrays encoding a sparse representation of our problem
-        const_vec: a numpy column vector representing the constant_data in our problem
-    '''
-    linOps = [constr.expr for constr in constrs]
-    lin_vec = FAO_DAG.LinOpVector()
-
-    id_to_col_C = FAO_DAG.IntIntMap()
-    if id_to_col is None:
-        id_to_col = {}
-
-    # Loading the variable offsets from our
-    # Python map into a C++ map
-    for id, col in id_to_col.items():
-        id_to_col_C[id] = col
-
-    # This array keeps variables data in scope
-    # after build_lin_op_tree returns
-    tmp = []
-    for lin in linOps:
-        tree = build_lin_op_tree(lin, tmp)
-        tmp.append(tree)
-        lin_vec.push_back(tree)
-
-    problemData = FAO_DAG.build_matrix(lin_vec, id_to_col_C)
-
-    # Unpacking
-    V = problemData.getV(len(problemData.V))
-    I = problemData.getI(len(problemData.I))
-    J = problemData.getJ(len(problemData.J))
-    const_vec = problemData.getConstVec(len(problemData.const_vec))
-
-    return V, I, J, const_vec.reshape(-1, 1)
-
-
-def format_matrix(matrix, format='dense'):
-    ''' Returns the matrix in the appropriate form,
-        so that it can be efficiently loaded with our swig wrapper
-    '''
-    if(format == 'dense'):
-        # return np.asfortranarray(matrix)
-        return matrix.astype(float, order='F')
-    elif(format == 'sparse'):
-        return scipy.sparse.csr_matrix(matrix)
-    elif(format == 'scalar'):
-        return np.asarray(np.matrix(matrix))
-    else:
-        raise NotImplementedError()
-
-
-def set_matrix_data(linC, linPy):
-    '''  Calls the appropriate FAO_DAG function to set the matrix data field of our C++ linOp.
-    '''
-    if isinstance(linPy.data, LinOp):
-        if linPy.data.type is 'sparse_const':
-            csr = format_matrix(linPy.data.data, 'sparse')
-            linC.set_spmatrix_data(csr.data, csr.indptr.astype(int),
-                                 csr.indices.astype(int), csr.shape[0], csr.shape[1])
-        elif linPy.data.type is 'dense_const':
-            linC.set_matrix_data(format_matrix(linPy.data.data))
-        else:
-            raise NotImplementedError()
-    else:
-        linC.set_dense_data(format_matrix(linPy.data))
-
+def set_sparse_data(node_c, node_py):
+    """Stores dense matrix data on the Swig FAO.
+    """
+    csr = scipy.sparse.csr_matrix(node_py.data)
+    node_c.set_spmatrix_data(csr.data, csr.indptr.astype(int),
+                             csr.indices.astype(int), csr.shape[0], csr.shape[1])
 
 def set_slice_data(linC, linPy):
     '''
@@ -282,7 +208,6 @@ def set_slice_data(linC, linPy):
         linC.slice.push_back(vec)
 
 type_map = {
-    VARIABLE: FAO_DAG.Variable,
     # "PROMOTE": FAO_DAG.PROMOTE,
     # "MUL": FAO_DAG.MUL,
     # "RMUL": FAO_DAG.RMUL,
@@ -301,102 +226,95 @@ type_map = {
     # "CONV": FAO_DAG.CONV,
     # "HSTACK": FAO_DAG.HSTACK,
     # "VSTACK": FAO_DAG.VSTACK,
-    SCALAR_CONST: FAO_DAG.Constant,
-    DENSE_CONST: FAO_DAG.Constant,
-    SPARSE_CONST: FAO_DAG.Constant,
+    SCALAR_MUL: FAO_DAG.ScalarMul,
+    DENSE_MAT_VEC_MUL: FAO_DAG.DenseMatVecMul,
+    SPARSE_MAT_VEC_MUL: FAO_DAG.SparseMatVecMul,
+    DENSE_MAT_MAT_MUL: FAO_DAG.DenseMatMatMul,
+    SPARSE_MAT_MAT_MUL: FAO_DAG.SparseMatMatMul,
+    COPY: FAO_DAG.Copy,
+    SPLIT: FAO_DAG.Split,
+    # SCALAR_CONST: FAO_DAG.Constant,
+    # DENSE_CONST: FAO_DAG.Constant,
+    # SPARSE_CONST: FAO_DAG.Constant,
     NO_OP: FAO_DAG.NoOp,
 }
 
-mul_vec_type_map = {
-    SCALAR_CONST: FAO_DAG.ScalarMul,
-    DENSE_CONST: FAO_DAG.DenseMatVecMul,
-    SPARSE_CONST: FAO_DAG.SparseMatVecMul,
-}
-
-mul_mat_type_map = {
-    SCALAR_CONST: FAO_DAG.ScalarMul,
-    DENSE_CONST: FAO_DAG.DenseMatMatMul,
-    SPARSE_CONST: FAO_DAG.SparseMatMatMul,
-}
-
-def get_type(ty):
-    if ty in type_map:
-        return type_map[ty]
+def get_FAO(node):
+    if node.type in type_map:
+        print node
+        # Make input and output sizes.
+        input_sizes = get_dims_vec(node.input_sizes)
+        output_sizes = get_dims_vec(node.output_sizes)
+        swig_fao = type_map[node.type]()
+        swig_fao.input_sizes = input_sizes
+        swig_fao.output_sizes = output_sizes
+        swig_fao.input_nodes = init_fao_vec(node.input_nodes)
+        swig_fao.output_nodes = init_fao_vec(node.output_nodes)
+        return swig_fao
     else:
         raise NotImplementedError()
 
+def init_fao_vec(nodes):
+    """Returns an FAO vec full of Null pointers.
+    """
+    fao_vec = FAO_DAG.FaoVector()
+    for node in nodes:
+        fao_vec.push_back(None)
+    return fao_vec
+
+def get_dims_vec(sizes):
+    """Returns the vector for a FAO input/output sizes.
+    """
+    dims_vec = FAO_DAG.SizetVector2D()
+    for dims in sizes:
+        print dims
+        dims_vec.push_back(get_dims(dims))
+    return dims_vec
+
 def get_dims(size):
-    """A python LinOp.
+    """Returns the vector for a FAO input/output size.
     """
     size_pair = FAO_DAG.SizetVector()
     size_pair.push_back(int(size[0]))
     size_pair.push_back(int(size[1]))
     return size_pair
 
-def get_FAO(linPy, var_nodes, no_op_nodes):
-    if linPy.type in type_map:
-        linC = type_map[linPy.type]()
-    elif linPy.type == MUL:
-        if linPy.args[0].size[1] == 1:
-            linC = mul_vec_type_map[linPy.data.type]()
-        else:
-            linC = mul_mat_type_map[linPy.data.type]()
-    else:
-        print linPy.type
-        raise Exception("unknown LinOp.")
-    # Add to var_nodes or no_op_nodes.
-    if linPy.type == VARIABLE:
-        var_nodes.append(linC)
-    elif linPy.type == NO_OP:
-        no_op_nodes.append(linC)
-    return linC
+def python_to_swig(start_node, end_node, tmp):
+    """Convert an FAO DAG in Python into an FAO DAG in C++.
 
-def build_lin_op_tree(root_linPy, var_nodes, no_op_nodes, tmp):
-    '''
-    Breadth-first, pre-order traversal on the Python linOp tree
     Parameters
-    -------------
-    root_linPy: a Python LinOp tree
-    var_nodes: a list of variable nodes.
-    no_op_nodes: a list of no_op nodes.
-    tmp: an array to keep data from going out of scope
+    ----------
+    start_node: A Python FAO.
+    end_node: A Python FAO.
+    tmp: A list to keep data from going out of scope.
 
     Returns
     --------
-    root_linC: a C++ LinOp tree created through our swig interface
-    '''
-    Q = deque()
-    root_linC = get_FAO(root_linPy, var_nodes, no_op_nodes)
-    Q.append((root_linPy, root_linC))
+    tuple
+        A (start_node, end_node) tuple for the C++ FAO DAG.
+    """
+    ready_queue = deque()
+    start_swig = get_FAO(start_node)
+    ready_queue.append((start_node, start_swig))
 
-    # Add the output size.
-    size_pair = get_dims(root_linPy.size)
-    root_linC.output_sizes.push_back(size_pair)
-
-    while len(Q) > 0:
-        linPy, linC = Q.popleft()
-        size_pair = get_dims(linPy.size)
-        # Updating the arguments our LinOp
-        for argPy in linPy.args:
-            tree = get_FAO(argPy, var_nodes, no_op_nodes)
-            tmp.append(tree)
-            Q.append((argPy, tree))
-            tree.output_nodes.push_back(linC)
-            tree.output_sizes.push_back(size_pair)
-            linC.input_nodes.push_back(tree)
-            arg_size_pair = get_dims(argPy.size)
-            linC.input_sizes.push_back(arg_size_pair)
+    while len(ready_queue) > 0:
+        cur_py, cur_c = ready_queue.popleft()
+        # Updating the arguments for Swig FAO.
+        for output_idx, node_py in enumerate(cur_py.output_nodes):
+            node_c = get_FAO(node_py)
+            tmp.append(node_c)
+            ready_queue.append((node_py, node_c))
+            cur_c.output_nodes[output_idx] = node_c
+            input_idx = node_py.input_nodes.index(cur_py)
+            node_c.input_nodes[input_idx] = cur_c
 
         # Loading the problem data into the appropriate array format
-        if linPy.data is None:
-            pass
-        elif linPy.type == VARIABLE:
-            linC.var_id = int(linPy.data)
-        elif isinstance(linPy.data, tuple) and isinstance(linPy.data[0], slice):
-            set_slice_data(linC, linPy)
-        elif isinstance(linPy.data, LinOp) and linPy.data.type is 'scalar_const':
-            linC.scalar = float(linPy.data.data)
-        else:
-            set_matrix_data(linC, linPy)
-
-    return root_linC
+        if cur_py.type == INDEX:
+            set_slice_data(cur_c, cur_py)
+        elif cur_py.type in [SCALAR_MUL]:
+            cur_c.scalar = float(cur_py.data)
+        elif cur_py.type in [DENSE_MAT_VEC_MUL, DENSE_MAT_MAT_MUL]:
+            set_dense_data(cur_c, cur_py)
+        elif cur_py.type in [SPARSE_MAT_VEC_MUL, SPARSE_MAT_MAT_MUL]:
+            set_sparse_data(cur_c, cur_py)
+    return start_swig, cur_c

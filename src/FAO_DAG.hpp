@@ -42,19 +42,18 @@ public:
 			node->alloc_data();
 			node->init_offset_maps();
 		};
-		traverse_graph(true, node_fn);
+		traverse_graph(node_fn, true);
 		printf("finished FAO DAG <><><><>\n");
 	}
 
 	~FAO_DAG() {
 		/* Deallocate input and output arrays on each node. */
 		auto node_fn = [](FAO* node) {node->free_data();};
-		traverse_graph(true, node_fn);
+		traverse_graph(node_fn, true);
 		printf("~FAO_DAG <><><>\n");
 	}
 
-	void traverse_graph (bool forward,
-						 std::function<void(FAO*)> node_fn) {
+	void traverse_graph (std::function<void(FAO*)> node_fn, bool forward) {
 		/* Traverse the graph and apply the given function at each node.
 
 		   forward: Traverse in standard or reverse order?
@@ -166,7 +165,7 @@ public:
 							  &node->output_data, node_offset, len);
 			}
 		};
-		traverse_graph(true, node_eval);
+		traverse_graph(node_eval, true);
 	}
 
 	/* Evaluate the adjoint DAG. */
@@ -193,7 +192,7 @@ public:
 			}
 		};
 		printf("adjoint stuff <><><>\n");
-		traverse_graph(false, node_eval);
+		traverse_graph(node_eval, false);
 	}
 };
 #endif
