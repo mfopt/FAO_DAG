@@ -94,12 +94,27 @@ const vector<T> vector_view_array(const T *base, size_t n) {
   return vec;
 }
 
+/* Copy len elements from the dst_vec to src_vec at the given offsets. */
+template <typename T>
+void vector_subvec_memcpy(vector<T>* dest_vec, size_t dest_offset,
+                          const vector<T>* src_vec, size_t src_offset,
+                          size_t len) {
+    if (dest_vec->stride == 1 && src_vec->stride == 1) {
+      memcpy(dest_vec->data + dest_offset,
+             src_vec->data + src_offset, len * sizeof(T));
+    } else {
+      for (unsigned int i = 0; i < len; ++i)
+        vector_set(dest_vec, i + dest_offset,
+          vector_get(src_vec, src_offset));
+    }
+}
+
 template <typename T>
 void vector_memcpy(vector<T> *x, const vector<T> *y) {
   if (x->stride == 1 && y->stride == 1) {
     memcpy(x->data, y->data, x->size * sizeof(T));
   } else {
-    for (unsigned int i = 0; i < x->size; ++i) 
+    for (unsigned int i = 0; i < x->size; ++i)
       vector_set(x, i, vector_get(y, i));
   }
 }
@@ -119,7 +134,7 @@ void vector_memcpy(T *x, const vector<T> *y) {
   if (y->stride == 1) {
     memcpy(x, y->data, y->size * sizeof(T));
   } else {
-    for (unsigned int i = 0; i < y->size; ++i) 
+    for (unsigned int i = 0; i < y->size; ++i)
       x[i] = vector_get(y, i);
   }
 }

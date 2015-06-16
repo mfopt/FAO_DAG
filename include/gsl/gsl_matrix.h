@@ -19,6 +19,19 @@ struct matrix {
 };
 
 template <typename T, CBLAS_ORDER O>
+matrix<T, O> matrix_init(size_t m, size_t n, T *data) {
+  matrix<T, O> mat;
+  mat.size1 = m;
+  mat.size2 = n;
+  if (O == CblasRowMajor)
+    mat.tda = n;
+  else
+    mat.tda = m;
+  mat.data = data;
+  return mat;
+}
+
+template <typename T, CBLAS_ORDER O>
 matrix<T, O> matrix_alloc(size_t m, size_t n) {
   matrix<T, O> mat;
   mat.size1 = m;
@@ -145,12 +158,12 @@ void matrix_memcpy(matrix<T, O> *A, const matrix<T, O> *B) {
       (O == CblasColMajor && A->tda == A->size1 && B->tda == B->size1))
     memcpy(A->data, B->data, A->size1 * A->size2 * sizeof(T));
   else if (O == CblasRowMajor)
-    for (unsigned int i = 0; i < A->size1; ++i) 
-      for (unsigned int j = 0; j < A->size2; ++j) 
+    for (unsigned int i = 0; i < A->size1; ++i)
+      for (unsigned int j = 0; j < A->size2; ++j)
         matrix_set(A, i, j, matrix_get(B, i, j));
-  else 
-    for (unsigned int j = 0; j < A->size2; ++j) 
-      for (unsigned int i = 0; i < A->size1; ++i) 
+  else
+    for (unsigned int j = 0; j < A->size2; ++j)
+      for (unsigned int i = 0; i < A->size1; ++i)
         matrix_set(A, i, j, matrix_get(B, i, j));
 }
 
@@ -160,27 +173,27 @@ void matrix_memcpy(matrix<T, O> *A, const T *B) {
       (O == CblasColMajor && A->tda == A->size1))
     memcpy(A->data, B, A->size1 * A->size2 * sizeof(T));
   else if (O == CblasRowMajor)
-    for (unsigned int i = 0; i < A->size1; ++i) 
-      for (unsigned int j = 0; j < A->size2; ++j) 
+    for (unsigned int i = 0; i < A->size1; ++i)
+      for (unsigned int j = 0; j < A->size2; ++j)
         matrix_set(A, i, j, B[i * A->size2 + j]);
   else
-    for (unsigned int j = 0; j < A->size2; ++j) 
-      for (unsigned int i = 0; i < A->size1; ++i) 
+    for (unsigned int j = 0; j < A->size2; ++j)
+      for (unsigned int i = 0; i < A->size1; ++i)
         matrix_set(A, i, j, B[i + j * A->size1]);
 }
 
 template <typename T, CBLAS_ORDER O>
 void matrix_memcpy(T *A, const matrix<T, O> *B) {
   if ((O == CblasRowMajor && B->tda == B->size2) ||
-      (O == CblasColMajor && B->tda == B->size1)) 
+      (O == CblasColMajor && B->tda == B->size1))
     memcpy(A, B->data, B->size1 * B->size2 * sizeof(T));
   else if (O == CblasRowMajor)
-    for (unsigned int i = 0; i < B->size1; ++i) 
-      for (unsigned int j = 0; j < B->size2; ++j) 
+    for (unsigned int i = 0; i < B->size1; ++i)
+      for (unsigned int j = 0; j < B->size2; ++j)
         A[i * B->size2 + j] = matrix_get(B, i, j);
-  else 
-    for (unsigned int j = 0; j < B->size2; ++j) 
-      for (unsigned int i = 0; i < B->size1; ++i) 
+  else
+    for (unsigned int j = 0; j < B->size2; ++j)
+      for (unsigned int i = 0; i < B->size1; ++i)
         A[i + j * B->size1] = matrix_get(B, i, j);
 }
 

@@ -37,7 +37,6 @@
 %apply (int* INPLACE_ARRAY1, int DIM1) {(int *indices, int idx_len), (int *ptrs, int ptr_len)};
 %include "FAO.hpp"
 
-
 /* Useful wrappers for the FAO class */
 namespace std {
    %template(IntVector) vector<int>;

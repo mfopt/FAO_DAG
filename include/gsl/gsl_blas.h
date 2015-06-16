@@ -199,8 +199,9 @@ template <typename T, CBLAS_ORDER O>
 void blas_gemm(CBLAS_TRANSPOSE_t TransA, CBLAS_TRANSPOSE_t TransB, T alpha,
                const matrix<T, O> *A, const matrix<T, O> *B, T beta,
                matrix<T, O> *C) {
-  blas_gemm_(TransA, TransB, alpha, A, B, beta, C);  
+  blas_gemm_(TransA, TransB, alpha, A, B, beta, C);
 }
+
 
 // Trsm
 template <CBLAS_ORDER O>

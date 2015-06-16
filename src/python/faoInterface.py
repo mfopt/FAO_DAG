@@ -111,45 +111,43 @@ def forward_eval(root, ordered_vars, input_arr, output_arr):
     """
     x_length = sum([size[0]*size[1] for v,size in ordered_vars])
     tmp = []
-    tree = build_lin_op_tree(root, tmp)
-    start_node, end_node = tree_to_dag(tree, ordered_vars, x_length)
+    var_nodes = []
+    no_op_nodes = []
+    tree = build_lin_op_tree(root, var_nodes, no_op_nodes, tmp)
+    start_node, end_node = tree_to_dag(tree, var_nodes, no_op_nodes,
+                                       ordered_vars, x_length, tmp)
     dag = FAO_DAG.FAO_DAG(start_node, end_node)
-    # dag.start_node = start_node;
-    # dag.end_node = end_node;
     input_vec = convert_to_vec(True, input_arr)
     dag.copy_input(input_vec)
     dag.forward_eval()
-    dag.copy_output(output_arr)
+    output_vec = convert_to_vec(True, output_arr)
+    dag.copy_output(output_vec)
+    output_arr[:] = output_vec[:]
+    # Must destroy FAO DAG before calling FAO destructors.
+    del dag
 
-def tree_to_dag(root, ordered_vars, x_length):
+def tree_to_dag(root, var_nodes, no_op_nodes, ordered_vars, x_length, tmp):
     '''
     Convert a LinOp tree to a LinOp DAG.
     '''
-    var_type = type(FAO_DAG.Variable())
-    no_op_type = type(FAO_DAG.NoOp())
-    # First get all the variables and NOOP nodes.
-    leaves = get_leaves(root)
-    variables = []
-    no_ops = []
-    for node in leaves:
-        if type(node) == var_type:
-            variables.append(node)
-        elif type(node) == no_op_type:
-            no_ops.append(node)
-    end_node = FAO_DAG.Split()
-    size_pair = get_dims((x_length, 1))
-    end_node.input_sizes.push_back(size_pair)
+    start_node = FAO_DAG.Split()
+    tmp.append(start_node)
+    size_pair = FAO_DAG.SizetVector()
+    size_pair.push_back(int(x_length))
+    start_node.input_sizes.push_back(size_pair)
     var_copies = {}
     for var_id, size in ordered_vars:
         size_pair = get_dims(size)
-        end_node.output_sizes.push_back(size_pair)
         # Add copy node for that variable.
         copy_node = FAO_DAG.Copy()
+        tmp.append(copy_node)
         copy_node.input_sizes.push_back(size_pair)
-        copy_node.input_nodes.push_back(end_node)
+        copy_node.input_nodes.push_back(start_node)
+        start_node.output_sizes.push_back(size_pair)
+        start_node.output_nodes.push_back(copy_node)
         var_copies[var_id] = copy_node
     # Link copy nodes directly to outputs of variables.
-    for var in variables:
+    for var in var_nodes:
         copy_node = var_copies[var.var_id]
         output_node = var.output_nodes[0]
         copy_node.output_nodes.push_back(output_node)
@@ -158,12 +156,12 @@ def tree_to_dag(root, ordered_vars, x_length):
     # Link a copy node to all the NO_OPs.
     copy_node = var_copies[ordered_vars[0][0]]
     var_size = ordered_vars[0][1]
-    for no_op_node in no_ops:
+    for no_op_node in no_op_nodes:
         copy_node.output_nodes.push_back(no_op_node)
         copy_node.output_sizes.push_back(var_size)
         no_op_node.input_nodes.push_back(copy_node)
         no_op_node.input_sizes.push_back(var_size)
-    return root, end_node
+    return start_node, root
 
 def get_leaves(root):
     '''
@@ -228,7 +226,7 @@ def format_matrix(matrix, format='dense'):
         so that it can be efficiently loaded with our swig wrapper
     '''
     if(format == 'dense'):
-        return np.asarray(matrix)
+        return np.asfortranarray(matrix)
     elif(format == 'sparse'):
         return scipy.sparse.csr_matrix(matrix)
     elif(format == 'scalar'):
@@ -302,10 +300,16 @@ type_map = {
     NO_OP: FAO_DAG.NoOp,
 }
 
-mul_type_map = {
+mul_vec_type_map = {
     SCALAR_CONST: FAO_DAG.ScalarMul,
-    DENSE_CONST: FAO_DAG.DenseMatMul,
-    SPARSE_CONST: FAO_DAG.SparseMatMul,
+    DENSE_CONST: FAO_DAG.DenseMatVecMul,
+    SPARSE_CONST: FAO_DAG.SparseMatVecMul,
+}
+
+mul_mat_type_map = {
+    SCALAR_CONST: FAO_DAG.ScalarMul,
+    DENSE_CONST: FAO_DAG.DenseMatMatMul,
+    SPARSE_CONST: FAO_DAG.SparseMatMatMul,
 }
 
 def get_type(ty):
@@ -313,7 +317,6 @@ def get_type(ty):
         return type_map[ty]
     else:
         raise NotImplementedError()
-
 
 def get_dims(size):
     """A python LinOp.
@@ -323,22 +326,32 @@ def get_dims(size):
     size_pair.push_back(int(size[1]))
     return size_pair
 
-def get_FAO(linPy):
+def get_FAO(linPy, var_nodes, no_op_nodes):
     if linPy.type in type_map:
-        return type_map[linPy.type]()
+        linC = type_map[linPy.type]()
     elif linPy.type == MUL:
-         return mul_type_map[linPy.data.type]()
+        if linPy.args[0].size[1] == 1:
+            linC = mul_vec_type_map[linPy.data.type]()
+        else:
+            linC = mul_mat_type_map[linPy.data.type]()
     else:
         print linPy.type
         raise Exception("unknown LinOp.")
+    # Add to var_nodes or no_op_nodes.
+    if linPy.type == VARIABLE:
+        var_nodes.append(linC)
+    elif linPy.type == NO_OP:
+        no_op_nodes.append(linC)
+    return linC
 
-def build_lin_op_tree(root_linPy, tmp):
+def build_lin_op_tree(root_linPy, var_nodes, no_op_nodes, tmp):
     '''
     Breadth-first, pre-order traversal on the Python linOp tree
     Parameters
     -------------
     root_linPy: a Python LinOp tree
-
+    var_nodes: a list of variable nodes.
+    no_op_nodes: a list of no_op nodes.
     tmp: an array to keep data from going out of scope
 
     Returns
@@ -346,15 +359,19 @@ def build_lin_op_tree(root_linPy, tmp):
     root_linC: a C++ LinOp tree created through our swig interface
     '''
     Q = deque()
-    root_linC = get_FAO(root_linPy)
+    root_linC = get_FAO(root_linPy, var_nodes, no_op_nodes)
     Q.append((root_linPy, root_linC))
+
+    # Add the output size.
+    size_pair = get_dims(root_linPy.size)
+    root_linC.output_sizes.push_back(size_pair)
 
     while len(Q) > 0:
         linPy, linC = Q.popleft()
         size_pair = get_dims(linPy.size)
         # Updating the arguments our LinOp
         for argPy in linPy.args:
-            tree = get_FAO(argPy)
+            tree = get_FAO(argPy, var_nodes, no_op_nodes)
             tmp.append(tree)
             Q.append((argPy, tree))
             tree.output_nodes.push_back(linC)
