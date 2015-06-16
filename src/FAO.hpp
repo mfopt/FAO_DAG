@@ -218,6 +218,7 @@ public:
     }
 
     void adjoint_eval(gsl::vector<double> input_data, gsl::vector<double> output_data) {
+        // TODO shouldn't assume adjoint.
         int M = static_cast<int>(input_sizes[0][0]);
         int N = static_cast<int>(output_sizes[0][1]);
         int K = static_cast<int>(output_sizes[0][0]);

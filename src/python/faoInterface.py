@@ -16,6 +16,7 @@
 import FAO_DAG
 import numpy as np
 from cvxpy.lin_ops.lin_op import *
+from cvxpy.lin_ops.fao_utils import *
 import scipy.sparse
 from collections import deque
 
@@ -106,16 +107,12 @@ def convert_to_vec(is_double, ndarray, div=1):
 #     start_node, end_node = tree_to_dag(tree, var_sizes, c.size[0])
 #     return None
 
-def eval_FAO_DAG(root, ordered_vars, input_arr, output_arr, forward=True):
+def eval_FAO_DAG(dag, input_arr, output_arr, forward=True):
     """ordered_vars: list of (id, size) tuples.
     """
-    x_length = sum([size[0]*size[1] for v,size in ordered_vars])
+    start_node, end_node = dag
     tmp = []
-    var_nodes = []
-    no_op_nodes = []
-    tree = build_lin_op_tree(root, var_nodes, no_op_nodes, tmp)
-    start_node, end_node = tree_to_dag(tree, var_nodes, no_op_nodes,
-                                       ordered_vars, x_length, tmp)
+    start_node, end_node = python_to_c(start_node, end_node, tmp)
     dag = FAO_DAG.FAO_DAG(start_node, end_node)
     input_vec = convert_to_vec(True, input_arr)
     dag.copy_input(input_vec, forward)
@@ -129,6 +126,9 @@ def eval_FAO_DAG(root, ordered_vars, input_arr, output_arr, forward=True):
     # Must destroy FAO DAG before calling FAO destructors.
     del dag
 
+def python_to_c(start_node, end_node, tmp):
+    """Convert an FAO DAG in Python into an FAO DAG in C++.
+    """
 
 def tree_to_dag(root, var_nodes, no_op_nodes, ordered_vars, x_length, tmp):
     '''
@@ -156,6 +156,8 @@ def tree_to_dag(root, var_nodes, no_op_nodes, ordered_vars, x_length, tmp):
         output_node = var.output_nodes[0]
         copy_node.output_nodes.push_back(output_node)
         copy_node.output_sizes.push_back(output_node.input_sizes[0])
+        # TODO need to track which input_node corresponds to the variable.
+        # TODO TODO put tree to DAG in CVXPY, make more direct FAO constructor.
         output_node.input_nodes[0] = copy_node
     # Link a copy node to all the NO_OPs.
     copy_node = var_copies[ordered_vars[0][0]]

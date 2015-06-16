@@ -148,7 +148,13 @@ public:
 	/* Evaluate the FAO DAG. */
 	void forward_eval() {
 		auto node_eval = [](FAO *node){
+			for (size_t i=0; i < node->input_data.size; ++i){
+				printf("node->input_data[%lu]=%e\n", i, node->input_data.data[i]);
+			}
 			node->forward_eval(node->input_data, node->output_data);
+			for (size_t i=0; i < node->output_data.size; ++i){
+				printf("node->output_data[%lu]=%e\n", i, node->output_data.data[i]);
+			}
 			// Copy data from node to children.
 			for (size_t i=0; i < node->output_nodes.size(); ++i) {
 				FAO* target = node->output_nodes[i];
