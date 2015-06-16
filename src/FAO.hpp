@@ -97,12 +97,13 @@ public:
 
 	   Default does nothing.
     */
-    virtual void forward_eval() {
+    virtual void forward_eval(gsl::vector<double> input_data,
+    						  gsl::vector<double> output_data) {
     	printf("forward base\n");
         return;
     }
 
-    virtual void adjoint_eval() {
+    virtual void adjoint_eval(gsl::vector<double> input_data, gsl::vector<double> output_data) {
     	printf("adjoint base\n");
         return;
     }
@@ -175,28 +176,26 @@ class Constant : public FAO {
 };
 
 class NoOp : public FAO {
-public:
-	bool is_no_op = true;
 };
 
 class DenseMatVecMul : public FAO {
 public:
-    gsl::matrix<double, CblasColMajor> matrix;
+    gsl::matrix<double, CblasRowMajor> matrix;
     // TODO should I store the transpose separately?
     // gsl::matrix<T, CblasRowMajor> matrix_trans;
 
     void set_matrix_data(double* data, int rows, int cols) {
-        matrix = gsl::matrix_init<double, CblasColMajor>(rows, cols, data);
+        matrix = gsl::matrix_init<double, CblasRowMajor>(rows, cols, data);
     }
 
     /* Standard dense matrix multiplication. */
-    void forward_eval() {
-        return gsl::blas_gemv<double, CblasColMajor>(CblasNoTrans, 1, &matrix,
+    void forward_eval(gsl::vector<double> input_data, gsl::vector<double> output_data) {
+        return gsl::blas_gemv<double, CblasRowMajor>(CblasNoTrans, 1, &matrix,
         	&input_data, 0, &output_data);
     }
 
-    void adjoint_eval() {
-        return gsl::blas_gemv<double, CblasColMajor>(CblasTrans, 1, &matrix,
+    void adjoint_eval(gsl::vector<double> input_data, gsl::vector<double> output_data) {
+        return gsl::blas_gemv<double, CblasRowMajor>(CblasTrans, 1, &matrix,
         	&input_data, 0, &output_data);
     }
 
@@ -206,26 +205,27 @@ class DenseMatMatMul : public DenseMatVecMul {
 public:
 
     /* Standard dense matrix matrix multiplication. */
-    void forward_eval() {
+    void forward_eval(gsl::vector<double> input_data, gsl::vector<double> output_data) {
+        // TODO shouldn't assume forward.
         int M = static_cast<int>(output_sizes[0][0]);
-        int N = static_cast<int>(input_sizes[0][0]);
-        int K = static_cast<int>(input_sizes[0][1]);
+        int N = static_cast<int>(input_sizes[0][1]);
+        int K = static_cast<int>(input_sizes[0][0]);
+        cblas_dgemm(CblasColMajor, CblasTrans,
+                    CblasNoTrans, M, N,
+                    K, 1, matrix.data,
+                    K, input_data.data, K,
+                    0, output_data.data, M);
+    }
+
+    void adjoint_eval(gsl::vector<double> input_data, gsl::vector<double> output_data) {
+        int M = static_cast<int>(input_sizes[0][0]);
+        int N = static_cast<int>(output_sizes[0][1]);
+        int K = static_cast<int>(output_sizes[0][0]);
         cblas_dgemm(CblasColMajor, CblasNoTrans,
                     CblasNoTrans, M, N,
                     K, 1, matrix.data,
                     M, input_data.data, K,
                     0, output_data.data, M);
-    }
-
-    void adjoint_eval() {
-        int M = static_cast<int>(input_sizes[0][0]);
-        int N = static_cast<int>(output_sizes[0][0]);
-        int K = static_cast<int>(output_sizes[0][1]);
-        cblas_dgemm(CblasColMajor, CblasTrans,
-                    CblasNoTrans, M, N,
-                    K, 1, matrix.data,
-                    M, output_data.data, K,
-                    0, input_data.data, M);
     }
 
 };
@@ -248,12 +248,12 @@ public:
     }
 
     /* Standard sparse matrix multiplication. */
-    void forward_eval() {
+    void forward_eval(gsl::vector<double> input_data, gsl::vector<double> output_data) {
         return gsl::spblas_gemv<double, size_t, CblasRowMajor>(CblasNoTrans, 1,
         	&spmatrix, &input_data, 0, &output_data);
     }
 
-    void adjoint_eval() {
+    void adjoint_eval(gsl::vector<double> input_data, gsl::vector<double> output_data) {
         return gsl::spblas_gemv<double, size_t, CblasRowMajor>(CblasTrans, 1,
         	&spmatrix, &input_data, 0, &output_data);
     }
@@ -274,12 +274,12 @@ public:
     }
 
     /* Scale the input/output. */
-    void forward_eval() {
+    void forward_eval(gsl::vector<double> input_data, gsl::vector<double> output_data) {
         return gsl::blas_scal<double>(scalar, &input_data);
     }
 
-    void adjoint_eval() {
-        forward_eval();
+    void adjoint_eval(gsl::vector<double> input_data, gsl::vector<double> output_data) {
+        forward_eval(input_data, output_data);
     }
 };
 
@@ -291,7 +291,7 @@ public:
 class Sum: public FAO {
 public:
     /* Sum the inputs. */
-    void forward_eval() {
+    void forward_eval(gsl::vector<double> input_data, gsl::vector<double> output_data) {
  		size_t elem_size = output_data.size;
  		gsl::vector_subvec_memcpy<double>(&output_data, 0, &input_data, 0, elem_size);
  		for (size_t i=1; i < input_sizes.size(); ++i) {
@@ -302,7 +302,7 @@ public:
     }
 
     /* Copy the input. */
-    void adjoint_eval() {
+    void adjoint_eval(gsl::vector<double> input_data, gsl::vector<double> output_data) {
         size_t elem_size = input_data.size;
         for (size_t i=0; i < output_sizes.size(); ++i) {
         	gsl::vector_subvec_memcpy<double>(&output_data, i*elem_size,
@@ -316,13 +316,13 @@ class Copy : public Sum {
 /* Adjoint of Sum. */
 public:
     /* Copy the inputs. */
-    void forward_eval() {
-    	Sum::adjoint_eval();
+    void forward_eval(gsl::vector<double> input_data, gsl::vector<double> output_data) {
+    	Sum::adjoint_eval(input_data, output_data);
     }
 
     /* Sum the inputs. */
-    void adjoint_eval() {
-    	Sum::forward_eval();
+    void adjoint_eval(gsl::vector<double> input_data, gsl::vector<double> output_data) {
+    	Sum::forward_eval(input_data, output_data);
     }
 };
 

@@ -31,6 +31,7 @@
 /* Typemap for the addDenseData C++ routine in LinOp.hpp */
 %apply (double* IN_ARRAY2, int DIM1, int DIM2) {(double* data, int rows, int cols)};
 
+
 /* Typemap for the addSparseData C++ routine in LinOp.hpp */
 %apply (double* INPLACE_ARRAY1, int DIM1) {(double *data, int data_len)}
 
@@ -56,3 +57,30 @@ namespace std {
 
 %apply (double* INPLACE_ARRAY1, int DIM1) {(double* output, int output_len)}
 %include "FAO_DAG.hpp"
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 

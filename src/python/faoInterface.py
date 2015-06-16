@@ -106,7 +106,7 @@ def convert_to_vec(is_double, ndarray, div=1):
 #     start_node, end_node = tree_to_dag(tree, var_sizes, c.size[0])
 #     return None
 
-def forward_eval(root, ordered_vars, input_arr, output_arr):
+def eval_FAO_DAG(root, ordered_vars, input_arr, output_arr, forward=True):
     """ordered_vars: list of (id, size) tuples.
     """
     x_length = sum([size[0]*size[1] for v,size in ordered_vars])
@@ -118,13 +118,17 @@ def forward_eval(root, ordered_vars, input_arr, output_arr):
                                        ordered_vars, x_length, tmp)
     dag = FAO_DAG.FAO_DAG(start_node, end_node)
     input_vec = convert_to_vec(True, input_arr)
-    dag.copy_input(input_vec)
-    dag.forward_eval()
+    dag.copy_input(input_vec, forward)
+    if forward:
+        dag.forward_eval()
+    else:
+        dag.adjoint_eval()
     output_vec = convert_to_vec(True, output_arr)
-    dag.copy_output(output_vec)
+    dag.copy_output(output_vec, forward)
     output_arr[:] = output_vec[:]
     # Must destroy FAO DAG before calling FAO destructors.
     del dag
+
 
 def tree_to_dag(root, var_nodes, no_op_nodes, ordered_vars, x_length, tmp):
     '''
@@ -152,7 +156,7 @@ def tree_to_dag(root, var_nodes, no_op_nodes, ordered_vars, x_length, tmp):
         output_node = var.output_nodes[0]
         copy_node.output_nodes.push_back(output_node)
         copy_node.output_sizes.push_back(output_node.input_sizes[0])
-        output_node.input_nodes[0] = output_node
+        output_node.input_nodes[0] = copy_node
     # Link a copy node to all the NO_OPs.
     copy_node = var_copies[ordered_vars[0][0]]
     var_size = ordered_vars[0][1]
@@ -226,7 +230,8 @@ def format_matrix(matrix, format='dense'):
         so that it can be efficiently loaded with our swig wrapper
     '''
     if(format == 'dense'):
-        return np.asfortranarray(matrix)
+        # return np.asfortranarray(matrix)
+        return matrix.astype(float, order='F')
     elif(format == 'sparse'):
         return scipy.sparse.csr_matrix(matrix)
     elif(format == 'scalar'):
