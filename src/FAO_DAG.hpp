@@ -112,6 +112,7 @@ public:
 	/* For interacting with Python. */
 	void copy_input(std::vector<double>& input, bool forward) {
 		gsl::vector<double>* input_vec;
+		printf("copy_input\n");
 		if (forward) {
 			input_vec = get_forward_input();
 		} else {

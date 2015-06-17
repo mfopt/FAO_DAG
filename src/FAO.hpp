@@ -255,6 +255,11 @@ class ScalarMul : public FAO {
 public:
     double scalar;
 
+    /* Get the scalar value. */
+    virtual double get_scalar() {
+    	return scalar;
+    }
+
     /* Operation is in-place. */
     bool is_inplace() {
         return true;
@@ -262,7 +267,8 @@ public:
 
     /* Scale the input/output. */
     void forward_eval() {
-        return gsl::blas_scal<double>(scalar, &input_data);
+    	printf("ScalarMul forward eval scalar = %e\n", get_scalar());
+        gsl::blas_scal<double>(get_scalar(), &input_data);
     }
 
     void adjoint_eval() {
@@ -272,7 +278,9 @@ public:
 
 class Neg : public ScalarMul {
 public:
-    double scalar = -1;
+    double get_scalar() {
+    	return -1;
+    }
 };
 
 class Sum: public FAO {
