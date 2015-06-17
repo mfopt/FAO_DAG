@@ -20,12 +20,14 @@
 #include <map>
 #include <cassert>
 #include <iostream>
+#include <algorithm>
 #include "gsl/cblas.h"
 #include "gsl/gsl_blas.h"
 #include "gsl/gsl_vector.h"
 #include "gsl/gsl_matrix.h"
 #include "gsl/gsl_spmat.h"
 #include "gsl/gsl_spblas.h"
+#include <fftw3.h>
 
 // /* ID for all coefficient matrices associated with linOps of CONSTANT_TYPE */
 // static const int CONSTANT_ID = -1;
@@ -59,12 +61,8 @@
 //     COPY
 // };
 
-// /* linOp TYPE */
-// typedef operatortype OperatorType;
 
-/* LinOp Class mirrors the CVXPY linOp class. Data fields are determined
-      by the TYPE of LinOp. No error checking is performed on the data fields,
-      and the semantics of SIZE, ARGS, and DATA depends on the linop TYPE. */
+/* FAO Class mirrors the CVXPY FAO class.  */
 class FAO {
 public:
 	virtual ~FAO() {};
@@ -110,9 +108,8 @@ public:
 
        If inplace is true, only allocates one array.
      */
-    void alloc_data() {
+    virtual void alloc_data() {
         size_t input_len = get_length(input_sizes);
-        printf("alloc_data input_len=%u\n", input_len);
         input_data = gsl::vector_calloc<double>(input_len);
         size_t output_len = get_length(output_sizes);
         if (is_inplace()) {
@@ -137,7 +134,7 @@ public:
     	}
     }
 
-    void free_data() {
+    virtual void free_data() {
         gsl::vector_free<double>(&input_data);
         if (!is_inplace()) {
         	gsl::vector_free<double>(&output_data);
@@ -349,43 +346,111 @@ class Split : public Vstack {
 };
 
 
-//     /* Initializes DENSE_DATA. MATRIX is a pointer to the data of a 2D
-//      * numpy array, ROWS and COLS are the size of the ARRAY.
-//      *
-//      * MATRIX must be a contiguous array of doubles aligned in fortran
-//      * order.
-//      *
-//      * NOTE: The function prototype must match the type-map in CVXCanon.i
-//      * exactly to compile and run properly.
-//      */
-//     void set_dense_data(double* matrix, int rows, int cols) {
-//         dense_data = Eigen::Map<Eigen::MatrixXd> (matrix, rows, cols);
-//     }
+class Conv : public FAO {
+public:
 
-//      Initializes SPARSE_DATA from a sparse matrix in COO format.
-//      * DATA, ROW_IDXS, COL_IDXS are assumed to be contiguous 1D numpy arrays
-//      * where (DATA[i], ROW_IDXS[i], COLS_IDXS[i]) is a (V, I, J) triplet in
-//      * the matrix. ROWS and COLS should refer to the size of the matrix.
-//      *
-//      * NOTE: The function prototype must match the type-map in CVXCanon.i
-//      * exactly to compile and run properly.
+	double *kernel;
+	size_t input_len;
+	size_t kernel_len;
+	size_t padded_len;
+	fftw_complex *kernel_fft;
+	fftw_complex *rev_kernel_fft;
+	fftw_complex *r2c_out;
+	fftw_plan forward_fft_plan;
+	fftw_plan forward_ifft_plan;
+	fftw_plan adjoint_fft_plan;
+	fftw_plan adjoint_ifft_plan;
 
-    // void set_sparse_data(double *data, int data_len, double *row_idxs,
-    //                      int rows_len, double *col_idxs, int cols_len,
-    //                      int rows, int cols) {
+	void alloc_data() {
+		input_len = get_length(input_sizes);
+        padded_len = get_length(output_sizes);
+        // TODO could use fftw_alloc here.
+        input_data = gsl::vector_calloc<double>(padded_len);
+       	output_data = gsl::vector_calloc<double>(padded_len);
+        kernel_fft = fftw_alloc_complex(padded_len);
+        rev_kernel_fft = fftw_alloc_complex(padded_len);
+        r2c_out = fftw_alloc_complex(padded_len);
+        /* kernel_fft is DFT(padded kernel). */
+        /* Must copy because FFTW destroys input array. */
+        // TODO alignment of kernel_fft!
+        memcpy(input_data.data, kernel, kernel_len*sizeof(double));
+        fftw_plan plan = fftw_plan_dft_r2c_1d(padded_len, input_data.data,
+        									  kernel_fft, FFTW_ESTIMATE);
+     	fftw_execute(plan);
+     	fftw_destroy_plan(plan);
+     	/* rev_kernel_fft is conj(DFT(padded kernel))=IDFT(padded kernel). */
+     	// TODO parallelize.
+     	for (size_t i=0; i < padded_len; ++i) {
+     		rev_kernel_fft[i][0] = kernel_fft[i][0];
+     		rev_kernel_fft[i][1] = -kernel_fft[i][1];
+     	}
+     	/* Initialize the plans for forward_eval. */
+     	// TODO also FFTW_MEASURE for faster planning, worse performance.
+     	forward_fft_plan = fftw_plan_dft_r2c_1d(padded_len, input_data.data,
+     		r2c_out, FFTW_PATIENT);
+     	forward_ifft_plan = fftw_plan_dft_c2r_1d(padded_len, r2c_out,
+     		output_data.data, FFTW_PATIENT);
+     	adjoint_fft_plan = fftw_plan_dft_r2c_1d(padded_len, output_data.data,
+     		r2c_out, FFTW_PATIENT);
+     	adjoint_ifft_plan = fftw_plan_dft_c2r_1d(padded_len, r2c_out,
+     		input_data.data, FFTW_PATIENT);
+    }
 
-    //     assert(rows_len == data_len && cols_len == data_len);
-    //     sparse = true;
-    //     Matrix sparse_coeffs(rows, cols);
-    //     std::vector<Triplet> tripletList;
-    //     tripletList.reserve(data_len);
-    //     for (int idx = 0; idx < data_len; idx++) {
-    //         tripletList.push_back(Triplet(int(row_idxs[idx]), int(col_idxs[idx]),
-    //                                       data[idx]));
-    //     }
-    //     sparse_coeffs.setFromTriplets(tripletList.begin(), tripletList.end());
-    //     sparse_coeffs.makeCompressed();
-    //     sparse_data = sparse_coeffs;
-    // }
-// };
+    void free_data() {
+    	fftw_destroy_plan(forward_fft_plan);
+    	fftw_destroy_plan(forward_ifft_plan);
+    	fftw_destroy_plan(adjoint_fft_plan);
+    	fftw_destroy_plan(adjoint_ifft_plan);
+    	fftw_free(kernel_fft);
+    	fftw_free(rev_kernel_fft);
+    	fftw_free(r2c_out);
+    	fftw_cleanup();
+        FAO::free_data();
+    }
+
+	void set_conv_data(double *kernel, int kernel_len) {
+		this->kernel = kernel;
+		this->kernel_len = kernel_len;
+	}
+
+	/* Multiply kernel_fft and output.
+	   Divide by n because fftw doesn't.
+	   Writes to output.
+	*/
+	// TODO parallelize.
+	void multiply_fft(fftw_complex *kernel_fft, fftw_complex *output) {
+		double len = (double) padded_len;
+		double tmp;
+    	for (size_t i=0; i < padded_len; ++i) {
+    		tmp = (kernel_fft[i][0]*output[i][0] -
+    			   kernel_fft[i][1]*output[i][1])/len;
+    		output[i][1] = (kernel_fft[i][0]*output[i][1] +
+    						kernel_fft[i][1]*output[i][0])/len;
+    		output[i][0] = tmp;
+    	}
+	}
+
+	/* Fill out the input padding with zeros. */
+	void zero_pad_input() {
+		/* Zero out extra part of input. */
+		memset(input_data.data + input_len, 0,
+			   (padded_len - input_len)*sizeof(double));
+	}
+
+	/* Column convolution. */
+    void forward_eval() {
+    	zero_pad_input();
+    	fftw_execute(forward_fft_plan);
+    	multiply_fft(kernel_fft, r2c_out);
+    	fftw_execute(forward_ifft_plan);
+    }
+
+    /* Row convolution. */
+    void adjoint_eval() {
+    	fftw_execute(adjoint_fft_plan);
+    	multiply_fft(rev_kernel_fft, r2c_out);
+		fftw_execute(adjoint_ifft_plan);
+		// TODO do this? zero_pad_input();
+    }
+};
 #endif

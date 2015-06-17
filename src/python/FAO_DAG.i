@@ -36,6 +36,8 @@
 %apply (double* INPLACE_ARRAY1, int DIM1) {(double *data, int data_len)}
 
 %apply (int* INPLACE_ARRAY1, int DIM1) {(int *indices, int idx_len), (int *ptrs, int ptr_len)};
+
+%apply (double* INPLACE_ARRAY1, int DIM1) {(double *kernel, int kernel_len)};
 %include "FAO.hpp"
 
 /* Useful wrappers for the FAO class */
@@ -60,25 +62,6 @@ namespace std {
 
 %apply (double* INPLACE_ARRAY1, int DIM1) {(double* output, int output_len)}
 %include "FAO_DAG.hpp"
-
-
-
-
-
-
-
-
-
-
-
-
-
-
- 
- 
- 
- 
- 
  
  
  

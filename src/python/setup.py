@@ -8,7 +8,8 @@ extra_link_args = []
 extra_compile_args = ['-std=c++11']
 include_dirs = [numpy.get_include(),'../','../../include/']
 library_dirs = []
-libraries = []
+libraries = ['fftw3', 'fftw3f', 'fftw3l', 'fftw3_threads',
+            'fftw3f_threads', 'fftw3l_threads']
 
 blas_info = get_info('blas')
 lapack_info = get_info('lapack')

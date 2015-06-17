@@ -225,7 +225,7 @@ type_map = {
     # "DIAG_VEC": FAO_DAG.DIAG_VEC,
     # "DIAG_MAT": FAO_DAG.DIAG_MAT,
     # "UPPER_TRI": FAO_DAG.UPPER_TRI,
-    # "CONV": FAO_DAG.CONV,
+    CONV: FAO_DAG.Conv,
     # "HSTACK": FAO_DAG.HSTACK,
     # "VSTACK": FAO_DAG.VSTACK,
     SCALAR_MUL: FAO_DAG.ScalarMul,
@@ -322,6 +322,8 @@ def python_to_swig(py_dag, tmp):
             set_dense_data(cur_c, cur_py)
         elif cur_py.type in [SPARSE_MAT_VEC_MUL, SPARSE_MAT_MAT_MUL]:
             set_sparse_data(cur_c, cur_py)
+        elif cur_py.type == CONV:
+            cur_c.set_conv_data(cur_py.data)
 
     # Now populate Swig edges.
     edges_c = FAO_DAG.EdgeMap()
