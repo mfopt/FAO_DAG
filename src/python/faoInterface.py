@@ -16,7 +16,10 @@
 import FAO_DAG
 import numpy as np
 from cvxpy.lin_ops.lin_op import *
-from cvxpy.lin_ops.fao_utils import *
+from cvxpy.lin_ops.fao_utils import (SCALAR_MUL, DENSE_MAT_VEC_MUL,
+DENSE_MAT_MAT_MUL, SPARSE_MAT_VEC_MUL, SPARSE_MAT_MAT_MUL,
+COPY, SPLIT)
+
 import scipy.sparse
 from collections import deque
 
@@ -107,13 +110,12 @@ def convert_to_vec(is_double, ndarray, div=1):
 #     start_node, end_node = tree_to_dag(tree, var_sizes, c.size[0])
 #     return None
 
-def eval_FAO_DAG(dag, input_arr, output_arr, forward=True):
+def eval_FAO_DAG(py_dag, input_arr, output_arr, forward=True):
     """ordered_vars: list of (id, size) tuples.
     """
-    start_node, end_node = dag
     tmp = []
-    start_node, end_node = python_to_swig(start_node, end_node, tmp)
-    dag = FAO_DAG.FAO_DAG(start_node, end_node)
+    start_node, end_node, edges = python_to_swig(py_dag, tmp)
+    dag = FAO_DAG.FAO_DAG(start_node, end_node, edges)
     input_vec = convert_to_vec(True, input_arr)
     dag.copy_input(input_vec, forward)
     if forward:
@@ -241,33 +243,31 @@ type_map = {
 
 def get_FAO(node):
     if node.type in type_map:
-        print node
         # Make input and output sizes.
         input_sizes = get_dims_vec(node.input_sizes)
         output_sizes = get_dims_vec(node.output_sizes)
         swig_fao = type_map[node.type]()
         swig_fao.input_sizes = input_sizes
         swig_fao.output_sizes = output_sizes
-        swig_fao.input_nodes = init_fao_vec(node.input_nodes)
-        swig_fao.output_nodes = init_fao_vec(node.output_nodes)
+        swig_fao.input_edges = get_edge_vec(node.input_edges)
+        swig_fao.output_edges = get_edge_vec(node.output_edges)
         return swig_fao
     else:
         raise NotImplementedError()
 
-def init_fao_vec(nodes):
+def get_edge_vec(edges):
     """Returns an FAO vec full of Null pointers.
     """
-    fao_vec = FAO_DAG.FaoVector()
-    for node in nodes:
-        fao_vec.push_back(None)
-    return fao_vec
+    edge_vec = FAO_DAG.IntVector()
+    for edge_id in edges:
+        edge_vec.push_back(edge_id)
+    return edge_vec
 
 def get_dims_vec(sizes):
     """Returns the vector for a FAO input/output sizes.
     """
     dims_vec = FAO_DAG.SizetVector2D()
     for dims in sizes:
-        print dims
         dims_vec.push_back(get_dims(dims))
     return dims_vec
 
@@ -279,34 +279,39 @@ def get_dims(size):
     size_pair.push_back(int(size[1]))
     return size_pair
 
-def python_to_swig(start_node, end_node, tmp):
+def python_to_swig(py_dag, tmp):
     """Convert an FAO DAG in Python into an FAO DAG in C++.
 
     Parameters
     ----------
-    start_node: A Python FAO.
-    end_node: A Python FAO.
+    dag: A Python FAO DAG.
     tmp: A list to keep data from going out of scope.
 
     Returns
     --------
     tuple
-        A (start_node, end_node) tuple for the C++ FAO DAG.
+        A (start_node, end_node, nodes, edges) tuple for the C++ FAO DAG.
     """
+    start_node = py_dag.start_node
     ready_queue = deque()
     start_swig = get_FAO(start_node)
-    ready_queue.append((start_node, start_swig))
-
+    ready_queue.append(start_node)
+    tmp.append(start_swig)
+    id_to_swig = {id(start_node): start_swig}
+    py_faos = [start_node]
+    # Populate id_to_swig and py_faos.
     while len(ready_queue) > 0:
-        cur_py, cur_c = ready_queue.popleft()
+        cur_py = ready_queue.popleft()
+        cur_c = id_to_swig[id(cur_py)]
         # Updating the arguments for Swig FAO.
-        for output_idx, node_py in enumerate(cur_py.output_nodes):
-            node_c = get_FAO(node_py)
-            tmp.append(node_c)
-            ready_queue.append((node_py, node_c))
-            cur_c.output_nodes[output_idx] = node_c
-            input_idx = node_py.input_nodes.index(cur_py)
-            node_c.input_nodes[input_idx] = cur_c
+        for edge_id in cur_py.output_edges:
+            node_py = py_dag.edges[edge_id][1]
+            if id(node_py) not in id_to_swig:
+                node_c = get_FAO(node_py)
+                tmp.append(node_c)
+                id_to_swig[id(node_py)] = node_c
+                py_faos.append(node_py)
+                ready_queue.append(node_py)
 
         # Loading the problem data into the appropriate array format
         if cur_py.type == INDEX:
@@ -317,4 +322,19 @@ def python_to_swig(start_node, end_node, tmp):
             set_dense_data(cur_c, cur_py)
         elif cur_py.type in [SPARSE_MAT_VEC_MUL, SPARSE_MAT_MAT_MUL]:
             set_sparse_data(cur_c, cur_py)
-    return start_swig, cur_c
+
+    # Now populate Swig edges.
+    edges_c = FAO_DAG.EdgeMap()
+    for edge_id, (start, end) in py_dag.edges.items():
+        start_c = id_to_swig[id(start)]
+        end_c = id_to_swig[id(end)]
+        edges_c[edge_id] = FAO_DAG.Edge(start_c, end_c)
+
+    start_c = id_to_swig[id(start_node)]
+    end_c = id_to_swig[id(py_dag.end_node)]
+    # TODO why doesn't this work?
+    # nodes_c = FAO_DAG.NodeMap()
+    # for node_id, node_c in id_to_swig.items():
+    #     nodes_c[int(node_id)] = node_c
+    return start_c, end_c, edges_c
+

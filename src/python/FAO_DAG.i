@@ -50,6 +50,9 @@ namespace std {
    %template(IntIntMap) map<int, int>;
    %template(ConeConstraint) pair<int, vector<int> >;
    %template(ConeConstraintVector) vector< pair<int, vector<int> > >;
+   %template(EdgeMap) map<int, pair<FAO *, FAO *> >;
+   %template(NodeMap) map<int, FAO *>;
+   %template(Edge) pair<FAO*, FAO *>;
 }
 
 /* For FAO_DAG.hpp. */
@@ -57,5 +60,21 @@ namespace std {
 
 %apply (double* INPLACE_ARRAY1, int DIM1) {(double* output, int output_len)}
 %include "FAO_DAG.hpp"
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ 
+ 
  
  

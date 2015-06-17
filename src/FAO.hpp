@@ -68,20 +68,20 @@
 class FAO {
 public:
 	virtual ~FAO() {};
-    /* Input FAOs in the DAG */
-    std::vector<FAO*> input_nodes;
-    /* Output FAOs in the DAG */
-    std::vector<FAO*> output_nodes;
+    /* Input edges in the DAG */
+    std::vector<int> input_edges;
+    /* Output edges in the DAG */
+    std::vector<int> output_edges;
     /* Dimensions of inputs and outputs. */
     std::vector<std::vector<size_t> > input_sizes;
     std::vector<std::vector<size_t> > output_sizes;
     /* Input and output data arrays. */
     gsl::vector<double> input_data;
     gsl::vector<double> output_data;
-    /* Map from input FAO to offset in input_data. */
-    std::map<FAO*, size_t> input_offsets;
-    /* Map from output FAO to offset in output_data. */
-    std::map<FAO*, size_t> output_offsets;
+    /* Map from edge index to offset in input_data. */
+    std::map<int, size_t> input_offsets;
+    /* Map from edge index to offset in output_data. */
+    std::map<int, size_t> output_offsets;
 
     /* Does the FAO operate in-place?
 
@@ -127,13 +127,13 @@ public:
     /* Initialize the input and output offset maps. */
     void init_offset_maps() {
     	size_t offset = 0;
-    	for (size_t i=0; i < input_nodes.size(); ++i) {
-    		input_offsets[input_nodes[i]] = offset;
+    	for (size_t i=0; i < input_edges.size(); ++i) {
+    		input_offsets[input_edges[i]] = offset;
     		offset += get_elem_length(input_sizes[i]);
     	}
     	offset = 0;
-    	for (size_t i=0; i < output_nodes.size(); ++i) {
-    		output_offsets[output_nodes[i]] = offset;
+    	for (size_t i=0; i < output_edges.size(); ++i) {
+    		output_offsets[output_edges[i]] = offset;
     		offset += get_elem_length(output_sizes[i]);
     	}
     }

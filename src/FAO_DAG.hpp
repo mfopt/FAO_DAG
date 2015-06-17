@@ -19,6 +19,7 @@
 #include "FAO.hpp"
 #include <algorithm>
 #include <vector>
+#include <utility>
 #include <map>
 #include <queue>
 #include <functional>
@@ -30,13 +31,16 @@ public:
 /* Represents an FAO DAG. Used to evaluate FAO DAG and its adjoint. */
 	FAO* start_node;
 	FAO* end_node;
+	std::map<int, std::pair<FAO *, FAO *> > edges;
 	std::queue<FAO *> ready_queue;
 	std::map<FAO *, size_t> eval_map;
 
-	FAO_DAG(FAO* start, FAO* end) {
+	FAO_DAG(FAO* start_node, FAO* end_node,
+			std::map<int, std::pair<FAO *, FAO *> > edges) {
 		printf("FAO_DAG <><><><>\n");
-		start_node = start;
-		end_node = end;
+		this->start_node = start_node;
+		this->end_node = end_node;
+		this->edges = edges;
 		/* Allocate input and output arrays on each node. */
 		auto node_fn = [](FAO* node) {
 			node->alloc_data();
@@ -72,24 +76,31 @@ public:
 			// Evaluate the given function on curr.
 			node_fn(curr);
 			eval_map[curr]++;
-			std::vector<FAO *> child_nodes;
+			std::vector<int> child_edges;
 			if (forward) {
-				child_nodes = curr->output_nodes;
+				child_edges = curr->output_edges;
 			} else {
-				child_nodes = curr->input_nodes;
+				child_edges = curr->input_edges;
 			}
 			/* If each input has visited the node, it is ready. */
-			printf("num children=%lu\n", child_nodes.size());
-			for (auto node : child_nodes) {
+			printf("num children=%lu\n", child_edges.size());
+			for (auto edge_idx : child_edges) {
+				auto edge = edges[edge_idx];
+				FAO *node;
+				if (forward) {
+					node = edge.second;
+				} else {
+					node = edge.first;
+				}
 				eval_map[node]++;
 				printf("eval_map[node]=%lu\n", eval_map[node]);
-				printf("node->input_nodes.size()=%lu\n", node->input_nodes.size());
-				printf("node->output_nodes.size()=%lu\n", node->output_nodes.size());
+				printf("node->input_edges.size()=%lu\n", node->input_edges.size());
+				printf("node->output_edges.size()=%lu\n", node->output_edges.size());
 				size_t node_inputs_count;
 				if (forward) {
-					node_inputs_count = node->input_nodes.size();
+					node_inputs_count = node->input_edges.size();
 				} else {
-					node_inputs_count = node->output_nodes.size();
+					node_inputs_count = node->output_edges.size();
 				}
 				if (eval_map[node] == node_inputs_count)
 					ready_queue.push(node);
@@ -146,7 +157,7 @@ public:
 
 	/* Evaluate the FAO DAG. */
 	void forward_eval() {
-		auto node_eval = [](FAO *node){
+		auto node_eval = [this](FAO *node){
 			for (size_t i=0; i < node->input_data.size; ++i){
 				printf("node->input_data[%lu]=%e\n", i, node->input_data.data[i]);
 			}
@@ -155,11 +166,12 @@ public:
 				printf("node->output_data[%lu]=%e\n", i, node->output_data.data[i]);
 			}
 			// Copy data from node to children.
-			for (size_t i=0; i < node->output_nodes.size(); ++i) {
-				FAO* target = node->output_nodes[i];
+			for (size_t i=0; i < node->output_edges.size(); ++i) {
+				size_t edge_idx = node->output_edges[i];
+				FAO* target = this->edges[edge_idx].second;
 				size_t len = node->get_elem_length(node->output_sizes[i]);
-				size_t node_offset = node->output_offsets[target];
-				size_t target_offset = target->input_offsets[node];
+				size_t node_offset = node->output_offsets[edge_idx];
+				size_t target_offset = target->input_offsets[edge_idx];
 				// Copy len elements from node_start to target_start.
 				gsl::vector_subvec_memcpy<double>(&target->input_data, target_offset,
 							  &node->output_data, node_offset, len);
@@ -170,7 +182,7 @@ public:
 
 	/* Evaluate the adjoint DAG. */
 	void adjoint_eval() {
-		auto node_eval = [](FAO *node){
+		auto node_eval = [this](FAO *node){
 			for (size_t i=0; i < node->output_data.size; ++i){
 				printf("node->output_data[%lu]=%e\n", i, node->output_data.data[i]);
 			}
@@ -180,11 +192,12 @@ public:
 				printf("node->input_data[%lu]=%e\n", i, node->input_data.data[i]);
 			}
 			// Copy data from node to children.
-			for (size_t i=0; i < node->input_nodes.size(); ++i) {
-				FAO* target = node->input_nodes[i];
+			for (size_t i=0; i < node->input_edges.size(); ++i) {
+				size_t edge_idx = node->input_edges[i];
+				FAO* target = this->edges[edge_idx].first;
 				size_t len = node->get_elem_length(node->input_sizes[i]);
-				size_t node_offset = node->input_offsets[target];
-				size_t target_offset = target->output_offsets[node];
+				size_t node_offset = node->input_offsets[edge_idx];
+				size_t target_offset = target->output_offsets[edge_idx];
 				printf("i=%lu, node_offset=%lu, target_offset=%lu\n", i, node_offset, target_offset);
 				// Copy len elements from node_start to target_start.
 				gsl::vector_subvec_memcpy<double>(&target->output_data, target_offset,
