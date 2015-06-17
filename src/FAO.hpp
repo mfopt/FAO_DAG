@@ -94,12 +94,10 @@ public:
 	   Default does nothing.
     */
     virtual void forward_eval() {
-    	printf("forward base\n");
         return;
     }
 
     virtual void adjoint_eval() {
-    	printf("adjoint base\n");
         return;
     }
 
@@ -264,7 +262,6 @@ public:
 
     /* Scale the input/output. */
     void forward_eval() {
-    	printf("ScalarMul forward eval scalar = %e\n", get_scalar());
         gsl::blas_scal<double>(get_scalar(), &input_data);
     }
 
