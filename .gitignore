@@ -34,3 +34,4 @@ src/python/FAO_DAG_wrap.cpp
 src/python/build/*
 FAO_DAG.egg-info/*
 *.DS_Store
+src/python/dist/*
