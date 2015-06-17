@@ -294,7 +294,8 @@ public:
     /* Copy the input. */
     void adjoint_eval(gsl::vector<double> input_data, gsl::vector<double> output_data) {
         size_t elem_size = input_data.size;
-        for (size_t i=0; i < output_sizes.size(); ++i) {
+        for (size_t i=0; i < input_sizes.size(); ++i) {
+        	printf("adjoint eval <><><><> for sum <><>< i=%u\n", i);
         	gsl::vector_subvec_memcpy<double>(&output_data, i*elem_size,
         									  &input_data, 0, elem_size);
         }
