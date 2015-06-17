@@ -161,7 +161,7 @@ public:
 			for (size_t i=0; i < node->input_data.size; ++i){
 				printf("node->input_data[%lu]=%e\n", i, node->input_data.data[i]);
 			}
-			node->forward_eval(node->input_data, node->output_data);
+			node->forward_eval();
 			for (size_t i=0; i < node->output_data.size; ++i){
 				printf("node->output_data[%lu]=%e\n", i, node->output_data.data[i]);
 			}
@@ -186,7 +186,7 @@ public:
 			for (size_t i=0; i < node->output_data.size; ++i){
 				printf("node->output_data[%lu]=%e\n", i, node->output_data.data[i]);
 			}
-			node->adjoint_eval(node->output_data, node->input_data);
+			node->adjoint_eval();
 			printf("node->is_inplace()=%d\n", node->is_inplace());
 			for (size_t i=0; i < node->input_data.size; ++i){
 				printf("node->input_data[%lu]=%e\n", i, node->input_data.data[i]);
