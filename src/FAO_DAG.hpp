@@ -182,5 +182,13 @@ public:
 		};
 		traverse_graph(node_eval, false);
 	}
+
+	static void static_forward_eval(void *ptr) {
+        ((FAO_DAG *) ptr)->forward_eval();
+    }
+
+    static void static_adjoint_eval(void *ptr) {
+        ((FAO_DAG *) ptr)->adjoint_eval();
+    }
 };
 #endif

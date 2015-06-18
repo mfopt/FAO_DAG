@@ -1,0 +1,5 @@
+[submodule "include/scs"]
+	path = include/scs
+	url = git@github.com:SteveDiamond/scs.git
+[submodule "scs"]
+	branch = FAO

@@ -16,7 +16,7 @@
 %module FAO_DAG
 %{
 	#define SWIG_FILE_WITH_INIT
-	#include "FAO_DAG.hpp"
+	#include "SCS_Data.hpp"
 %}
 
 %include "numpy.i"
@@ -40,6 +40,10 @@
 %apply (double* INPLACE_ARRAY1, int DIM1) {(double *kernel, int kernel_len)};
 %include "FAO.hpp"
 
+%apply (double* INPLACE_ARRAY1, int DIM1) {(double *c, int c_len)};
+%apply (double* INPLACE_ARRAY1, int DIM1) {(double *b, int b_len)};
+%include "SCS_Data.hpp"
+
 /* Useful wrappers for the FAO class */
 namespace std {
    %template(IntVector) vector<int>;
@@ -62,6 +66,35 @@ namespace std {
 
 %apply (double* INPLACE_ARRAY1, int DIM1) {(double* output, int output_len)}
 %include "FAO_DAG.hpp"
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
  
  
  

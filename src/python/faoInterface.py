@@ -110,6 +110,22 @@ def convert_to_vec(is_double, ndarray, div=1):
 #     start_node, end_node = tree_to_dag(tree, var_sizes, c.size[0])
 #     return None
 
+def scs_solve(py_dag, data, dims):
+    """Solve using SCS with FAO DAGs.
+
+    py_dag: The Python FAO DAG.
+    data: A map with all the information needed by SCS.
+    """
+    tmp = []
+    start_node, end_node, edges = python_to_swig(py_dag, tmp)
+    dag = FAO_DAG.FAO_DAG(start_node, end_node, edges)
+    scs_data = FAO_DAG.SCS_Data();
+    scs_data.load_c(data['c'])
+    scs_data.load_b(data['b'])
+    q_vec = convert_to_vec(False, dims['q'])
+    s_vec = convert_to_vec(False, dims['s'])
+    return scs_data.solve(dag, dims['f'], dims['l'], q_vec, s_vec, dims['ep'])
+
 def eval_FAO_DAG(py_dag, input_arr, output_arr, forward=True):
     """ordered_vars: list of (id, size) tuples.
     """
