@@ -159,6 +159,16 @@ public:
 };
 
 class NoOp : public FAO {
+	/* Zero out the output. */
+	void forward_eval() {
+	    memset(output_data.data, 0, output_data.size*sizeof(double));
+	    printf("NoOp output_data[0] = %e\n", output_data.data[0]);
+	}
+
+	/* Zero out the input. */
+	void adjoint_eval() {
+	    memset(input_data.data, 0, input_data.size*sizeof(double));
+	}
 };
 
 class DenseMatVecMul : public FAO {

@@ -42,6 +42,8 @@
 
 %apply (double* INPLACE_ARRAY1, int DIM1) {(double *c, int c_len)};
 %apply (double* INPLACE_ARRAY1, int DIM1) {(double *b, int b_len)};
+%apply (double* INPLACE_ARRAY1, int DIM1) {(double *x, int x_len)};
+%apply (double* INPLACE_ARRAY1, int DIM1) {(double *y, int y_len)};
 %include "SCS_Data.hpp"
 
 /* Useful wrappers for the FAO class */
@@ -80,31 +82,70 @@ namespace std {
 
 
 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
  
  

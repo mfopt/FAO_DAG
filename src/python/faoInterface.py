@@ -64,15 +64,15 @@ from collections import deque
 #     return {'info':{'status': "Solved", 'pobj': opt_val},
 #             'x': x, 'mu':mu}
 
-def convert_to_vec(is_double, ndarray, div=1):
+def convert_to_vec(is_double, iterable, div=1):
     if is_double:
         vec = FAO_DAG.DoubleVector()
         cast = float
     else:
         vec = FAO_DAG.IntVector()
         cast = int
-    for i in range(ndarray.size):
-        vec.push_back(cast(ndarray[i])/div)
+    for i in range(len(iterable)):
+        vec.push_back(cast(iterable[i])/div)
     return vec
 
 # def python_cones_to_pogs_cones(cones):
@@ -110,21 +110,47 @@ def convert_to_vec(is_double, ndarray, div=1):
 #     start_node, end_node = tree_to_dag(tree, var_sizes, c.size[0])
 #     return None
 
-def scs_solve(py_dag, data, dims):
+def scs_solve(py_dag, data, dims, solver_opts):
     """Solve using SCS with FAO DAGs.
 
     py_dag: The Python FAO DAG.
     data: A map with all the information needed by SCS.
     """
     tmp = []
+    # print py_dag
+    print py_dag.start_node
+    print py_dag.end_node
     start_node, end_node, edges = python_to_swig(py_dag, tmp)
     dag = FAO_DAG.FAO_DAG(start_node, end_node, edges)
     scs_data = FAO_DAG.SCS_Data();
-    scs_data.load_c(data['c'])
-    scs_data.load_b(data['b'])
+    scs_data.load_c(data['c'].flatten())
+    scs_data.load_b(data['b'].A.flatten())
+    # Pass in solution arrays.
+    x = np.zeros(data['c'].size)
+    y = np.zeros(data['b'].size)
+    scs_data.load_x(x)
+    scs_data.load_y(y)
+
     q_vec = convert_to_vec(False, dims['q'])
     s_vec = convert_to_vec(False, dims['s'])
-    return scs_data.solve(dag, dims['f'], dims['l'], q_vec, s_vec, dims['ep'])
+    scs_data.solve(dag, dims['f'], dims['l'], q_vec, s_vec, dims['ep'],
+                            solver_opts['max_iters'])
+    info = {
+        "statusVal": scs_data.statusVal,
+        "iter": scs_data.iter,
+        "cgIter": scs_data.cgIter,
+        "pobj": scs_data.pobj,
+        "dobj": scs_data.dobj,
+        "resPri": scs_data.resPri,
+        "resDual": scs_data.resDual,
+        "relGap": scs_data.relGap,
+        "solveTime": (scs_data.solveTime / 1e3),
+        "setupTime": (scs_data.setupTime / 1e3),
+        "status": ''.join(scs_data.status),
+    }
+    # Must destroy FAO DAG before calling FAO destructors.
+    del dag
+    return {'info':info, 'x':x, 'y':y}
 
 def eval_FAO_DAG(py_dag, input_arr, output_arr, forward=True):
     """ordered_vars: list of (id, size) tuples.
@@ -198,7 +224,7 @@ type_map = {
     # "UPPER_TRI": FAO_DAG.UPPER_TRI,
     CONV: FAO_DAG.Conv,
     # "HSTACK": FAO_DAG.HSTACK,
-    # "VSTACK": FAO_DAG.VSTACK,
+    VSTACK: FAO_DAG.Vstack,
     SCALAR_MUL: FAO_DAG.ScalarMul,
     DENSE_MAT_VEC_MUL: FAO_DAG.DenseMatVecMul,
     SPARSE_MAT_VEC_MUL: FAO_DAG.SparseMatVecMul,
@@ -224,6 +250,7 @@ def get_FAO(node):
         swig_fao.output_edges = get_edge_vec(node.output_edges)
         return swig_fao
     else:
+        print node.type
         raise NotImplementedError()
 
 def get_edge_vec(edges):

@@ -161,7 +161,15 @@ public:
 							  &node->output_data, node_offset, len);
 			}
 		};
+		auto input_arr = get_forward_input();
+		for (size_t i=0; i < input_arr->size; ++i) {
+			printf("forward eval input[%u] = %e\n", i, input_arr->data[i]);
+		}
 		traverse_graph(node_eval, true);
+		auto output_arr = get_forward_output();
+		for (size_t i=0; i < output_arr->size; ++i) {
+			printf("forward eval output[%u] = %e\n", i, output_arr->data[i]);
+		}
 	}
 
 	/* Evaluate the adjoint DAG. */
@@ -180,7 +188,15 @@ public:
 							  &node->input_data, node_offset, len);
 			}
 		};
+		// auto input_arr = get_adjoint_input();
+		// for (size_t i=0; i < input_arr->size; ++i) {
+		// 	printf("adjoint eval input[%u] = %e\n", i, input_arr->data[i]);
+		// }
 		traverse_graph(node_eval, false);
+		// auto output_arr = get_adjoint_output();
+		// for (size_t i=0; i < output_arr->size; ++i) {
+		// 	printf("adjoint eval output[%u] = %e\n", i, output_arr->data[i]);
+		// }
 	}
 
 	static void static_forward_eval(void *ptr) {
