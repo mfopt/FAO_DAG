@@ -128,51 +128,6 @@ def eval_FAO_DAG(py_dag, input_arr, output_arr, forward=True):
     # Must destroy FAO DAG before calling FAO destructors.
     del dag
 
-# def get_problem_matrix(constrs, id_to_col=None):
-#     '''
-#     Builds a sparse representation of the problem data by calling FAO_DAG's
-#     C++ build_matrix function.
-
-#     Parameters
-#     ----------
-#         constrs: A list of python linOp trees
-#         id_to_col: A map from variable id to offset withoun our matrix
-
-#     Returns
-#     ----------
-#         V, I, J: numpy arrays encoding a sparse representation of our problem
-#         const_vec: a numpy column vector representing the constant_data in our problem
-#     '''
-#     linOps = [constr.expr for constr in constrs]
-#     lin_vec = FAO_DAG.LinOpVector()
-
-#     id_to_col_C = FAO_DAG.IntIntMap()
-#     if id_to_col is None:
-#         id_to_col = {}
-
-#     # Loading the variable offsets from our
-#     # Python map into a C++ map
-#     for id, col in id_to_col.items():
-#         id_to_col_C[id] = col
-
-#     # This array keeps variables data in scope
-#     # after build_lin_op_tree returns
-#     tmp = []
-#     for lin in linOps:
-#         tree = build_lin_op_tree(lin, tmp)
-#         tmp.append(tree)
-#         lin_vec.push_back(tree)
-
-#     problemData = FAO_DAG.build_matrix(lin_vec, id_to_col_C)
-
-#     # Unpacking
-#     V = problemData.getV(len(problemData.V))
-#     I = problemData.getI(len(problemData.I))
-#     J = problemData.getJ(len(problemData.J))
-#     const_vec = problemData.getConstVec(len(problemData.const_vec))
-
-#     return V, I, J, const_vec.reshape(-1, 1)
-
 def set_dense_data(node_c, node_py):
     """Stores dense matrix data on the Swig FAO.
     """
