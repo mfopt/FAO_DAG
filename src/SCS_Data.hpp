@@ -54,7 +54,9 @@ public:
 
      int solve(FAO_DAG* fao_dag,
                int f, int l, std::vector<int> q, std::vector<int> s,
-               int ep, size_t max_iters) {
+               int ep, size_t max_iters, size_t equil_steps,
+               size_t samples, bool precond, double eps,
+               bool rand_seed) {
           Cone * k;
           Data * d;
           Info info = { 0 };
@@ -88,18 +90,19 @@ public:
           d->CG_RATE = 2.0;
           d->VERBOSE = true;
           d->MAX_ITERS = max_iters;
-          d->EPS = 1e-3;
+          d->EPS = eps;
           d->ALPHA = 1.5;
           d->RHO_X = 1e-3;
           d->SCALE = 5;
           d->NORMALIZE = true; /* boolean, heuristic data rescaling: 1 */
           d->WARM_START = false; /* boolean, warm start (put initial guess in Sol struct): 0 */
-          d->EQUIL_STEPS = 0; /* how many steps of equilibration to take: 1 */
+          d->EQUIL_STEPS = equil_steps; /* how many steps of equilibration to take: 1 */
           d->EQUIL_P = 2;  /* Which Lp norm equilibration used? */
           d->EQUIL_GAMMA = 0; /* Regularization parameter for equilibration: 1e-8 */
           d->STOCH = true; /* Use random approximation of L2 norms? */
-          d->SAMPLES = 200; /* Number of samples for approximation: 200 */
-          d->PRECOND = true; /* boolean, use preconditioner for CG? */
+          d->SAMPLES = samples; /* Number of samples for approximation: 200 */
+          d->PRECOND = precond; /* boolean, use preconditioner for CG? */
+          d->RAND_SEED = rand_seed;
 
           scs(d, k, sol, &info);
           load_info(&info);

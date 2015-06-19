@@ -118,23 +118,35 @@ def scs_solve(py_dag, data, dims, solver_opts):
     """
     tmp = []
     # print py_dag
-    print py_dag.start_node
-    print py_dag.end_node
+    solver_opts["stoch"] = solver_opts.get("stoch", False)
+    solver_opts["samples"] = solver_opts.get("samples", 200)
+    solver_opts["precond"] = solver_opts.get("precond", True)
+    solver_opts["equil_steps"] = solver_opts.get("equil_steps", 1)
+    solver_opts["eps"] = solver_opts.get("eps", 1e-3)
+    solver_opts["rand_seed"] = solver_opts.get("rand_seed", False)
+
     start_node, end_node, edges = python_to_swig(py_dag, tmp)
     dag = FAO_DAG.FAO_DAG(start_node, end_node, edges)
     scs_data = FAO_DAG.SCS_Data();
-    scs_data.load_c(data['c'].flatten())
-    scs_data.load_b(data['b'].A.flatten())
+    c = data['c'].flatten()
+    scs_data.load_c(c)
+    b = data['b'].A.flatten()
+    scs_data.load_b(b)
     # Pass in solution arrays.
-    x = np.zeros(data['c'].size)
-    y = np.zeros(data['b'].size)
+    x = np.zeros(c.size)
+    y = np.zeros(b.size)
     scs_data.load_x(x)
     scs_data.load_y(y)
 
     q_vec = convert_to_vec(False, dims['q'])
     s_vec = convert_to_vec(False, dims['s'])
     scs_data.solve(dag, dims['f'], dims['l'], q_vec, s_vec, dims['ep'],
-                            solver_opts['max_iters'])
+                   solver_opts['max_iters'],
+                   solver_opts['equil_steps'],
+                   solver_opts['samples'],
+                   solver_opts['precond'],
+                   solver_opts['eps'],
+                   solver_opts['rand_seed'])
     info = {
         "statusVal": scs_data.statusVal,
         "iter": scs_data.iter,

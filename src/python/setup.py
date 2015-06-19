@@ -5,7 +5,7 @@ from numpy.distutils.system_info import get_info, BlasNotFoundError
 
 define_macros = []
 extra_link_args = []
-extra_compile_args = ['-std=c++11']
+extra_compile_args = ['-std=c++11', '-pg']
 include_dirs = [numpy.get_include(),'../','../../include/',
                 '../../include/scs/include/']
 library_dirs = []

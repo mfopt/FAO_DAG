@@ -162,7 +162,6 @@ class NoOp : public FAO {
 	/* Zero out the output. */
 	void forward_eval() {
 	    memset(output_data.data, 0, output_data.size*sizeof(double));
-	    printf("NoOp output_data[0] = %e\n", output_data.data[0]);
 	}
 
 	/* Zero out the input. */
@@ -394,13 +393,13 @@ public:
      	/* Initialize the plans for forward_eval. */
      	// TODO also FFTW_MEASURE for faster planning, worse performance.
      	forward_fft_plan = fftw_plan_dft_r2c_1d(padded_len, input_data.data,
-     		r2c_out, FFTW_PATIENT);
+     		r2c_out, FFTW_MEASURE);
      	forward_ifft_plan = fftw_plan_dft_c2r_1d(padded_len, r2c_out,
-     		output_data.data, FFTW_PATIENT);
+     		output_data.data, FFTW_MEASURE);
      	adjoint_fft_plan = fftw_plan_dft_r2c_1d(padded_len, output_data.data,
-     		r2c_out, FFTW_PATIENT);
+     		r2c_out, FFTW_MEASURE);
      	adjoint_ifft_plan = fftw_plan_dft_c2r_1d(padded_len, r2c_out,
-     		input_data.data, FFTW_PATIENT);
+     		input_data.data, FFTW_MEASURE);
     }
 
     void free_data() {
