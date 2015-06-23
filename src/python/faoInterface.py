@@ -184,8 +184,11 @@ def pogs_solve(data, dims, solver_opts):
     py_dag: The Python FAO DAG.
     data: A map with all the information needed by POGS.
     """
-    tmp = []
-    rho = solver_opts.get("rho", 1e-3)
+    print dims
+    print data['A'].todense()
+    print data['c']
+    print data['b']
+    rho = solver_opts.get("rho", 1)
     verbose = solver_opts.get("verbose", False)
     abs_tol = solver_opts.get("abs_tol", 1e-4)
     rel_tol = solver_opts.get("rel_tol", 1e-4)

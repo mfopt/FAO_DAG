@@ -200,8 +200,8 @@ public:
 
 
      void set_cones(std::vector< std::pair<int, std::vector<int> > >& cones,
-                    std::vector<ConeConstraint> Kx,
-                    std::vector<ConeConstraint> Ky) {
+                    std::vector<ConeConstraint>& Kx,
+                    std::vector<ConeConstraint>& Ky) {
           for (size_t i=0; i < cones.size(); i++) {
                Cone cone_type = get_pogs_cone(cones[i].first);
                // printf("cone type=%d\n", cone_type);
