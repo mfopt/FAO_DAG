@@ -150,53 +150,50 @@ public:
      /* function: pogs_solve()
      *
      */
-     // double mat_free_solve(FAO_DAG* fao_dag,
-     //           std::vector< std::pair<int, std::vector<int> > >& cones,
-     //              double rho,
-     //              bool verbose,
-     //              double abs_tol,
-     //              double rel_tol,
-     //              int max_iter) {
+     double mat_free_solve(FAO_DAG* fao_dag,
+               std::vector< std::pair<int, std::vector<int> > >& cones,
+                  double rho,
+                  bool verbose,
+                  double abs_tol,
+                  double rel_tol,
+                  int max_iter) {
 
-     //      // printf("size of cones=%d\n", cones.size());
-     //      std::vector<ConeConstraint> Kx, Ky;
-     //      set_cones(cones, Kx, Ky);
+          // printf("size of cones=%d\n", cones.size());
+          std::vector<ConeConstraint> Kx, Ky;
+          set_cones(cones, Kx, Ky);
 
-     //      auto Amul = fao_dag->static_forward_eval;
-     //      auto ATmul = fao_dag->static_adjoint_eval;
-     //      double *dag_input = fao_dag->get_forward_input()->data;
-     //      double *dag_output = fao_dag->get_adjoint_input()->data;
+          auto Amul = fao_dag->static_forward_eval;
+          auto ATmul = fao_dag->static_adjoint_eval;
+          double *dag_input = fao_dag->get_forward_input()->data;
+          double *dag_output = fao_dag->get_adjoint_input()->data;
 
-     //      pogs::MatrixFAO<double> A_(dag_output, b_len,
-     //                                 dag_input, c_len,
-     //                                 Amul, ATmul,
-     //                                 (void *) fao_dag);
-     //      pogs::PogsIndirectCone<double, pogs::MatrixFAO<double> > pogs_data(A_, Kx, Ky);
-     //      // pogs::MatrixDense<double> A_('r', m, n, Adense.data());
-     //      // pogs::PogsDirectCone<double, pogs::MatrixDense<double> > pogs_data(A_, Kx, Ky);
-     //      // double t = timer<double>();
-     //      if (verbose) {
-     //           pogs_data.SetVerbose(5);
-     //      } else {
-     //           pogs_data.SetVerbose(0);
-     //      }
-     //      //pogs_data.SetMaxIter(21);
-     //      pogs_data.SetRho(rho);
-     //      pogs_data.SetAbsTol(abs_tol);
-     //      pogs_data.SetRelTol(rel_tol);
-     //      pogs_data.SetMaxIter(max_iter);
-     //      std::vector<double> c_vec(c, c + c_len);
-     //      std::vector<double> b_vec(b, b + b_len);
-     //      pogs_data.Solve(b_vec, c_vec);
-     //      // Copy out results.
-     //      for (size_t i=0; i < c_len; i++) {
-     //           x[i] = pogs_data.GetX()[i];
-     //      }
-     //      for (size_t i=0; i < b_len; i++) {
-     //          y[i] = pogs_data.GetMu()[i];
-     //      }
-     //      return pogs_data.GetOptval();
-     // }
+          pogs::MatrixFAO<double> A_(dag_output, b_len,
+                                     dag_input, c_len,
+                                     Amul, ATmul,
+                                     (void *) fao_dag);
+          pogs::PogsIndirectCone<double, pogs::MatrixFAO<double> > pogs_data(A_, Kx, Ky);
+          // double t = timer<double>();
+          if (verbose) {
+               pogs_data.SetVerbose(5);
+          } else {
+               pogs_data.SetVerbose(0);
+          }
+          pogs_data.SetRho(rho);
+          pogs_data.SetAbsTol(abs_tol);
+          pogs_data.SetRelTol(rel_tol);
+          pogs_data.SetMaxIter(max_iter);
+          std::vector<double> c_vec(c, c + c_len);
+          std::vector<double> b_vec(b, b + b_len);
+          pogs_data.Solve(b_vec, c_vec);
+          // Copy out results.
+          for (size_t i=0; i < c_len; i++) {
+               x[i] = pogs_data.GetX()[i];
+          }
+          for (size_t i=0; i < b_len; i++) {
+              y[i] = pogs_data.GetMu()[i];
+          }
+          return pogs_data.GetOptval();
+     }
 
 
      void set_cones(std::vector< std::pair<int, std::vector<int> > >& cones,

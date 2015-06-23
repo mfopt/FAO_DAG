@@ -1,7 +1,7 @@
 from cvxpy import *
 x = Variable()
 prob = Problem(Minimize(x), [abs(x) <= 2])
-prob.solve(solver=POGS, verbose=True, max_iter=2500)
+prob.solve(solver=POGS, verbose=True, max_iter=1)
 
 # import numpy as np
 # from cvxpy import *
