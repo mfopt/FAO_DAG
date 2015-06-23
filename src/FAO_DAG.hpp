@@ -206,5 +206,6 @@ public:
     static void static_adjoint_eval(void *ptr) {
         ((FAO_DAG *) ptr)->adjoint_eval();
     }
+
 };
 #endif

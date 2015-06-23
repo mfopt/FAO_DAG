@@ -3,8 +3,10 @@
 
 #include <vector>
 #include <string>
-#include "scs.h"
-#include "cones.h"
+namespace scs {
+     #include "scs.h"
+     #include "cones.h"
+}
 #include "FAO_DAG.hpp"
 
 class SCS_Data {
@@ -13,6 +15,10 @@ public:
      size_t c_len;
      double *b;
      size_t b_len;
+     double *Adata;
+     int *Aindices;
+     int *Aindptr;
+     size_t nnz;
      /* Solver result info. */
      int statusVal;
      int iter;
@@ -52,19 +58,35 @@ public:
           this->y = y;
      }
 
+     // void load_Adata(double *Adata, int nnz) {
+     //      this->Adata = Adata;
+     //      this->nnz = nnz;
+     // }
+
+     // void load_Aindices(int *Aindices, int nnz) {
+     //      this->Aindices = Aindices;
+     //      this->nnz = nnz;
+     // }
+
+     // void load_Aindptr(int *Aindptr, int nnz) {
+     //      this->Aindptr = Aindptr;
+     //      this->nnz = nnz;
+     // }
+
+
      int solve(FAO_DAG* fao_dag,
                int f, int l, std::vector<int> q, std::vector<int> s,
                int ep, size_t max_iters, size_t equil_steps,
                size_t samples, bool precond, double eps,
                bool rand_seed) {
-          Cone * k;
-          Data * d;
-          Info info = { 0 };
+          scs::Cone * k;
+          scs::Data * d;
+          scs::Info info = { 0 };
           // Work * w;
-          Sol * sol;
-          k = (Cone *) calloc(1, sizeof(Cone));
-          d = (Data *) calloc(1, sizeof(Data));
-          sol = (Sol *) calloc(1, sizeof(Sol));
+          scs::Sol * sol;
+          k = (scs::Cone *) calloc(1, sizeof(scs::Cone));
+          d = (scs::Data *) calloc(1, sizeof(scs::Data));
+          sol = (scs::Sol *) calloc(1, sizeof(scs::Sol));
 
           // Load cones.
           k->f = f;
@@ -104,7 +126,7 @@ public:
           d->PRECOND = precond; /* boolean, use preconditioner for CG? */
           d->RAND_SEED = rand_seed;
 
-          scs(d, k, sol, &info);
+          scs::scs(d, k, sol, &info);
           load_info(&info);
           memcpy(this->x, sol->x, sizeof(double)*this->c_len);
           memcpy(this->y, sol->y, sizeof(double)*this->b_len);
@@ -114,7 +136,7 @@ public:
           return 0;
      }
 
-     void load_info(Info *info) {
+     void load_info(scs::Info *info) {
           this->statusVal = info->statusVal;
           this->iter = info->iter;
           this->cgIter = info->cgIter;
@@ -129,7 +151,7 @@ public:
           strcpy(this->status, info->status);
      }
 
-     void freeSol(Sol *sol) {
+     void freeSol(scs::Sol *sol) {
           if (sol) {
                if (sol->x) {
                     free(sol->x);

@@ -84,6 +84,15 @@ vector<T> vector_view_array(T *base, size_t n) {
   return vec;
 }
 
+// template <typename T>
+// vector<T> vector_view_write_array(T *base, size_t n) {
+//   vector<T> vec;
+//   vec.size = n;
+//   vec.data = base;
+//   vec.stride = 1;
+//   return vec;
+// }
+
 // TODO: Find a better way to deal with the const issue.
 template <typename T>
 const vector<T> vector_view_array(const T *base, size_t n) {

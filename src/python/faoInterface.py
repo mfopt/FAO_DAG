@@ -75,16 +75,16 @@ def convert_to_vec(is_double, iterable, div=1):
         vec.push_back(cast(iterable[i])/div)
     return vec
 
-# def python_cones_to_pogs_cones(cones):
-#     cone_vect = FAO_DAG.ConeConstraintVector()
-#     for cone_key, indices in cones:
-#         constr = FAO_DAG.ConeConstraint()
-#         constr.first = int(cone_key);
-#         constr.second = FAO_DAG.IntVector()
-#         for idx in indices:
-#             constr.second.push_back(idx)
-#         cone_vect.push_back(constr)
-#     return cone_vect
+def python_cones_to_pogs_cones(cones):
+    cone_vect = FAO_DAG.ConeConstraintVector()
+    for cone_key, indices in cones:
+        constr = FAO_DAG.ConeConstraint()
+        constr.first = int(cone_key);
+        constr.second = FAO_DAG.IntVector()
+        for idx in indices:
+            constr.second.push_back(idx)
+        cone_vect.push_back(constr)
+    return cone_vect
 
 # def mat_free_pogs_solve(c, b, constr_root, var_sizes, cones):
 #     '''
@@ -109,6 +109,135 @@ def convert_to_vec(is_double, iterable, div=1):
 #     tmp.append(tree)
 #     start_node, end_node = tree_to_dag(tree, var_sizes, c.size[0])
 #     return None
+
+def mat_free_pogs_solve(py_dag, data, dims, solver_opts):
+    """Solve using POGS.
+
+    py_dag: The Python FAO DAG.
+    data: A map with all the information needed by POGS.
+    """
+    tmp = []
+    # print py_dag
+    solver_opts["stoch"] = solver_opts.get("stoch", False)
+    solver_opts["samples"] = solver_opts.get("samples", 200)
+    solver_opts["precond"] = solver_opts.get("precond", True)
+    solver_opts["equil_steps"] = solver_opts.get("equil_steps", 1)
+    solver_opts["eps"] = solver_opts.get("eps", 1e-3)
+    solver_opts["rand_seed"] = solver_opts.get("rand_seed", False)
+    rho = solver_opts.get("rho", 1e-3)
+    verbose = solver_opts.get("verbose", False)
+    abs_tol = solver_opts.get("abs_tol", 1e-4)
+    rel_tol = solver_opts.get("rel_tol", 1e-4)
+    max_iter = solver_opts.get("max_iter", 2500)
+
+    # start_node, end_node, edges = python_to_swig(py_dag, tmp)
+    dag = FAO_DAG.FAO_DAG(start_node, end_node, edges)
+    pogs_data = FAO_DAG.POGS_Data();
+    c = data['c'].flatten()
+    pogs_data.load_c(c)
+    b = data['b'].flatten()
+    pogs_data.load_b(b)
+    # A = data['A']
+    # nnz = A.data.shape[0]
+    # Adata = convert_to_vec(True, A.data)
+    # Aindices = convert_to_vec(False, A.indices)
+    # Aindptr = convert_to_vec(False, A.indptr)
+    # Pass in solution arrays.
+    x = np.zeros(c.size)
+    y = np.zeros(b.size)
+    pogs_data.load_x(x)
+    pogs_data.load_y(y)
+
+    cones = python_cones_to_pogs_cones(dims)
+
+    opt_val = pogs_data.mat_free_solve(dag, cones, rho, verbose,
+                              abs_tol, rel_tol, max_iter)
+
+    # pogs_data.solve(dag, dims['f'], dims['l'], q_vec, s_vec, dims['ep'],
+    #                solver_opts['max_iters'],
+    #                solver_opts['equil_steps'],
+    #                solver_opts['samples'],
+    #                solver_opts['precond'],
+    #                solver_opts['eps'],
+    #                solver_opts['rand_seed'])
+    # info = {
+    #     "statusVal": pogs_data.statusVal,
+    #     "iter": pogs_data.iter,
+    #     "cgIter": pogs_data.cgIter,
+    #     "pobj": pogs_data.pobj,
+    #     "dobj": pogs_data.dobj,
+    #     "resPri": pogs_data.resPri,
+    #     "resDual": pogs_data.resDual,
+    #     "relGap": pogs_data.relGap,
+    #     "solveTime": (pogs_data.solveTime / 1e3),
+    #     "setupTime": (pogs_data.setupTime / 1e3),
+    #     "status": ''.join(pogs_data.status),
+    # }
+    # Must destroy FAO DAG before calling FAO destructors.
+    # del dag
+    return {'info':{'status': "Solved", 'pobj': opt_val},
+            'x': x, 'y':y}
+
+def pogs_solve(data, dims, solver_opts):
+    """Solve using POGS.
+
+    py_dag: The Python FAO DAG.
+    data: A map with all the information needed by POGS.
+    """
+    tmp = []
+    rho = solver_opts.get("rho", 1e-3)
+    verbose = solver_opts.get("verbose", False)
+    abs_tol = solver_opts.get("abs_tol", 1e-4)
+    rel_tol = solver_opts.get("rel_tol", 1e-4)
+    max_iter = solver_opts.get("max_iter", 2500)
+
+    # start_node, end_node, edges = python_to_swig(py_dag, tmp)
+    # dag = FAO_DAG.FAO_DAG(start_node, end_node, edges)
+    pogs_data = FAO_DAG.POGS_Data();
+    c = data['c'].flatten()
+    pogs_data.load_c(c)
+    b = data['b'].flatten()
+    pogs_data.load_b(b)
+    A = data['A']
+    nnz = A.data.shape[0]
+    Adata = convert_to_vec(True, A.data)
+    Aindices = convert_to_vec(False, A.indices)
+    Aindptr = convert_to_vec(False, A.indptr)
+    # Pass in solution arrays.
+    x = np.zeros(c.size)
+    y = np.zeros(b.size)
+    pogs_data.load_x(x)
+    pogs_data.load_y(y)
+
+    cones = python_cones_to_pogs_cones(dims)
+
+    opt_val = pogs_data.solve(nnz, Adata, Aindices, Aindptr, cones, rho, verbose,
+                              abs_tol, rel_tol, max_iter)
+
+    # pogs_data.solve(dag, dims['f'], dims['l'], q_vec, s_vec, dims['ep'],
+    #                solver_opts['max_iters'],
+    #                solver_opts['equil_steps'],
+    #                solver_opts['samples'],
+    #                solver_opts['precond'],
+    #                solver_opts['eps'],
+    #                solver_opts['rand_seed'])
+    # info = {
+    #     "statusVal": pogs_data.statusVal,
+    #     "iter": pogs_data.iter,
+    #     "cgIter": pogs_data.cgIter,
+    #     "pobj": pogs_data.pobj,
+    #     "dobj": pogs_data.dobj,
+    #     "resPri": pogs_data.resPri,
+    #     "resDual": pogs_data.resDual,
+    #     "relGap": pogs_data.relGap,
+    #     "solveTime": (pogs_data.solveTime / 1e3),
+    #     "setupTime": (pogs_data.setupTime / 1e3),
+    #     "status": ''.join(pogs_data.status),
+    # }
+    # Must destroy FAO DAG before calling FAO destructors.
+    # del dag
+    return {'info':{'status': "Solved", 'pobj': opt_val},
+            'x': x, 'y':y}
 
 def scs_solve(py_dag, data, dims, solver_opts):
     """Solve using SCS with FAO DAGs.

@@ -16,7 +16,8 @@
 %module FAO_DAG
 %{
 	#define SWIG_FILE_WITH_INIT
-	#include "SCS_Data.hpp"
+	#include "POGS_Data.hpp"
+   #include "SCS_Data.hpp"
 %}
 
 %include "numpy.i"
@@ -40,11 +41,14 @@
 %apply (double* INPLACE_ARRAY1, int DIM1) {(double *kernel, int kernel_len)};
 %include "FAO.hpp"
 
-%apply (double* INPLACE_ARRAY1, int DIM1) {(double *c, int c_len)};
-%apply (double* INPLACE_ARRAY1, int DIM1) {(double *b, int b_len)};
-%apply (double* INPLACE_ARRAY1, int DIM1) {(double *x, int x_len)};
-%apply (double* INPLACE_ARRAY1, int DIM1) {(double *y, int y_len)};
+%apply (double* INPLACE_ARRAY1, int DIM1) {(double *c, int c_len),(double *b, int b_len), (double *x, int x_len), (double *y, int y_len), (double *Adata, int nnz)};
+%apply (int* INPLACE_ARRAY1, int DIM1) {(int *Aindices, int nnz),(int *Aindptr, int nnz)};
+%include "POGS_Data.hpp"
+
+%apply (double* INPLACE_ARRAY1, int DIM1) {(double *c, int c_len),(double *b, int b_len), (double *x, int x_len), (double *y, int y_len), (double *Adata, int nnz)};
+%apply (int* INPLACE_ARRAY1, int DIM1) {(int *Aindices, int nnz),(int *Aindptr, int nnz)};
 %include "SCS_Data.hpp"
+
 
 /* Useful wrappers for the FAO class */
 namespace std {
@@ -68,3 +72,7 @@ namespace std {
 
 %apply (double* INPLACE_ARRAY1, int DIM1) {(double* output, int output_len)}
 %include "FAO_DAG.hpp"
+ 
+ 
+ 
+ 

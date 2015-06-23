@@ -7,7 +7,7 @@ define_macros = []
 extra_link_args = []
 extra_compile_args = ['-std=c++11', '-pg']
 include_dirs = [numpy.get_include(),'../','../../include/',
-                '../../include/scs/include/']
+                '../../include/scs/include/', '../../include/pogs_fork/src/include/']
 library_dirs = []
 libraries = ['fftw3', 'fftw3f', 'fftw3l', 'fftw3_threads',
             'fftw3f_threads', 'fftw3l_threads']
@@ -29,7 +29,7 @@ canon = Extension('_FAO_DAG',
 	include_dirs=include_dirs,
 	extra_compile_args=extra_compile_args,
 	extra_link_args=extra_link_args,
-    extra_objects =[],#['../../include/scs/out/libscsindir.a'],
+    extra_objects =['../../include/pogs_fork/src/build/pogs.a'],
     libraries=libraries + ['scsindir'],
     library_dirs=library_dirs + ['../../include/scs/out'])
 

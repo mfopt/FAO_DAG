@@ -3,8 +3,8 @@
 	url = git@github.com:SteveDiamond/scs.git
 [submodule "scs"]
 	branch = FAO
-[submodule "include/pogs"]
-	path = include/pogs
-	url = git@github.com:foges/pogs.git
-[submodule "pogs"]
+[submodule "include/pogs_fork"]
+	path = include/pogs_fork
+	url = git@github.com:SteveDiamond/pogs.git
+[submodule "pogs_fork"]
 	branch = cone

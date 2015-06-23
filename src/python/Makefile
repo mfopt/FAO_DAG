@@ -26,13 +26,13 @@ python:
 	cd ../../include/cvxpy; sudo python setup.py install;
 
 clean:
-	$(RM) *.*o
+	rm -rf *.*o
 	$(RM) *.pyc
-	$(RM) CVXcanon.py
-	$(RM) *_wrap.cxx
+	$(RM) FAO_DAG.py
+	$(RM) *_wrap.cpp
 	# $(RM) ../../tests/python/CVXcanon.py
 	# $(RM) ../../tests/python/_CVXcanon.so
-	$(MAKE) clean -C ../../external/pogs/src
+	# $(MAKE) clean -C ../../include/pogs/src
 
 all:
 	clean
