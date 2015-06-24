@@ -1,10 +1,22 @@
 from cvxpy import *
 x = Variable()
-prob = Problem(Minimize(-x), [x <= 2])
-prob.solve(solver=POGS, verbose=True, max_iter=2500)
+# prob = Problem(Minimize(-x), [x <= 2])
+# prob.solve(solver=POGS, verbose=True, max_iter=2500)
 
-prob = Problem(Minimize(-x), [x <= 2])
-prob.solve(solver=MAT_FREE_POGS, verbose=True, max_iter=2500)
+# prob = Problem(Minimize(-x), [x <= 2])
+# prob.solve(solver=MAT_FREE_POGS, verbose=True, max_iter=2500)
+
+prob = Problem(Minimize(x), [abs(x) <= 2])
+prob.solve(solver=POGS, verbose=True, max_iter=2)
+
+# prob = Problem(Minimize(x), [abs(x) <= 2])
+# prob.solve(solver=MAT_FREE_SCS, verbose=True, max_iters=100,
+#     samples=200, equil_steps=1)
+
+prob = Problem(Minimize(x), [abs(x) <= 2])
+prob.solve(solver=MAT_FREE_POGS, verbose=True, max_iter=2,
+    samples=200, equil_steps=1)
+print x.value
 
 # import numpy as np
 # from cvxpy import *

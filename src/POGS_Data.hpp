@@ -156,7 +156,9 @@ public:
                   bool verbose,
                   double abs_tol,
                   double rel_tol,
-                  int max_iter) {
+                  int max_iter,
+                  size_t samples,
+                  size_t equil_steps) {
 
           // printf("size of cones=%d\n", cones.size());
           std::vector<ConeConstraint> Kx, Ky;
@@ -170,7 +172,9 @@ public:
           pogs::MatrixFAO<double> A_(dag_output, b_len,
                                      dag_input, c_len,
                                      Amul, ATmul,
-                                     (void *) fao_dag);
+                                     (void *) fao_dag,
+                                     samples,
+                                     equil_steps);
           pogs::PogsIndirectCone<double, pogs::MatrixFAO<double> > pogs_data(A_, Kx, Ky);
           // double t = timer<double>();
           if (verbose) {

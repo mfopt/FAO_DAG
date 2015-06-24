@@ -116,18 +116,24 @@ def mat_free_pogs_solve(py_dag, data, dims, solver_opts):
     py_dag: The Python FAO DAG.
     data: A map with all the information needed by POGS.
     """
+    print py_dag.start_node
+    print len(py_dag.nodes)
+    for i, node in py_dag.nodes.items():
+        print node.type
     tmp = []
-    solver_opts["stoch"] = solver_opts.get("stoch", False)
-    solver_opts["samples"] = solver_opts.get("samples", 200)
-    solver_opts["precond"] = solver_opts.get("precond", True)
-    solver_opts["equil_steps"] = solver_opts.get("equil_steps", 1)
-    solver_opts["eps"] = solver_opts.get("eps", 1e-3)
-    solver_opts["rand_seed"] = solver_opts.get("rand_seed", False)
+    # solver_opts["stoch"] = solver_opts.get("stoch", False)
+    # solver_opts["samples"] = solver_opts.get("samples", 200)
+    # solver_opts["precond"] = solver_opts.get("precond", True)
+    # solver_opts["equil_steps"] = solver_opts.get("equil_steps", 1)
+    # solver_opts["eps"] = solver_opts.get("eps", 1e-3)
+    # solver_opts["rand_seed"] = solver_opts.get("rand_seed", False)
     rho = solver_opts.get("rho", 1)
     verbose = solver_opts.get("verbose", False)
     abs_tol = solver_opts.get("abs_tol", 1e-4)
     rel_tol = solver_opts.get("rel_tol", 1e-4)
     max_iter = solver_opts.get("max_iter", 2500)
+    samples = solver_opts.get("samples", 200)
+    equil_steps = solver_opts.get("equil_steps", 1)
 
     start_node, end_node, edges = python_to_swig(py_dag, tmp)
     dag = FAO_DAG.FAO_DAG(start_node, end_node, edges)
@@ -135,7 +141,8 @@ def mat_free_pogs_solve(py_dag, data, dims, solver_opts):
     c = data['c'].flatten()
     pogs_data.load_c(c)
     b = data['b'].A.flatten()
-    print b
+    print "c", c
+    print "b", b
     pogs_data.load_b(b)
     # A = data['A']
     # nnz = A.data.shape[0]
@@ -151,7 +158,7 @@ def mat_free_pogs_solve(py_dag, data, dims, solver_opts):
     cones = python_cones_to_pogs_cones(dims)
 
     opt_val = pogs_data.mat_free_solve(dag, cones, rho, verbose,
-                              abs_tol, rel_tol, max_iter)
+                              abs_tol, rel_tol, max_iter, samples, equil_steps)
 
     # pogs_data.solve(dag, dims['f'], dims['l'], q_vec, s_vec, dims['ep'],
     #                solver_opts['max_iters'],
@@ -196,7 +203,8 @@ def pogs_solve(data, dims, solver_opts):
     c = data['c'].flatten()
     pogs_data.load_c(c)
     b = data['b'].flatten()
-    print b
+    print "c", c
+    print "b", b
     pogs_data.load_b(b)
     A = data['A']
     nnz = A.data.shape[0]
