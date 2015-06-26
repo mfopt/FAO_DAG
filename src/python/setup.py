@@ -5,7 +5,7 @@ from numpy.distutils.system_info import get_info, BlasNotFoundError
 
 define_macros = []
 extra_link_args = []
-extra_compile_args = ['-std=c++11', '-pg', '-DFAO_GPU']
+extra_compile_args = ['-std=c++11', '-DFAO_GPU']
 include_dirs = [numpy.get_include(),'../','../../include/',
                 '../../include/scs/include/', '../../include/pogs_fork/src/include/']
 library_dirs = ['/usr/local/cuda/lib', '/usr/local/lib']

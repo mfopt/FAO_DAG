@@ -179,6 +179,12 @@ public:
 
     DenseMatVecMul() {
         cublasCreate(&hdl);
+        CUDA_CHECK_ERR();
+    }
+
+    ~DenseMatVecMul() {
+        cublasDestroy(hdl);
+        CUDA_CHECK_ERR();
     }
 
     void set_matrix_data(double* data, int rows, int cols) {
@@ -204,7 +210,7 @@ public:
 
 // class DenseMatMatMul : public DenseMatVecMul {
 // public:
-// 
+//
 //     /* Standard dense matrix matrix multiplication. */
 //     void forward_eval() {
 //         int M = static_cast<int>(output_sizes[0][0]);
@@ -216,7 +222,7 @@ public:
 //                     K, input_data.data, K,
 //                     0, output_data.data, M);
 //     }
-// 
+//
 //     void adjoint_eval() {
 //         int M = static_cast<int>(input_sizes[0][0]);
 //         int N = static_cast<int>(output_sizes[0][1]);
@@ -227,7 +233,7 @@ public:
 //                     M, output_data.data, K,
 //                     0, input_data.data, M);
 //     }
-// 
+//
 // };
 
 cusparseOperation_t OpToCusparseOp(char trans) {
@@ -247,6 +253,13 @@ public:
     SparseMatVecMul() {
         cusparseCreate(&hdl);
         cusparseCreateMatDescr(&descr);
+        CUDA_CHECK_ERR();
+    }
+
+    ~SparseMatVecMul() {
+        cusparseDestroy(hdl);
+        cusparseDestroyMatDescr(descr);
+        CUDA_CHECK_ERR();
     }
 
     void set_spmatrix_data(double *data, int data_len, int *ptrs,
@@ -290,6 +303,11 @@ public:
         cublasCreate(&hdl);
     }
 
+    ~ScalarMul() {
+        cublasDestroy(hdl);
+        CUDA_CHECK_ERR();
+    }
+
     /* Get the scalar value. */
     virtual double get_scalar() {
     	return scalar;
@@ -325,6 +343,11 @@ public:
 
     Sum() {
         cublasCreate(&hdl);
+    }
+
+    ~Sum() {
+        cublasDestroy(hdl);
+        CUDA_CHECK_ERR();
     }
 
     /* Sum the inputs. */

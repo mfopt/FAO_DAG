@@ -12,7 +12,7 @@ swig:
 	-I/Users/stevend2/anaconda/envs/abs_ops/include/python2.7 \
 	-c FAO_DAG_wrap.cu \
 	-o FAO_DAG_wrap.o \
-	-std=c++11 -pg -DFAO_GPU
+	-std=c++11 -DFAO_GPU
 
 	g++ -bundle -undefined dynamic_lookup \
 	-L/Users/stevend2/anaconda/envs/abs_ops/lib \
