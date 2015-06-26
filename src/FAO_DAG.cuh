@@ -54,6 +54,7 @@ public:
 		traverse_graph(node_fn, true);
 	}
 
+#ifndef SWIG
 	void traverse_graph (std::function<void(FAO*)> node_fn, bool forward) {
 		/* Traverse the graph and apply the given function at each node.
 
@@ -101,7 +102,7 @@ public:
 		}
 		eval_map.clear();
 	}
-
+#endif
 	/* For interacting with Python. */
 	void copy_input(std::vector<double>& input, bool forward) {
 		cml::vector<double>* input_vec;
