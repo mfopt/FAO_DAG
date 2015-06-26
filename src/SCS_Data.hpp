@@ -77,7 +77,7 @@ public:
      int solve(FAO_DAG* fao_dag,
                int f, int l, std::vector<int> q, std::vector<int> s,
                int ep, size_t max_iters, size_t equil_steps,
-               size_t samples, bool precond, double eps,
+               size_t samples, bool precond, double eps, double cg_rate,
                bool rand_seed) {
           scs::Cone * k;
           scs::Data * d;
@@ -109,7 +109,7 @@ public:
           d->dag_input = fao_dag->get_forward_input()->data;
           d->dag_output = fao_dag->get_adjoint_input()->data;
 
-          d->CG_RATE = 2.0;
+          d->CG_RATE = cg_rate;
           d->VERBOSE = true;
           d->MAX_ITERS = max_iters;
           d->EPS = eps;

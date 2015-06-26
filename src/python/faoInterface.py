@@ -116,7 +116,6 @@ def mat_free_pogs_solve(py_dag, data, dims, solver_opts):
     py_dag: The Python FAO DAG.
     data: A map with all the information needed by POGS.
     """
-    print py_dag.start_node
     print len(py_dag.nodes)
     for i, node in py_dag.nodes.items():
         print node.type
@@ -131,7 +130,7 @@ def mat_free_pogs_solve(py_dag, data, dims, solver_opts):
     verbose = solver_opts.get("verbose", False)
     abs_tol = solver_opts.get("abs_tol", 1e-4)
     rel_tol = solver_opts.get("rel_tol", 1e-4)
-    max_iter = solver_opts.get("max_iter", 2500)
+    max_iter = solver_opts.get("max_iters", 2500)
     samples = solver_opts.get("samples", 200)
     equil_steps = solver_opts.get("equil_steps", 1)
 
@@ -141,8 +140,6 @@ def mat_free_pogs_solve(py_dag, data, dims, solver_opts):
     c = data['c'].flatten()
     pogs_data.load_c(c)
     b = data['b'].A.flatten()
-    print "c", c
-    print "b", b
     pogs_data.load_b(b)
     # A = data['A']
     # nnz = A.data.shape[0]
@@ -195,7 +192,7 @@ def pogs_solve(data, dims, solver_opts):
     verbose = solver_opts.get("verbose", False)
     abs_tol = solver_opts.get("abs_tol", 1e-4)
     rel_tol = solver_opts.get("rel_tol", 1e-4)
-    max_iter = solver_opts.get("max_iter", 2500)
+    max_iter = solver_opts.get("max_iters", 2500)
 
     # start_node, end_node, edges = python_to_swig(py_dag, tmp)
     # dag = FAO_DAG.FAO_DAG(start_node, end_node, edges)
@@ -203,8 +200,6 @@ def pogs_solve(data, dims, solver_opts):
     c = data['c'].flatten()
     pogs_data.load_c(c)
     b = data['b'].flatten()
-    print "c", c
-    print "b", b
     pogs_data.load_b(b)
     A = data['A']
     nnz = A.data.shape[0]
@@ -260,8 +255,8 @@ def scs_solve(py_dag, data, dims, solver_opts):
     solver_opts["precond"] = solver_opts.get("precond", True)
     solver_opts["equil_steps"] = solver_opts.get("equil_steps", 1)
     solver_opts["eps"] = solver_opts.get("eps", 1e-3)
+    solver_opts['cg_rate'] = solver_opts.get("cg_rate", 2.0)
     solver_opts["rand_seed"] = solver_opts.get("rand_seed", False)
-
     start_node, end_node, edges = python_to_swig(py_dag, tmp)
     dag = FAO_DAG.FAO_DAG(start_node, end_node, edges)
     scs_data = FAO_DAG.SCS_Data();
@@ -283,6 +278,7 @@ def scs_solve(py_dag, data, dims, solver_opts):
                    solver_opts['samples'],
                    solver_opts['precond'],
                    solver_opts['eps'],
+                   solver_opts['cg_rate'],
                    solver_opts['rand_seed'])
     info = {
         "statusVal": scs_data.statusVal,

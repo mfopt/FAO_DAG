@@ -29,7 +29,7 @@ mat_free_times = []
 scs_direct_times = []
 scs_indirect_times = []
 
-n = 250000
+n = 1000
 NUM_SPIKES = 5
 DENSITY = NUM_SPIKES/n
 x = Variable(n)
@@ -64,26 +64,29 @@ print "all zero fit =", norm(conv(kernel, np.zeros(n)) - noisy_signal).value
 # # Only solve one problem.
 # if r != script_num:# or n <= 16236:
 #     continue
-# if False and n <= 5454:
-#     result = prob.solve(solver=ECOS, verbose=True,
-#         abstol=1e-3, reltol=1e-3, feastol=1e-3)
-#     print "ecos result", result
-#     print("recovered x fit", fit.value)
-#     print("solve time", prob.solve_time)
-#     solve_time = prob.solve_time
-# else:
-#     solve_time = 0
+if False:
+    result = prob.solve(solver=ECOS, verbose=True,
+        abstol=1e-3, reltol=1e-3, feastol=1e-3)
+    print "ecos result", result
+    print("recovered x fit", fit.value)
+    print("solve time", prob.solve_time)
+    solve_time = prob.solve_time
+else:
+    solve_time = 0
 # ecos_times.append(solve_time)
-# if False and n <= 16236:
-#     result = prob.solve(solver=SCS,
-#                         verbose=True,
-#                         max_iters=10000,
-#                         eps=1e-3,
-#                         use_indirect=False)
-#     print "scs direct result", result
-#     print("recovered x fit", fit.value)
-#     print("solve time", prob.solve_time)
-#     solve_time = prob.solve_time
+if False:
+    result = prob.solve(solver=SCS,
+                        verbose=True,
+                        max_iters=10000,
+                        eps=1e-5,
+                        use_indirect=False)
+    print "scs direct result", result
+    print("solve time", prob.solve_time)
+    solve_time = prob.solve_time
+    print "mat free scs result", result
+    print("solve time", prob.solve_time)
+    print("nnz =", np.sum(x.value >= 1))
+    print("max =", np.max(np.max(x.value)))
 # else:
 #     solve_time = 0
 # scs_direct_times.append(solve_time)
@@ -118,7 +121,7 @@ if False:
 else:
     solve_time = 0
 scs_indirect_times.append(solve_time)
-print("true signal fit", fit.value)
+# print("true signal fit", fit.value)
 if True:
     print "FAO MAT FREE"
     # import cProfile
@@ -146,11 +149,42 @@ if True:
     # yep.stop()
     print "mat free scs result", result
     print("solve time", prob.solve_time)
+    print("nnz =", np.sum(x.value >= 1))
+    print("max =", np.max(np.max(x.value)))
     solve_time = prob.solve_time
 else:
     solve_time = 0
 mat_free_times.append(solve_time)
 print("recovered x fit", fit.value)
 
-print("nnz =", np.sum(x.value >= 1))
-print("max =", np.max(np.max(x.value)))
+if False:
+    print "FAO MAT FREE"
+    # import cProfile
+    # cProfile.run("""result = prob.solve(solver=MAT_FREE_SCS,
+    #                     verbose=True,
+    #                     max_iters=10000,
+    #                     equil_steps=1,
+    #                     eps=1e-3,
+    #                     cg_rate=2,
+    #                     precond=True,
+    #                     stoch=True,
+    #                     samples=200)
+    # """)
+    # import yep
+    # yep.start('conv.prof')
+    result = prob.solve(solver=MAT_FREE_POGS,
+                            verbose=True,
+                            max_iters=10000,
+                            equil_steps=0,
+                            # eps=1e-3,
+                            # cg_rate=2,
+                            # precond=True,
+                            # stoch=True,
+                            abs_tol=1e-6,
+                            rel_tol=1e-6,
+                            samples=200)
+    # yep.stop()
+    print "mat free pogs result", result
+    print("recovered x fit", fit.value)
+    print("nnz =", np.sum(x.value >= 1))
+    print("max =", np.max(np.max(x.value)))
