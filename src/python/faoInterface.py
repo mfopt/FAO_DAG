@@ -118,6 +118,7 @@ def mat_free_pogs_solve(py_dag, data, dims, solver_opts):
     """
     print len(py_dag.nodes)
     for i, node in py_dag.nodes.items():
+        print node
         print node.type
     tmp = []
     # solver_opts["stoch"] = solver_opts.get("stoch", False)
@@ -373,8 +374,8 @@ type_map = {
     SCALAR_MUL: FAO_DAG.ScalarMul,
     DENSE_MAT_VEC_MUL: FAO_DAG.DenseMatVecMul,
     SPARSE_MAT_VEC_MUL: FAO_DAG.SparseMatVecMul,
-    DENSE_MAT_MAT_MUL: FAO_DAG.DenseMatMatMul,
-    SPARSE_MAT_MAT_MUL: FAO_DAG.SparseMatMatMul,
+    # DENSE_MAT_MAT_MUL: FAO_DAG.DenseMatMatMul,
+    # SPARSE_MAT_MAT_MUL: FAO_DAG.SparseMatMatMul,
     COPY: FAO_DAG.Copy,
     SPLIT: FAO_DAG.Split,
     # SCALAR_CONST: FAO_DAG.Constant,

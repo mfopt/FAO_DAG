@@ -4,7 +4,12 @@
 #include <vector>
 #include <string>
 #include "pogs.h"
+
+#ifdef FAO_GPU
+#include "FAO_DAG.cuh"
+#else
 #include "FAO_DAG.hpp"
+#endif
 
 class POGS_Data {
 public:

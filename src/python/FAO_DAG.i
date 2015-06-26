@@ -13,6 +13,7 @@
 //    You should have received a copy of the GNU General Public License
 //    along with CVXcanon.  If not, see <http://www.gnu.org/licenses/>.
 
+
 %module FAO_DAG
 %{
 	#define SWIG_FILE_WITH_INIT
@@ -39,7 +40,8 @@
 %apply (int* INPLACE_ARRAY1, int DIM1) {(int *indices, int idx_len), (int *ptrs, int ptr_len)};
 
 %apply (double* INPLACE_ARRAY1, int DIM1) {(double *kernel, int kernel_len)};
-%include "FAO.hpp"
+/*%include "FAO.hpp" */
+%include "FAO.cuh"
 
 %apply (double* INPLACE_ARRAY1, int DIM1) {(double *c, int c_len),(double *b, int b_len), (double *x, int x_len), (double *y, int y_len), (double *Adata, int nnz)};
 %apply (int* INPLACE_ARRAY1, int DIM1) {(int *Aindices, int nnz),(int *Aindptr, int nnz)};
@@ -71,4 +73,9 @@ namespace std {
 %apply (double* INPLACE_ARRAY1, int DIM1) {(double* input, int input_len)}
 
 %apply (double* INPLACE_ARRAY1, int DIM1) {(double* output, int output_len)}
-%include "FAO_DAG.hpp"
+/* %include "FAO_DAG.hpp" */
+%include "FAO_DAG.cuh"
+ 
+ 
+ 
+ 
