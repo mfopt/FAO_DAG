@@ -24,6 +24,7 @@
 #include <queue>
 #include <functional>
 #include "cml/cml_vector.cuh"
+#include <typeinfo>
 
 class FAO_DAG {
 public:

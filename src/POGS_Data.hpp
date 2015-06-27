@@ -210,11 +210,11 @@ public:
                     std::vector<ConeConstraint>& Ky) {
           for (size_t i=0; i < cones.size(); i++) {
                Cone cone_type = get_pogs_cone(cones[i].first);
-               printf("cone type=%d\n", cone_type);
+               // printf("cone type=%d\n", cone_type);
                std::vector<int> orig_idx = cones[i].second;
                std::vector<CONE_IDX> idx;
                for (size_t j=0; j < orig_idx.size(); j++) {
-                    printf("cone idx %d=%d\n", j, orig_idx[j]);
+                    // printf("cone idx %d=%d\n", j, orig_idx[j]);
                     idx.push_back((CONE_IDX) orig_idx[j]);
                }
                Ky.emplace_back(cone_type, idx);

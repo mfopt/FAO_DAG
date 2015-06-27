@@ -19,18 +19,18 @@ struct matrix {
   T* data;
 };
 
-template <typename T, CBLAS_ORDER O>
-matrix<T, O> matrix_init(size_t m, size_t n, T *data) {
-  matrix<T, O> mat;
-  mat.size1 = m;
-  mat.size2 = n;
-  if (O == CblasRowMajor)
-    mat.tda = n;
-  else
-    mat.tda = m;
-  mat.data = data;
-  return mat;
-}
+// template <typename T, CBLAS_ORDER O>
+// matrix<T, O> matrix_init(size_t m, size_t n, T *data) {
+//   matrix<T, O> mat;
+//   mat.size1 = m;
+//   mat.size2 = n;
+//   if (O == CblasRowMajor)
+//     mat.tda = n;
+//   else
+//     mat.tda = m;
+//   mat.data = data;
+//   return mat;
+// }
 
 // Helper Methods
 namespace {
@@ -180,8 +180,8 @@ void matrix_memcpy(matrix<T, O> *A, const matrix<T, O> *B) {
     for (unsigned int i = 0; i < A->size1; ++i)
       err = cudaMemcpy(A->data + i * A->tda, B->data + i * B->tda,
           A->size2 * sizeof(T), cudaMemcpyDefault);
-  else 
-    for (unsigned int j = 0; j < A->size2; ++j) 
+  else
+    for (unsigned int j = 0; j < A->size2; ++j)
       err = cudaMemcpy(A->data + j * A->tda, B->data + j * B->tda,
           A->size1 * sizeof(T), cudaMemcpyDefault);
   CudaCheckError(err);
@@ -198,8 +198,8 @@ void matrix_memcpy(matrix<T, O> *A, const T *B) {
     for (unsigned int i = 0; i < A->size1; ++i)
       err = cudaMemcpy(A->data + i * A->tda, B + i * A->size2,
           A->size2 * sizeof(T), cudaMemcpyDefault);
-  else 
-    for (unsigned int j = 0; j < A->size2; ++j) 
+  else
+    for (unsigned int j = 0; j < A->size2; ++j)
       err = cudaMemcpy(A->data + j * A->tda, B + j * A->size1,
           A->size1 * sizeof(T), cudaMemcpyDefault);
   CudaCheckError(err);
@@ -217,7 +217,7 @@ void matrix_memcpy(T *A, const matrix<T, O> *B) {
       err = cudaMemcpy(A + i * B->size2, B->data + i * B->tda,
           B->size2 * sizeof(T), cudaMemcpyDefault);
   } else {
-    for (unsigned int j = 0; j < B->size2; ++j) 
+    for (unsigned int j = 0; j < B->size2; ++j)
       err = cudaMemcpy(A + j * B->size1, B->data + j * B->tda,
           B->size1 * sizeof(T), cudaMemcpyDefault);
   }

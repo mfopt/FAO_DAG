@@ -188,7 +188,10 @@ public:
     }
 
     void set_matrix_data(double* data, int rows, int cols) {
-        matrix = cml::matrix_init<double, CblasRowMajor>(rows, cols, data);
+        matrix = cml::matrix_alloc<double, CblasRowMajor>(rows, cols);
+        cml::matrix_memcpy(&matrix, data);
+        cudaDeviceSynchronize();
+        CUDA_CHECK_ERR();
     }
 
     /* Standard dense matrix multiplication. */
@@ -352,6 +355,7 @@ public:
 
     /* Sum the inputs. */
     void forward_eval() {
+        // printf("Sum forward eval\n");
     	forward_eval_base(input_data, output_data, input_sizes);
     }
 
@@ -365,9 +369,28 @@ public:
     		auto subvec = cml::vector_subvector(&input_data,
     			i*elem_size, elem_size);
     		cml::blas_axpy(hdl, 1, &subvec, &output_data);
+            // cudaDeviceSynchronize();
+            // CUDA_CHECK_ERR();
     	}
         cudaDeviceSynchronize();
         CUDA_CHECK_ERR();
+        // double *input = new double[input_data.size];
+        // cudaMemcpy(input, input_data.data, input_data.size * sizeof(double), cudaMemcpyDeviceToHost);
+        // printf("input_data.size = %zu\n", input_data.size);
+        // for (int i = 0; i < input_data.size; ++i)
+        //    printf("input[%i] = %e\n", i, input[i]);
+        // cudaDeviceSynchronize();
+        // CUDA_CHECK_ERR();
+        // delete [] input;
+        // cudaDeviceSynchronize();
+        // CUDA_CHECK_ERR();
+        // double *output = new double[output_data.size];
+        // cudaMemcpy(output, output_data.data, output_data.size * sizeof(double), cudaMemcpyDeviceToHost);
+        // cudaDeviceSynchronize();
+        // CUDA_CHECK_ERR();
+        // for (int i = 0; i < output_data.size; ++i)
+        //    printf("output[%i] = %e\n", i, output[i]);
+        // delete [] output;
     }
 
     /* Copy the input. */
