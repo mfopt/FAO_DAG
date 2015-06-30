@@ -6,6 +6,8 @@ x = Variable()
 prob = Problem(Minimize(-x), [x <= 2])
 prob.solve(solver=MAT_FREE_POGS, verbose=True, max_iter=2500)
 print x.value
+prob.solve(solver=POGS, rho=1, verbose=True, max_iters=2499)
+print "POGS obj", prob.value
 # prob = Problem(Minimize(-x), [x <= 2])
 # prob.solve(solver=POGS, verbose=True, max_iter=2)
 
@@ -17,8 +19,10 @@ x = Variable(2)
 y = Variable(2)
 prob = Problem(Minimize(x[0]), [norm(x + y) <= 2, y == 0])
 prob.solve(solver=MAT_FREE_POGS, verbose=True, max_iters=2500,
-    samples=200, equil_steps=1, rho=1)
+    samples=200, equil_steps=0, rho=1)
 print x.value
+prob.solve(solver=POGS, rho=1, verbose=True, max_iters=2499)
+print "POGS obj", prob.value
 # print norm(x + y).value
 # import numpy as np
 # from cvxpy import *
@@ -64,6 +68,9 @@ b = np.random.randn(m, 1)
 cost = norm(A*x - b) + norm(x, 1)
 prob = Problem(Minimize(cost))
 prob.solve(solver=MAT_FREE_POGS, rho=1, verbose=True, abs_tol=1e-4, rel_tol=1e-4, max_iters=2499)
+print "MAT FREE POGS obj", prob.value
+print "MAT FREE POGS cost", cost.value
+prob.solve(solver=POGS, rho=1, verbose=True, abs_tol=1e-4, rel_tol=1e-4, max_iters=2499)
 print "POGS obj", prob.value
 print "POGS cost", cost.value
 print "ECOS obj", prob.solve(solver=ECOS)
