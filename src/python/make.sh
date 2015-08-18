@@ -25,7 +25,7 @@ g++ -bundle -undefined dynamic_lookup \
 FAO_DAG_wrap.o ../../include/pogs_fork/src/build/pogs.a \
 -L ../../include/scs/out -lscsindir \
 -L/usr/local/cuda/lib -L/usr/local/lib \
--lcudart -lcublas -lcusparse \
+-lcudart -lcublas -lcusparse -lcufftw \
 -L/usr/lib -L/usr/lib \
 -L/Users/stevend2/anaconda/envs/abs_ops/lib \
 -lfftw3 -lfftw3f -lfftw3l -lfftw3_threads \

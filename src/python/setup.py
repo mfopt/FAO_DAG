@@ -11,7 +11,7 @@ include_dirs = [numpy.get_include(),'../','../../include/',
 library_dirs = ['/usr/local/cuda/lib', '/usr/local/lib']
 libraries = ['fftw3', 'fftw3f', 'fftw3l', 'fftw3_threads',
              'fftw3f_threads', 'fftw3l_threads',
-             'cudart', 'cublas', 'cusparse']
+             'cudart', 'cublas', 'cusparse', 'cufftw']
 
 blas_info = get_info('blas')
 lapack_info = get_info('lapack')
