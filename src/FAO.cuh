@@ -500,6 +500,7 @@ public:
         cml::vector<double> imag_part(rev_kernel_fft.data + 1, padded_len, 2);
      	cml::vector_memcpy(&rev_kernel_fft, &kernel_fft);
         cudaDeviceSynchronize();
+        CUDA_CHECK_ERR();
         cml::vector_scale(&imag_part, -1.0);
         // for (size_t i=0; i < padded_len; ++i) {
      	// 	  rev_kernel_fft[i][0] = kernel_fft[i][0];

@@ -165,6 +165,8 @@ public:
 				cml::vector_subvec_memcpy<double>(&target->input_data, target_offset,
 							  &node->output_data, node_offset, len);
 			}
+			cudaDeviceSynchronize();
+			CUDA_CHECK_ERR();
 		};
 		// auto input_arr = get_forward_input();
 		// for (size_t i=0; i < input_arr->size; ++i) {
@@ -192,6 +194,8 @@ public:
 				cml::vector_subvec_memcpy<double>(&target->output_data, target_offset,
 							  &node->input_data, node_offset, len);
 			}
+			cudaDeviceSynchronize();
+			CUDA_CHECK_ERR();
 		};
 		// auto input_arr = get_adjoint_input();
 		// for (size_t i=0; i < input_arr->size; ++i) {
