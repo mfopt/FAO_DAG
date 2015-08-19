@@ -136,7 +136,6 @@ void vector_memcpy(vector<T> *x, const vector<T> *y) {
     uint grid_dim = calc_grid_dim(x->size, block_size);
     __strided_memcpy<<<grid_dim, block_size>>>(x->data, x->stride, y->data,
         y->stride, x->size);
-    CUDA_CHECK_ERR();
   }
 }
 
@@ -151,13 +150,11 @@ void vector_subvec_memcpy(vector<T>* dst_vec, size_t dst_offset,
         reinterpret_cast<const void*>(src_vec->data + src_offset),
         len * sizeof(T), cudaMemcpyDefault);
     CudaCheckError(err);
-    CUDA_CHECK_ERR();
   } else {
     size_t block_size = std::min(kBlockSize, dst_vec->size);
     uint grid_dim = calc_grid_dim(dst_vec->size, block_size);
     __strided_memcpy<<<grid_dim, block_size>>>(dst_vec->data + dst_offset,
         dst_vec->stride, src_vec->data + src_offset, src_vec->stride, len);
-    CUDA_CHECK_ERR();
   }
 }
 

@@ -30,7 +30,7 @@
 *.egg-info
 *.pyc
 src/python/FAO_DAG.py
-src/python/FAO_DAG_wrap.cpp
+src/python/FAO_DAG_wrap.*
 src/python/build/*
 FAO_DAG.egg-info/*
 *.DS_Store

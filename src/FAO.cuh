@@ -374,6 +374,7 @@ public:
     					   std::vector<std::vector<size_t> > input_sizes) {
     	size_t elem_size = output_data.size;
     	cml::vector_subvec_memcpy(&output_data, 0, &input_data, 0, elem_size);
+        cudaDeviceSynchronize();
     	for (size_t i=1; i < input_sizes.size(); ++i) {
     		auto subvec = cml::vector_subvector(&input_data,
     			i*elem_size, elem_size);
@@ -488,6 +489,7 @@ public:
         cml::vector<double> input_start = cml::vector_view_array(input_data.data,
             kernel_len);
         cml::vector_memcpy(&input_start, &kernel);
+        cudaDeviceSynchronize();
         fftw_plan plan = fftw_plan_dft_r2c_1d(padded_len, input_data.data,
         									  (fftw_complex *) kernel_fft.data,
                                               FFTW_ESTIMATE);
@@ -497,6 +499,7 @@ public:
      	// TODO parallelize.
         cml::vector<double> imag_part(rev_kernel_fft.data + 1, padded_len, 2);
      	cml::vector_memcpy(&rev_kernel_fft, &kernel_fft);
+        cudaDeviceSynchronize();
         cml::vector_scale(&imag_part, -1.0);
         // for (size_t i=0; i < padded_len; ++i) {
      	// 	  rev_kernel_fft[i][0] = kernel_fft[i][0];
