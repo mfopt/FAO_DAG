@@ -158,8 +158,10 @@ public:
 				size_t len = node->get_elem_length(node->output_sizes[i]);
 				size_t node_offset = node->output_offsets[edge_idx];
 				size_t target_offset = target->input_offsets[edge_idx];
+				// printf("edge = %d\n", edge_idx);
+				// printf("target->input_data.stride = %d\n", target->input_data.stride);
+				// printf("node->output_data.stride = %d\n", node->output_data.stride);
 				// Copy len elements from node_start to target_start.
-                                // TODO Define
 				cml::vector_subvec_memcpy<double>(&target->input_data, target_offset,
 							  &node->output_data, node_offset, len);
 			}

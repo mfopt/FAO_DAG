@@ -166,12 +166,16 @@ public:
 class NoOp : public FAO {
 	/* Zero out the output. */
 	void forward_eval() {
-	    memset(output_data.data, 0, output_data.size*sizeof(double));
+        cml::vector_scale<double>(&output_data, 0.0);
+        cudaDeviceSynchronize();
+        CUDA_CHECK_ERR();
 	}
 
 	/* Zero out the input. */
 	void adjoint_eval() {
-	    memset(input_data.data, 0, input_data.size*sizeof(double));
+        cml::vector_scale<double>(&input_data, 0.0);
+        cudaDeviceSynchronize();
+        CUDA_CHECK_ERR();
 	}
 };
 
@@ -412,6 +416,8 @@ public:
         	cml::vector_subvec_memcpy(&output_data, i*elem_size,
         									  &input_data, 0, elem_size);
         }
+        cudaDeviceSynchronize();
+        CUDA_CHECK_ERR();
     }
 };
 
@@ -456,9 +462,7 @@ public:
 	cml::vector<double> rev_kernel_fft;
 	cml::vector<double> r2c_out;
 
-    cml::vector<double> input_data;
-    cml::vector<double> extra_input;
-    cml::vector<double> output_data;
+    cml::vector<double> input_padding;
 	fftw_plan forward_fft_plan;
 	fftw_plan forward_ifft_plan;
 	fftw_plan adjoint_fft_plan;
@@ -471,7 +475,7 @@ public:
         input_data = cml::vector_calloc<double>(padded_len);
        	output_data = cml::vector_calloc<double>(padded_len);
         /* Isolate extra part of input. */
-        extra_input = cml::vector_view_array(input_data.data + input_len,
+        input_padding = cml::vector_view_array(input_data.data + input_len,
             padded_len - input_len);
         // Actually complex.
         kernel_fft = cml::vector_calloc<double>(2*padded_len);
@@ -577,7 +581,7 @@ public:
 
 	/* Fill out the input padding with zeros. */
 	void zero_pad_input() {
-        cml::vector_scale<double>(&extra_input, 0.0);
+        cml::vector_scale<double>(&input_padding, 0.0);
 	}
 
 	/* Column convolution. */
@@ -586,6 +590,8 @@ public:
     	fftw_execute(forward_fft_plan);
     	multiply_fft(kernel_fft, r2c_out);
     	fftw_execute(forward_ifft_plan);
+        cudaDeviceSynchronize();
+        CUDA_CHECK_ERR();
     }
 
     /* Row convolution. */
@@ -594,6 +600,8 @@ public:
     	multiply_fft(rev_kernel_fft, r2c_out);
 		fftw_execute(adjoint_ifft_plan);
 		// TODO do this? zero_pad_input();
+        cudaDeviceSynchronize();
+        CUDA_CHECK_ERR();
     }
 };
 #endif

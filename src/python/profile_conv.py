@@ -29,7 +29,7 @@ mat_free_times = []
 scs_direct_times = []
 scs_indirect_times = []
 
-n = 100000
+n = 23356
 NUM_SPIKES = 5
 DENSITY = NUM_SPIKES/n
 x = Variable(n)
@@ -66,9 +66,12 @@ print "all zero fit =", norm(conv(kernel, np.zeros(n)) - noisy_signal).value
 #     continue
 if False:
     result = prob.solve(solver=ECOS, verbose=True,
-        abstol=1e-3, reltol=1e-3, feastol=1e-3)
+        # abstol=1e-3, reltol=1e-3, feastol=1e-3)
+        abstol=1e-5, reltol=1e-5, feastol=1e-5)
     print "ecos result", result
     print("recovered x fit", fit.value)
+    print("nnz =", np.sum(x.value >= 1))
+    print("max =", np.max(np.max(x.value)))
     print("solve time", prob.solve_time)
     solve_time = prob.solve_time
 else:
@@ -180,8 +183,8 @@ if True:
                             # cg_rate=2,
                             # precond=True,
                             # stoch=True,
-                            abs_tol=1e-5,
-                            rel_tol=1e-5,
+                            abs_tol=1e-4,
+                            rel_tol=1e-4,
                             samples=200)
     # yep.stop()
     print "mat free pogs result", result

@@ -76,15 +76,15 @@ prob.solve(solver=MAT_FREE_POGS, rho=1, verbose=True, abs_tol=1e-4, rel_tol=1e-3
 print "POGS obj", prob.value
 print "POGS cost", cost.value
 print "POGS x norm", norm(x).value
-prob.solve(solver=MAT_FREE_SCS, verbose=True, eps=1e-3, max_iters=10000,
-    samples=200, equil_steps=1)
-print "MAT FREE SCS obj", prob.value
-print "MAT FREE SCS  cost", cost.value
-print "MAT FREE SCS x norm", norm(x).value
-print "ECOS obj", prob.solve(solver=ECOS)
-print "ECOS cost", cost.value
-print "ECOS x norm", norm(x).value
-print "SCS obj", prob.solve(solver=SCS, use_indirect=True, verbose=False)
-print "SCS cost", cost.value
-print "SCS x norm", norm(x).value
+# prob.solve(solver=MAT_FREE_SCS, verbose=True, eps=1e-3, max_iters=10000,
+#     samples=200, equil_steps=1)
+# print "MAT FREE SCS obj", prob.value
+# print "MAT FREE SCS  cost", cost.value
+# print "MAT FREE SCS x norm", norm(x).value
+# print "ECOS obj", prob.solve(solver=ECOS)
+# print "ECOS cost", cost.value
+# print "ECOS x norm", norm(x).value
+# print "SCS obj", prob.solve(solver=SCS, use_indirect=True, verbose=False)
+# print "SCS cost", cost.value
+# print "SCS x norm", norm(x).value
 
