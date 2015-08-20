@@ -10,11 +10,9 @@ swig -python -c++ -I../ -outcurrentdir -o FAO_DAG_wrap.cu FAO_DAG.i
 nvcc -Xcompiler -fno-strict-aliasing,-fno-common,-dynamic,-fwrapv,-Wall,-Wstrict-prototypes \
 -I/usr/local/include -I/usr/local/opt/sqlite/include \
 -DNDEBUG -g -O3  -DLAPACK_LIB_FOUND \
-# Change this to your local python.
 -I/Users/stevend2/anaconda/envs/abs_ops/lib/python2.7/site-packages/numpy/core/include \
 -I../ -I../../include/ -I../../include/scs/include/ \
 -I../../include/pogs_fork/src/include/ \
-# Change this to your local python.
 -I/Users/stevend2/anaconda/envs/abs_ops/include/python2.7 \
 -c FAO_DAG_wrap.cu \
 -o FAO_DAG_wrap.o \

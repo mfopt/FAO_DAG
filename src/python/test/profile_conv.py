@@ -29,7 +29,7 @@ mat_free_times = []
 scs_direct_times = []
 scs_indirect_times = []
 
-n = 100000
+n = 1000
 NUM_SPIKES = 5
 DENSITY = NUM_SPIKES/n
 x = Variable(n)
@@ -122,7 +122,7 @@ else:
     solve_time = 0
 scs_indirect_times.append(solve_time)
 # print("true signal fit", fit.value)
-if False:
+if True:
     print "FAO MAT FREE"
     # import cProfile
     # cProfile.run("""result = prob.solve(solver=MAT_FREE_SCS,
@@ -157,7 +157,7 @@ else:
 mat_free_times.append(solve_time)
 print("recovered x fit", fit.value)
 
-if True:
+if False:
     print "FAO MAT FREE"
     # import cProfile
     # cProfile.run("""result = prob.solve(solver=MAT_FREE_SCS,
