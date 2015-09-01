@@ -74,7 +74,7 @@ public:
      // }
 
 
-     int solve(FAO_DAG* fao_dag,
+     int solve(FAO_DAG<double>* fao_dag,
                int f, int l, std::vector<int> q, std::vector<int> s,
                int ep, size_t max_iters, size_t equil_steps,
                size_t samples, bool precond, double eps, double cg_rate,

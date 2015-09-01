@@ -59,13 +59,15 @@ namespace std {
    %template(DoubleVector) vector<double>;
    %template(IntVector2D) vector< vector<int> >;
    %template(DoubleVector2D) vector< vector<double> >;
-   %template(FaoVector) vector<FAO*>;
+   %template(FaoDoubleVector) vector<FAO<double>*>;
+   %template(FaoFloatVector) vector<FAO<float>*>;
    %template(IntIntMap) map<int, int>;
    %template(ConeConstraint) pair<int, vector<int> >;
    %template(ConeConstraintVector) vector< pair<int, vector<int> > >;
-   %template(EdgeMap) map<int, pair<FAO *, FAO *> >;
-   %template(NodeMap) map<int, FAO *>;
-   %template(Edge) pair<FAO*, FAO *>;
+   %template(EdgeMapDouble) map<int, pair<FAO<double> *, FAO<double> *> >;
+   %template(EdgeMapFloat) map<int, pair<FAO<float> *, FAO<float> *> >;
+   %template(EdgeDouble) pair<FAO<double> *, FAO<double> *>;
+   %template(EdgeFloat) pair<FAO<float> *, FAO<float> *>;
 }
 
 /* For FAO_DAG.hpp. */

@@ -134,9 +134,13 @@ def mat_free_pogs_solve(py_dag, data, dims, solver_opts):
     max_iter = solver_opts.get("max_iters", 2500)
     samples = solver_opts.get("samples", 200)
     equil_steps = solver_opts.get("equil_steps", 1)
+    double = solver_opts.get("double", True)
 
-    start_node, end_node, edges = python_to_swig(py_dag, tmp)
-    dag = FAO_DAG.FAO_DAG(start_node, end_node, edges)
+    start_node, end_node, edges = python_to_swig(py_dag, tmp, double)
+    if double:
+        dag = FAO_DAG.FAO_DAGd(start_node, end_node, edges)
+    else:
+        dag = FAO_DAG.FAO_DAGf(start_node, end_node, edges)
     pogs_data = FAO_DAG.POGS_Data();
     c = data['c'].flatten()
     pogs_data.load_c(c)
@@ -353,43 +357,76 @@ def set_slice_data(linC, linPy):
         linC.slice.push_back(vec)
 
 type_map = {
-    # "PROMOTE": FAO_DAG.PROMOTE,
-    # "MUL": FAO_DAG.MUL,
-    # "RMUL": FAO_DAG.RMUL,
-    # "MUL_ELEM": FAO_DAG.MUL_ELEM,
-    # "DIV": FAO_DAG.DIV,
-    SUM: FAO_DAG.Sum,
-    NEG: FAO_DAG.Neg,
-    # "INDEX": FAO_DAG.INDEX,
-    # "TRANSPOSE": FAO_DAG.TRANSPOSE,
-    # "SUM_ENTRIES": FAO_DAG.SUM_ENTRIES,
-    # "TRACE": FAO_DAG.TRACE,
-    # "RESHAPE": FAO_DAG.RESHAPE,
-    # "DIAG_VEC": FAO_DAG.DIAG_VEC,
-    # "DIAG_MAT": FAO_DAG.DIAG_MAT,
-    # "UPPER_TRI": FAO_DAG.UPPER_TRI,
-    CONV: FAO_DAG.Conv,
-    # "HSTACK": FAO_DAG.HSTACK,
-    VSTACK: FAO_DAG.Vstack,
-    SCALAR_MUL: FAO_DAG.ScalarMul,
-    DENSE_MAT_VEC_MUL: FAO_DAG.DenseMatVecMul,
-    SPARSE_MAT_VEC_MUL: FAO_DAG.SparseMatVecMul,
-    # DENSE_MAT_MAT_MUL: FAO_DAG.DenseMatMatMul,
-    # SPARSE_MAT_MAT_MUL: FAO_DAG.SparseMatMatMul,
-    COPY: FAO_DAG.Copy,
-    SPLIT: FAO_DAG.Split,
-    # SCALAR_CONST: FAO_DAG.Constant,
-    # DENSE_CONST: FAO_DAG.Constant,
-    # SPARSE_CONST: FAO_DAG.Constant,
-    NO_OP: FAO_DAG.NoOp,
+    True: {
+        # "PROMOTE": FAO_DAG.PROMOTE,
+        # "MUL": FAO_DAG.MUL,
+        # "RMUL": FAO_DAG.RMUL,
+        # "MUL_ELEM": FAO_DAG.MUL_ELEM,
+        # "DIV": FAO_DAG.DIV,
+        SUM: FAO_DAG.Sumd,
+        NEG: FAO_DAG.Negd,
+        # "INDEX": FAO_DAG.INDEX,
+        # "TRANSPOSE": FAO_DAG.TRANSPOSE,
+        # "SUM_ENTRIES": FAO_DAG.SUM_ENTRIES,
+        # "TRACE": FAO_DAG.TRACE,
+        # "RESHAPE": FAO_DAG.RESHAPE,
+        # "DIAG_VEC": FAO_DAG.DIAG_VEC,
+        # "DIAG_MAT": FAO_DAG.DIAG_MAT,
+        # "UPPER_TRI": FAO_DAG.UPPER_TRI,
+        CONV: FAO_DAG.Convd,
+        # "HSTACK": FAO_DAG.HSTACK,
+        VSTACK: FAO_DAG.Vstackd,
+        SCALAR_MUL: FAO_DAG.ScalarMuld,
+        DENSE_MAT_VEC_MUL: FAO_DAG.DenseMatVecMuld,
+        SPARSE_MAT_VEC_MUL: FAO_DAG.SparseMatVecMuld,
+        # DENSE_MAT_MAT_MUL: FAO_DAG.DenseMatMatMul,
+        # SPARSE_MAT_MAT_MUL: FAO_DAG.SparseMatMatMul,
+        COPY: FAO_DAG.Copyd,
+        SPLIT: FAO_DAG.Splitd,
+        # SCALAR_CONST: FAO_DAG.Constant,
+        # DENSE_CONST: FAO_DAG.Constant,
+        # SPARSE_CONST: FAO_DAG.Constant,
+        NO_OP: FAO_DAG.NoOpd,
+    },
+    False: {
+        # "PROMOTE": FAO_DAG.PROMOTE,
+        # "MUL": FAO_DAG.MUL,
+        # "RMUL": FAO_DAG.RMUL,
+        # "MUL_ELEM": FAO_DAG.MUL_ELEM,
+        # "DIV": FAO_DAG.DIV,
+        SUM: FAO_DAG.Sumf,
+        NEG: FAO_DAG.Negf,
+        # "INDEX": FAO_DAG.INDEX,
+        # "TRANSPOSE": FAO_DAG.TRANSPOSE,
+        # "SUM_ENTRIES": FAO_DAG.SUM_ENTRIES,
+        # "TRACE": FAO_DAG.TRACE,
+        # "RESHAPE": FAO_DAG.RESHAPE,
+        # "DIAG_VEC": FAO_DAG.DIAG_VEC,
+        # "DIAG_MAT": FAO_DAG.DIAG_MAT,
+        # "UPPER_TRI": FAO_DAG.UPPER_TRI,
+        CONV: FAO_DAG.Convd, # TODO
+        # "HSTACK": FAO_DAG.HSTACK,
+        VSTACK: FAO_DAG.Vstackf,
+        SCALAR_MUL: FAO_DAG.ScalarMulf,
+        DENSE_MAT_VEC_MUL: FAO_DAG.DenseMatVecMulf,
+        SPARSE_MAT_VEC_MUL: FAO_DAG.SparseMatVecMulf,
+        # DENSE_MAT_MAT_MUL: FAO_DAG.DenseMatMatMul,
+        # SPARSE_MAT_MAT_MUL: FAO_DAG.SparseMatMatMul,
+        COPY: FAO_DAG.Copyf,
+        SPLIT: FAO_DAG.Splitf,
+        # SCALAR_CONST: FAO_DAG.Constant,
+        # DENSE_CONST: FAO_DAG.Constant,
+        # SPARSE_CONST: FAO_DAG.Constant,
+        NO_OP: FAO_DAG.NoOpf,
+    }
 }
 
-def get_FAO(node):
-    if node.type in type_map:
+def get_FAO(node, double):
+    if node.type in type_map[double]:
         # Make input and output sizes.
         input_sizes = get_dims_vec(node.input_sizes)
         output_sizes = get_dims_vec(node.output_sizes)
-        swig_fao = type_map[node.type]()
+        swig_fao = type_map[double][node.type]()
         swig_fao.input_sizes = input_sizes
         swig_fao.output_sizes = output_sizes
         swig_fao.input_edges = get_edge_vec(node.input_edges)
@@ -423,13 +460,14 @@ def get_dims(size):
     size_pair.push_back(int(size[1]))
     return size_pair
 
-def python_to_swig(py_dag, tmp):
+def python_to_swig(py_dag, tmp, double):
     """Convert an FAO DAG in Python into an FAO DAG in C++.
 
     Parameters
     ----------
     dag: A Python FAO DAG.
     tmp: A list to keep data from going out of scope.
+    double: Use double precision?
 
     Returns
     --------
@@ -438,7 +476,7 @@ def python_to_swig(py_dag, tmp):
     """
     start_node = py_dag.start_node
     ready_queue = deque()
-    start_swig = get_FAO(start_node)
+    start_swig = get_FAO(start_node, double)
     ready_queue.append(start_node)
     tmp.append(start_swig)
     id_to_swig = {id(start_node): start_swig}
@@ -451,7 +489,7 @@ def python_to_swig(py_dag, tmp):
         for edge_id in cur_py.output_edges:
             node_py = py_dag.edges[edge_id][1]
             if id(node_py) not in id_to_swig:
-                node_c = get_FAO(node_py)
+                node_c = get_FAO(node_py, double)
                 tmp.append(node_c)
                 id_to_swig[id(node_py)] = node_c
                 py_faos.append(node_py)
@@ -470,11 +508,18 @@ def python_to_swig(py_dag, tmp):
             cur_c.set_conv_data(cur_py.data)
 
     # Now populate Swig edges.
-    edges_c = FAO_DAG.EdgeMap()
+    if double:
+        edge_map_type = FAO_DAG.EdgeMapDouble
+        edge_type = FAO_DAG.EdgeDouble
+    else:
+        edge_map_type = FAO_DAG.EdgeMapFloat
+        edge_type = FAO_DAG.EdgeFloat
+
+    edges_c = edge_map_type()
     for edge_id, (start, end) in py_dag.edges.items():
         start_c = id_to_swig[id(start)]
         end_c = id_to_swig[id(end)]
-        edges_c[edge_id] = FAO_DAG.Edge(start_c, end_c)
+        edges_c[edge_id] = edge_type(start_c, end_c)
 
     start_c = id_to_swig[id(start_node)]
     end_c = id_to_swig[id(py_dag.end_node)]

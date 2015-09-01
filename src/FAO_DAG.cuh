@@ -26,23 +26,24 @@
 #include "cml/cml_vector.cuh"
 #include <typeinfo>
 
+template <class T>
 class FAO_DAG {
 public:
 // TODO only expose start_node input type and end_node output type.
 /* Represents an FAO DAG. Used to evaluate FAO DAG and its adjoint. */
-	FAO* start_node;
-	FAO* end_node;
-	std::map<int, std::pair<FAO *, FAO *> > edges;
-	std::queue<FAO *> ready_queue;
-	std::map<FAO *, size_t> eval_map;
+	FAO<T>* start_node;
+	FAO<T>* end_node;
+	std::map<int, std::pair<FAO<T> *, FAO<T> *> > edges;
+	std::queue<FAO<T> *> ready_queue;
+	std::map<FAO<T> *, size_t> eval_map;
 
-	FAO_DAG(FAO* start_node, FAO* end_node,
-			std::map<int, std::pair<FAO *, FAO *> > edges) {
+	FAO_DAG(FAO<T>* start_node, FAO<T>* end_node,
+			std::map<int, std::pair<FAO<T> *, FAO<T> *> > edges) {
 		this->start_node = start_node;
 		this->end_node = end_node;
 		this->edges = edges;
 		/* Allocate input and output arrays on each node. */
-		auto node_fn = [](FAO* node) {
+		auto node_fn = [](FAO<T>* node) {
 			node->alloc_data();
 			node->init_offset_maps();
 		};
@@ -51,18 +52,18 @@ public:
 
 	~FAO_DAG() {
 		/* Deallocate input and output arrays on each node. */
-		auto node_fn = [](FAO* node) {node->free_data();};
+		auto node_fn = [](FAO<T>* node) {node->free_data();};
 		traverse_graph(node_fn, true);
 	}
 
 #ifndef SWIG
-	void traverse_graph (std::function<void(FAO*)> node_fn, bool forward) {
+	void traverse_graph (std::function<void(FAO<T>*)> node_fn, bool forward) {
 		/* Traverse the graph and apply the given function at each node.
 
 		   forward: Traverse in standard or reverse order?
 		   node_fn: Function to evaluate on each node.
 		*/
-		FAO *start;
+		FAO<T> *start;
 		if (forward) {
 			start = start_node;
 		} else {
@@ -70,7 +71,7 @@ public:
 		}
 		ready_queue.push(start);
 		while (!ready_queue.empty()) {
-			FAO* curr = ready_queue.front();
+			FAO<T>* curr = ready_queue.front();
 			ready_queue.pop();
 			// Evaluate the given function on curr.
 			node_fn(curr);
@@ -84,7 +85,7 @@ public:
 			/* If each input has visited the node, it is ready. */
 			for (auto edge_idx : child_edges) {
 				auto edge = edges[edge_idx];
-				FAO *node;
+				FAO<T> *node;
 				if (forward) {
 					node = edge.second;
 				} else {
@@ -105,56 +106,56 @@ public:
 	}
 #endif
 	/* For interacting with Python. */
-	void copy_input(std::vector<double>& input, bool forward) {
-		cml::vector<double>* input_vec;
+	void copy_input(std::vector<T>& input, bool forward) {
+		cml::vector<T>* input_vec;
 		if (forward) {
 			input_vec = get_forward_input();
 		} else {
 			input_vec = get_adjoint_input();
 		}
 		assert(input.size() == input_vec->size);
-		cml::vector_memcpy<double>(input_vec, input.data());
+		cml::vector_memcpy<T>(input_vec, input.data());
 	}
 
-	void copy_output(std::vector<double>& output, bool forward) {
-		cml::vector<double>* output_vec;
+	void copy_output(std::vector<T>& output, bool forward) {
+		cml::vector<T>* output_vec;
 		if (forward) {
 			output_vec = get_forward_output();
 		} else {
 			output_vec = get_adjoint_output();
 		}
 		assert(output.size() == output_vec->size);
-		cml::vector_memcpy<double>(output.data(), output_vec);
+		cml::vector_memcpy<T>(output.data(), output_vec);
 	}
 
 	/* Returns a pointer to the input vector for forward evaluation. */
-	cml::vector<double>* get_forward_input() {
+	cml::vector<T>* get_forward_input() {
 		return &start_node->input_data;
 	}
 
 	/* Returns a pointer to the output vector for forward evaluation. */
-	cml::vector<double>* get_forward_output() {
+	cml::vector<T>* get_forward_output() {
 		return &end_node->output_data;
 	}
 
 	/* Returns a pointer to the input vector for forward evaluation. */
-	cml::vector<double>* get_adjoint_input() {
+	cml::vector<T>* get_adjoint_input() {
 		return get_forward_output();
 	}
 
 	/* Returns a pointer to the output vector for forward evaluation. */
-	cml::vector<double>* get_adjoint_output() {
+	cml::vector<T>* get_adjoint_output() {
 		return get_forward_input();
 	}
 
 	/* Evaluate the FAO DAG. */
 	void forward_eval() {
-		auto node_eval = [this](FAO *node){
+		auto node_eval = [this](FAO<T> *node){
 			node->forward_eval();
 			// Copy data from node to children.
 			for (size_t i=0; i < node->output_edges.size(); ++i) {
 				size_t edge_idx = node->output_edges[i];
-				FAO* target = this->edges[edge_idx].second;
+				FAO<T>* target = this->edges[edge_idx].second;
 				size_t len = node->get_elem_length(node->output_sizes[i]);
 				size_t node_offset = node->output_offsets[edge_idx];
 				size_t target_offset = target->input_offsets[edge_idx];
@@ -162,7 +163,7 @@ public:
 				// printf("target->input_data.stride = %d\n", target->input_data.stride);
 				// printf("node->output_data.stride = %d\n", node->output_data.stride);
 				// Copy len elements from node_start to target_start.
-				cml::vector_subvec_memcpy<double>(&target->input_data, target_offset,
+				cml::vector_subvec_memcpy<T>(&target->input_data, target_offset,
 							  &node->output_data, node_offset, len);
 			}
 			cudaDeviceSynchronize();
@@ -181,17 +182,17 @@ public:
 
 	/* Evaluate the adjoint DAG. */
 	void adjoint_eval() {
-		auto node_eval = [this](FAO *node){
+		auto node_eval = [this](FAO<T> *node){
 			node->adjoint_eval();
 			// Copy data from node to children.
 			for (size_t i=0; i < node->input_edges.size(); ++i) {
 				size_t edge_idx = node->input_edges[i];
-				FAO* target = this->edges[edge_idx].first;
+				FAO<T>* target = this->edges[edge_idx].first;
 				size_t len = node->get_elem_length(node->input_sizes[i]);
 				size_t node_offset = node->input_offsets[edge_idx];
 				size_t target_offset = target->output_offsets[edge_idx];
 				// Copy len elements from node_start to target_start.
-				cml::vector_subvec_memcpy<double>(&target->output_data, target_offset,
+				cml::vector_subvec_memcpy<T>(&target->output_data, target_offset,
 							  &node->input_data, node_offset, len);
 			}
 			cudaDeviceSynchronize();
@@ -209,13 +210,18 @@ public:
 	}
 
 	static void static_forward_eval(void *ptr) {
-        ((FAO_DAG *) ptr)->forward_eval();
+        ((FAO_DAG<T> *) ptr)->forward_eval();
     }
 
     static void static_adjoint_eval(void *ptr) {
-        ((FAO_DAG *) ptr)->adjoint_eval();
+        ((FAO_DAG<T> *) ptr)->adjoint_eval();
     }
 
 };
+
 #endif
 
+#ifdef SWIG
+%template(FAO_DAGd) FAO_DAG<double>;
+%template(FAO_DAGf) FAO_DAG<float>;
+#endif

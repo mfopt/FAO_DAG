@@ -155,7 +155,7 @@ public:
      /* function: pogs_solve()
      *
      */
-     double mat_free_solve(FAO_DAG* fao_dag,
+     double mat_free_solve(FAO_DAG<double>* fao_dag,
                std::vector< std::pair<int, std::vector<int> > >& cones,
                   double rho,
                   bool verbose,

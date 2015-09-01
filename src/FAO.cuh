@@ -68,6 +68,7 @@
 
 
 /* FAO Class mirrors the CVXPY FAO class.  */
+template <class T>
 class FAO {
 public:
 	virtual ~FAO() {};
@@ -79,8 +80,8 @@ public:
     std::vector<std::vector<size_t> > input_sizes;
     std::vector<std::vector<size_t> > output_sizes;
     /* Input and output data arrays. */
-    cml::vector<double> input_data;
-    cml::vector<double> output_data;
+    cml::vector<T> input_data;
+    cml::vector<T> output_data;
     /* Map from edge index to offset in input_data. */
     std::map<int, size_t> input_offsets;
     /* Map from edge index to offset in output_data. */
@@ -113,13 +114,13 @@ public:
      */
     virtual void alloc_data() {
         size_t input_len = get_length(input_sizes);
-        input_data = cml::vector_calloc<double>(input_len);
+        input_data = cml::vector_calloc<T>(input_len);
         size_t output_len = get_length(output_sizes);
         if (is_inplace()) {
             assert(input_len == output_len);
             output_data = input_data;
         } else {
-            output_data = cml::vector_calloc<double>(output_len);
+            output_data = cml::vector_calloc<T>(output_len);
         }
     }
 
@@ -138,9 +139,9 @@ public:
     }
 
     virtual void free_data() {
-        cml::vector_free<double>(&input_data);
+        cml::vector_free<T>(&input_data);
         if (!is_inplace()) {
-        	cml::vector_free<double>(&output_data);
+        	cml::vector_free<T>(&output_data);
         }
     }
 
@@ -163,25 +164,27 @@ public:
     }
 };
 
-class NoOp : public FAO {
+template <class T>
+class NoOp : public FAO<T> {
 	/* Zero out the output. */
 	void forward_eval() {
-        cml::vector_scale<double>(&output_data, 0.0);
+        cml::vector_scale<T>(&this->output_data, 0.0);
         cudaDeviceSynchronize();
         CUDA_CHECK_ERR();
 	}
 
 	/* Zero out the input. */
 	void adjoint_eval() {
-        cml::vector_scale<double>(&input_data, 0.0);
+        cml::vector_scale<T>(&this->input_data, 0.0);
         cudaDeviceSynchronize();
         CUDA_CHECK_ERR();
 	}
 };
 
-class DenseMatVecMul : public FAO {
+template <class T>
+class DenseMatVecMul : public FAO<T> {
 public:
-    cml::matrix<double, CblasRowMajor> matrix;
+    cml::matrix<T, CblasRowMajor> matrix;
     cublasHandle_t hdl;
     // TODO should I store the transpose separately?
     // gsl::matrix<T, CblasRowMajor> matrix_trans;
@@ -196,8 +199,8 @@ public:
         CUDA_CHECK_ERR();
     }
 
-    void set_matrix_data(double* data, int rows, int cols) {
-        matrix = cml::matrix_alloc<double, CblasRowMajor>(rows, cols);
+    void set_matrix_data(T* data, int rows, int cols) {
+        matrix = cml::matrix_alloc<T, CblasRowMajor>(rows, cols);
         cml::matrix_memcpy(&matrix, data);
         cudaDeviceSynchronize();
         CUDA_CHECK_ERR();
@@ -206,14 +209,14 @@ public:
     /* Standard dense matrix multiplication. */
     void forward_eval() {
         cml::blas_gemv(hdl, CUBLAS_OP_N, 1., &matrix,
-        	&input_data, 0., &output_data);
+        	&this->input_data, 0., &this->output_data);
         cudaDeviceSynchronize();
         CUDA_CHECK_ERR();
     }
 
     void adjoint_eval() {
         cml::blas_gemv(hdl, CUBLAS_OP_T, 1., &matrix,
-        	&output_data, 0., &input_data);
+        	&this->output_data, 0., &this->input_data);
         cudaDeviceSynchronize();
         CUDA_CHECK_ERR();
     }
@@ -254,9 +257,10 @@ cusparseOperation_t OpToCusparseOp(char trans) {
       ? CUSPARSE_OPERATION_NON_TRANSPOSE : CUSPARSE_OPERATION_TRANSPOSE;
 }
 
-class SparseMatVecMul : public FAO {
+template <class T>
+class SparseMatVecMul : public FAO<T> {
 public:
-    cml::spmat<double, int, CblasRowMajor> spmatrix;
+    cml::spmat<T, int, CblasRowMajor> spmatrix;
     cusparseHandle_t hdl;
     cusparseMatDescr_t descr;
     // TODO should I store the transpose separately?
@@ -274,12 +278,12 @@ public:
         CUDA_CHECK_ERR();
     }
 
-    void set_spmatrix_data(double *data, int data_len, int *ptrs,
+    void set_spmatrix_data(T *data, int data_len, int *ptrs,
                            int ptrs_len, int *indices, int idx_len,
                            int rows, int cols) {
 
         assert(rows_len == data_len && cols_len == data_len);
-        spmatrix = cml::spmat_alloc<double, int, CblasRowMajor>(rows, cols, data_len);
+        spmatrix = cml::spmat_alloc<T, int, CblasRowMajor>(rows, cols, data_len);
         cml::spmat_memcpy(hdl, &spmatrix, data, indices, ptrs);
         cudaDeviceSynchronize();
         CUDA_CHECK_ERR();
@@ -288,14 +292,14 @@ public:
     /* Standard sparse matrix multiplication. */
     void forward_eval() {
         cml::spblas_gemv(hdl, OpToCusparseOp('n'), descr, 1.,
-              &spmatrix, &input_data, 0., &output_data);
+              &spmatrix, &this->input_data, 0., &this->output_data);
         cudaDeviceSynchronize();
         CUDA_CHECK_ERR();
     }
 
     void adjoint_eval() {
         cml::spblas_gemv(hdl, OpToCusparseOp('t'), descr, 1.,
-              &spmatrix, &output_data, 0., &input_data);
+              &spmatrix, &this->output_data, 0., &this->input_data);
         cudaDeviceSynchronize();
         CUDA_CHECK_ERR();
     }
@@ -306,9 +310,10 @@ public:
 // class SparseMatMatMul : public SparseMatVecMul {
 // };
 
-class ScalarMul : public FAO {
+template <class T>
+class ScalarMul : public FAO<T> {
 public:
-    double scalar;
+    T scalar;
       cublasHandle_t hdl;
 
     ScalarMul() {
@@ -321,7 +326,7 @@ public:
     }
 
     /* Get the scalar value. */
-    virtual double get_scalar() {
+    virtual T get_scalar() {
     	return scalar;
     }
 
@@ -332,7 +337,7 @@ public:
 
     /* Scale the input/output. */
     void forward_eval() {
-        cml::blas_scal(hdl, get_scalar(), &input_data);
+        cml::blas_scal(hdl, get_scalar(), &this->input_data);
         cudaDeviceSynchronize();
         CUDA_CHECK_ERR();
     }
@@ -342,14 +347,16 @@ public:
     }
 };
 
-class Neg : public ScalarMul {
+template <class T>
+class Neg : public ScalarMul<T> {
 public:
-    double get_scalar() {
+    T get_scalar() {
     	return -1;
     }
 };
 
-class Sum: public FAO {
+template <class T>
+class Sum: public FAO<T> {
 public:
      cublasHandle_t hdl;
 
@@ -365,12 +372,13 @@ public:
     /* Sum the inputs. */
     void forward_eval() {
         // printf("Sum forward eval\n");
-    	forward_eval_base(input_data, output_data, input_sizes);
+    	forward_eval_base(this->input_data, this->output_data,
+            this->input_sizes);
     }
 
     /* Factored out so usable by Sum and Copy. */
-    void forward_eval_base(cml::vector<double> input_data,
-    					   cml::vector<double> output_data,
+    void forward_eval_base(cml::vector<T> input_data,
+    					   cml::vector<T> output_data,
     					   std::vector<std::vector<size_t> > input_sizes) {
     	size_t elem_size = output_data.size;
     	cml::vector_subvec_memcpy(&output_data, 0, &input_data, 0, elem_size);
@@ -405,16 +413,17 @@ public:
 
     /* Copy the input. */
     void adjoint_eval() {
-        adjoint_eval_base(output_data, input_data, input_sizes);
+        adjoint_eval_base(this->output_data, this->input_data,
+            this->input_sizes);
     }
 
     /* Factored out so usable by Sum and Copy. */
-    void adjoint_eval_base(cml::vector<double> input_data,
-    					   cml::vector<double> output_data,
+    void adjoint_eval_base(cml::vector<T> input_data,
+    					   cml::vector<T> output_data,
     					   std::vector<std::vector<size_t> > output_sizes) {
         size_t elem_size = input_data.size;
         for (size_t i=0; i < output_sizes.size(); ++i) {
-        	cml::vector_subvec_memcpy(&output_data, i*elem_size,
+        	cml::vector_subvec_memcpy<T>(&output_data, i*elem_size,
         									  &input_data, 0, elem_size);
         }
         cudaDeviceSynchronize();
@@ -422,23 +431,25 @@ public:
     }
 };
 
-
-class Copy : public Sum {
+template <class T>
+class Copy : public Sum<T> {
 /* Adjoint of Sum. */
 public:
     /* Copy the inputs. */
     void forward_eval() {
-    	Sum::adjoint_eval_base(input_data, output_data, output_sizes);
+    	Sum<T>::adjoint_eval_base(this->input_data, this->output_data,
+            this->output_sizes);
     }
 
     /* Sum the inputs. */
     void adjoint_eval() {
-    	Sum::forward_eval_base(output_data, input_data, output_sizes);
+    	Sum<T>::forward_eval_base(this->output_data, this->input_data,
+            this->output_sizes);
     }
 };
 
-
-class Vstack : public FAO {
+template <class T>
+class Vstack : public FAO<T> {
 public:
 	/* Operation is in-place. */
 	bool is_inplace() {
@@ -446,12 +457,14 @@ public:
 	}
 };
 
-class Split : public Vstack {
+template <class T>
+class Split : public Vstack<T> {
 	/* Adjoint of vstack. */
 };
 
 // TODO use cuFFT HERE
-class Conv : public FAO {
+template <class T>
+class Conv : public FAO<T> {
 public:
 
 	cml::vector<double> kernel;
@@ -470,14 +483,14 @@ public:
 	fftw_plan adjoint_ifft_plan;
 
 	void alloc_data() {
-		input_len = get_length(input_sizes);
-        padded_len = get_length(output_sizes);
+		input_len = this->get_length(this->input_sizes);
+        padded_len = this->get_length(this->output_sizes);
         // TODO could use fftw_alloc here.
-        input_data = cml::vector_calloc<double>(padded_len);
-       	output_data = cml::vector_calloc<double>(padded_len);
+        this->input_data = cml::vector_calloc<double>(padded_len);
+       	this->output_data = cml::vector_calloc<double>(padded_len);
         /* Isolate extra part of input. */
-        input_padding = cml::vector_view_array(input_data.data + input_len,
-            padded_len - input_len);
+        input_padding = cml::vector_view_array<double>(
+            this->input_data.data + input_len, padded_len - input_len);
         // Actually complex.
         kernel_fft = cml::vector_calloc<double>(2*padded_len);
         rev_kernel_fft = cml::vector_calloc<double>(2*padded_len);
@@ -486,11 +499,11 @@ public:
         /* kernel_fft is DFT(padded kernel). */
         /* Must copy because FFTW destroys input array. */
         // TODO alignment of kernel_fft!
-        cml::vector<double> input_start = cml::vector_view_array(input_data.data,
-            kernel_len);
+        cml::vector<double> input_start = cml::vector_view_array<double>(
+            this->input_data.data, kernel_len);
         cml::vector_memcpy(&input_start, &kernel);
         cudaDeviceSynchronize();
-        fftw_plan plan = fftw_plan_dft_r2c_1d(padded_len, input_data.data,
+        fftw_plan plan = fftw_plan_dft_r2c_1d(padded_len, this->input_data.data,
         									  (fftw_complex *) kernel_fft.data,
                                               FFTW_ESTIMATE);
      	fftw_execute(plan);
@@ -510,17 +523,17 @@ public:
      	/* Initialize the plans for forward_eval. */
      	// TODO also FFTW_MEASURE for faster planning, worse performance.
      	forward_fft_plan = fftw_plan_dft_r2c_1d(padded_len,
-            input_data.data,
+            this->input_data.data,
      		(fftw_complex *) r2c_out.data,
             FFTW_MEASURE);
      	forward_ifft_plan = fftw_plan_dft_c2r_1d(padded_len,
-            (fftw_complex *) r2c_out.data, output_data.data,
+            (fftw_complex *) r2c_out.data, this->output_data.data,
             FFTW_MEASURE);
-     	adjoint_fft_plan = fftw_plan_dft_r2c_1d(padded_len, output_data.data,
+     	adjoint_fft_plan = fftw_plan_dft_r2c_1d(padded_len, this->output_data.data,
      		(fftw_complex *) r2c_out.data, FFTW_MEASURE);
      	adjoint_ifft_plan = fftw_plan_dft_c2r_1d(padded_len,
             (fftw_complex *) r2c_out.data,
-     		input_data.data, FFTW_MEASURE);
+     		this->input_data.data, FFTW_MEASURE);
         cudaDeviceSynchronize();
         CUDA_CHECK_ERR();
     }
@@ -535,7 +548,7 @@ public:
     	vector_free(&rev_kernel_fft);
     	vector_free(&r2c_out);
     	fftw_cleanup();
-        FAO::free_data();
+        this->free_data();
     }
 
 	void set_conv_data(double *kernel, int kernel_len) {
@@ -608,4 +621,29 @@ public:
         CUDA_CHECK_ERR();
     }
 };
+#endif
+
+#ifdef SWIG
+%template(FAOd) FAO<double>;
+%template(FAOf) FAO<float>;
+%template(NoOpd) NoOp<double>;
+%template(NoOpf) NoOp<float>;
+%template(DenseMatVecMuld) DenseMatVecMul<double>;
+%template(DenseMatVecMulf) DenseMatVecMul<float>;
+%template(SparseMatVecMuld) SparseMatVecMul<double>;
+%template(SparseMatVecMulf) SparseMatVecMul<float>;
+%template(ScalarMuld) ScalarMul<double>;
+%template(ScalarMulf) ScalarMul<float>;
+%template(Negd) Neg<double>;
+%template(Negf) Neg<float>;
+%template(Sumd) Sum<double>;
+%template(Sumf) Sum<float>;
+%template(Copyd) Copy<double>;
+%template(Copyf) Copy<float>;
+%template(Vstackd) Vstack<double>;
+%template(Vstackf) Vstack<float>;
+%template(Splitd) Split<double>;
+%template(Splitf) Split<float>;
+%template(Convd) Conv<double>;
+// %template(Convf) Conv<float>;
 #endif
