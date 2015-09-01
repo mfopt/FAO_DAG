@@ -11,13 +11,14 @@
 #include "FAO_DAG.hpp"
 #endif
 
+template <class T>
 class POGS_Data {
 public:
-     double *c;
+     T *c;
      size_t c_len;
-     double *b;
+     T *b;
      size_t b_len;
-     double *Adata;
+     T *Adata;
      int *Aindices;
      int *Aindptr;
      size_t nnz;
@@ -34,29 +35,29 @@ public:
      double setupTime;
      char* status;
 
-     double *x;
-     double *y;
+     T *x;
+     T *y;
 
      ~POGS_Data() {
           free(status);
      }
 
 
-     void load_c(double *c, int c_len) {
+     void load_c(T *c, int c_len) {
           this->c = c;
           this->c_len = c_len;
      }
 
-     void load_b(double *b, int b_len) {
+     void load_b(T *b, int b_len) {
           this->b = b;
           this->b_len = b_len;
      }
 
-     void load_x(double *x, int x_len) {
+     void load_x(T *x, int x_len) {
           this->x = x;
      }
 
-     void load_y(double *y, int y_len) {
+     void load_y(T *y, int y_len) {
           this->y = y;
      }
 
@@ -155,7 +156,7 @@ public:
      /* function: pogs_solve()
      *
      */
-     double mat_free_solve(FAO_DAG<double>* fao_dag,
+     double mat_free_solve(FAO_DAG<T>* fao_dag,
                std::vector< std::pair<int, std::vector<int> > >& cones,
                   double rho,
                   bool verbose,
@@ -171,16 +172,16 @@ public:
 
           auto Amul = fao_dag->static_forward_eval;
           auto ATmul = fao_dag->static_adjoint_eval;
-          double *dag_input = fao_dag->get_forward_input()->data;
-          double *dag_output = fao_dag->get_adjoint_input()->data;
+          T *dag_input = fao_dag->get_forward_input()->data;
+          T *dag_output = fao_dag->get_adjoint_input()->data;
 
-          pogs::MatrixFAO<double> A_(dag_output, b_len,
-                                     dag_input, c_len,
-                                     Amul, ATmul,
-                                     (void *) fao_dag,
-                                     samples,
-                                     equil_steps);
-          pogs::PogsIndirectCone<double, pogs::MatrixFAO<double> > pogs_data(A_, Kx, Ky);
+          pogs::MatrixFAO<T> A_(dag_output, b_len,
+                                dag_input, c_len,
+                                Amul, ATmul,
+                                (void *) fao_dag,
+                                samples,
+                                equil_steps);
+          pogs::PogsIndirectCone<T, pogs::MatrixFAO<T> > pogs_data(A_, Kx, Ky);
           // double t = timer<double>();
           if (verbose) {
                pogs_data.SetVerbose(5);
@@ -191,8 +192,8 @@ public:
           pogs_data.SetAbsTol(abs_tol);
           pogs_data.SetRelTol(rel_tol);
           pogs_data.SetMaxIter(max_iter);
-          std::vector<double> c_vec(c, c + c_len);
-          std::vector<double> b_vec(b, b + b_len);
+          std::vector<T> c_vec(c, c + c_len);
+          std::vector<T> b_vec(b, b + b_len);
           pogs_data.Solve(b_vec, c_vec);
           // Copy out results.
           for (size_t i=0; i < c_len; i++) {
@@ -225,7 +226,7 @@ public:
      *
      */
      double solve(int nnz,
-               std::vector<double>& Adata,
+               std::vector<T>& Adata,
                std::vector<int>& Aindices,
                std::vector<int>& Aindptr,
                std::vector< std::pair<int, std::vector<int> > >& cones,
@@ -239,8 +240,8 @@ public:
           std::vector<ConeConstraint> Kx, Ky;
           set_cones(cones, Kx, Ky);
 
-          pogs::MatrixSparse<double> A_('c', b_len, c_len, nnz, Adata.data(), Aindptr.data(), Aindices.data());
-          pogs::PogsIndirectCone<double, pogs::MatrixSparse<double> > pogs_data(A_, Kx, Ky);
+          pogs::MatrixSparse<T> A_('c', b_len, c_len, nnz, Adata.data(), Aindptr.data(), Aindices.data());
+          pogs::PogsIndirectCone<T, pogs::MatrixSparse<T> > pogs_data(A_, Kx, Ky);
           // pogs::MatrixDense<double> A_('r', m, n, Adense.data());
           // pogs::PogsDirectCone<double, pogs::MatrixDense<double> > pogs_data(A_, Kx, Ky);
           // double t = timer<double>();
@@ -253,8 +254,8 @@ public:
           pogs_data.SetAbsTol(abs_tol);
           pogs_data.SetRelTol(rel_tol);
           pogs_data.SetMaxIter(max_iter);
-          std::vector<double> c_vec(c, c + c_len);
-          std::vector<double> b_vec(b, b + b_len);
+          std::vector<T> c_vec(c, c + c_len);
+          std::vector<T> b_vec(b, b + b_len);
           pogs_data.Solve(b_vec, c_vec);
           // Copy out results.
           for (size_t i=0; i < c_len; i++) {
@@ -298,4 +299,9 @@ public:
      //      }
      // }
 };
+#endif
+
+#ifdef SWIG
+%template(POGS_Datad) POGS_Data<double>;
+%template(POGS_Dataf) POGS_Data<float>;
 #endif

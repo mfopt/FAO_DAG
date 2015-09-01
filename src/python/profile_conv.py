@@ -185,7 +185,8 @@ if True:
                             # stoch=True,
                             abs_tol=1e-4,
                             rel_tol=1e-4,
-                            samples=200)
+                            samples=200,
+                            double=True)
     # yep.stop()
     print "mat free pogs result", result
     print("recovered x fit", fit.value)

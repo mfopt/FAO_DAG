@@ -110,6 +110,12 @@ def python_cones_to_pogs_cones(cones):
 #     start_node, end_node = tree_to_dag(tree, var_sizes, c.size[0])
 #     return None
 
+def get_dtype(double):
+    if double:
+        return 'float64'
+    else:
+        return 'float32'
+
 def mat_free_pogs_solve(py_dag, data, dims, solver_opts):
     """Solve using POGS.
 
@@ -139,12 +145,15 @@ def mat_free_pogs_solve(py_dag, data, dims, solver_opts):
     start_node, end_node, edges = python_to_swig(py_dag, tmp, double)
     if double:
         dag = FAO_DAG.FAO_DAGd(start_node, end_node, edges)
+        pogs_data = FAO_DAG.POGS_Datad()
     else:
         dag = FAO_DAG.FAO_DAGf(start_node, end_node, edges)
-    pogs_data = FAO_DAG.POGS_Data();
-    c = data['c'].flatten()
+        pogs_data = FAO_DAG.POGS_Dataf()
+    dtype = get_dtype(double)
+
+    c = data['c'].flatten().astype(dtype)
     pogs_data.load_c(c)
-    b = data['b'].A.flatten()
+    b = data['b'].A.flatten().astype(dtype)
     pogs_data.load_b(b)
     # A = data['A']
     # nnz = A.data.shape[0]
@@ -152,8 +161,8 @@ def mat_free_pogs_solve(py_dag, data, dims, solver_opts):
     # Aindices = convert_to_vec(False, A.indices)
     # Aindptr = convert_to_vec(False, A.indptr)
     # Pass in solution arrays.
-    x = np.zeros(c.size)
-    y = np.zeros(b.size)
+    x = np.zeros(c.size).astype(dtype)
+    y = np.zeros(b.size).astype(dtype)
     pogs_data.load_x(x)
     pogs_data.load_y(y)
 
@@ -198,10 +207,14 @@ def pogs_solve(data, dims, solver_opts):
     abs_tol = solver_opts.get("abs_tol", 1e-4)
     rel_tol = solver_opts.get("rel_tol", 1e-4)
     max_iter = solver_opts.get("max_iters", 2500)
+    double = solver_opts.get("double", True)
 
     # start_node, end_node, edges = python_to_swig(py_dag, tmp)
     # dag = FAO_DAG.FAO_DAG(start_node, end_node, edges)
-    pogs_data = FAO_DAG.POGS_Data();
+    if double:
+        pogs_data = FAO_DAG.POGS_Datad();
+    else:
+        pogs_data = FAO_DAG.POGS_Dataf();
     c = data['c'].flatten()
     pogs_data.load_c(c)
     b = data['b'].flatten()
@@ -320,17 +333,17 @@ def eval_FAO_DAG(py_dag, input_arr, output_arr, forward=True):
     # Must destroy FAO DAG before calling FAO destructors.
     del dag
 
-def set_dense_data(node_c, node_py):
+def set_dense_data(node_c, node_py, dtype):
     """Stores dense matrix data on the Swig FAO.
     """
-    matrix = node_py.data.astype(float, order='F')
+    matrix = node_py.data.astype(dtype, order='F')
     node_c.set_matrix_data(matrix)
 
-def set_sparse_data(node_c, node_py):
+def set_sparse_data(node_c, node_py, dtype):
     """Stores dense matrix data on the Swig FAO.
     """
     csr = scipy.sparse.csr_matrix(node_py.data)
-    node_c.set_spmatrix_data(csr.data, csr.indptr.astype(int),
+    node_c.set_spmatrix_data(csr.data.astype(dtype), csr.indptr.astype(int),
                              csr.indices.astype(int), csr.shape[0], csr.shape[1])
 
 def set_slice_data(linC, linPy):
@@ -474,6 +487,7 @@ def python_to_swig(py_dag, tmp, double):
     tuple
         A (start_node, end_node, nodes, edges) tuple for the C++ FAO DAG.
     """
+    dtype = get_dtype(double)
     start_node = py_dag.start_node
     ready_queue = deque()
     start_swig = get_FAO(start_node, double)
@@ -499,13 +513,13 @@ def python_to_swig(py_dag, tmp, double):
         if cur_py.type == INDEX:
             set_slice_data(cur_c, cur_py)
         elif cur_py.type in [SCALAR_MUL]:
-            cur_c.scalar = float(cur_py.data)
+            cur_c.scalar = cur_py.data.astype(dtype)
         elif cur_py.type in [DENSE_MAT_VEC_MUL, DENSE_MAT_MAT_MUL]:
-            set_dense_data(cur_c, cur_py)
+            set_dense_data(cur_c, cur_py, dtype)
         elif cur_py.type in [SPARSE_MAT_VEC_MUL, SPARSE_MAT_MAT_MUL]:
-            set_sparse_data(cur_c, cur_py)
+            set_sparse_data(cur_c, cur_py, dtype)
         elif cur_py.type == CONV:
-            cur_c.set_conv_data(cur_py.data)
+            cur_c.set_conv_data(cur_py.data.astype(dtype))
 
     # Now populate Swig edges.
     if double:

@@ -28,7 +28,7 @@
 #include "cml/cml_spblas.cuh"
 #include "cml/cml_utils.cuh"
 #include "pogs_fork/src/include/util.h"
-#include <cufftw.h>
+#include <cufft.h>
 #include <thrust/device_ptr.h>
 #include <thrust/transform.h>
 #include <thrust/complex.h>
@@ -71,7 +71,7 @@
 template <class T>
 class FAO {
 public:
-	virtual ~FAO() {};
+    virtual ~FAO() {};
     /* Input edges in the DAG */
     std::vector<int> input_edges;
     /* Output edges in the DAG */
@@ -89,7 +89,7 @@ public:
 
     /* Does the FAO operate in-place?
 
-	   Default is no.
+       Default is no.
     */
     virtual bool is_inplace() {
         return false;
@@ -97,7 +97,7 @@ public:
 
     /* Functions for forward and adjoint evaluation.
 
-	   Default does nothing.
+       Default does nothing.
     */
     virtual void forward_eval() {
         return;
@@ -126,33 +126,33 @@ public:
 
     /* Initialize the input and output offset maps. */
     void init_offset_maps() {
-    	size_t offset = 0;
-    	for (size_t i=0; i < input_edges.size(); ++i) {
-    		input_offsets[input_edges[i]] = offset;
-    		offset += get_elem_length(input_sizes[i]);
-    	}
-    	offset = 0;
-    	for (size_t i=0; i < output_edges.size(); ++i) {
-    		output_offsets[output_edges[i]] = offset;
-    		offset += get_elem_length(output_sizes[i]);
-    	}
+        size_t offset = 0;
+        for (size_t i=0; i < input_edges.size(); ++i) {
+            input_offsets[input_edges[i]] = offset;
+            offset += get_elem_length(input_sizes[i]);
+        }
+        offset = 0;
+        for (size_t i=0; i < output_edges.size(); ++i) {
+            output_offsets[output_edges[i]] = offset;
+            offset += get_elem_length(output_sizes[i]);
+        }
     }
 
     virtual void free_data() {
         cml::vector_free<T>(&input_data);
         if (!is_inplace()) {
-        	cml::vector_free<T>(&output_data);
+            cml::vector_free<T>(&output_data);
         }
     }
 
-	/* Returns the length of an input/output element. */
-	size_t get_elem_length(std::vector<size_t> elem_dims) {
-		size_t len = 1;
-		for (auto dim_len : elem_dims) {
+    /* Returns the length of an input/output element. */
+    size_t get_elem_length(std::vector<size_t> elem_dims) {
+        size_t len = 1;
+        for (auto dim_len : elem_dims) {
             len *= dim_len;
         }
         return len;
-	}
+    }
 
     /* Returns the total length of an array of dimensions. */
     size_t get_length(std::vector<std::vector<size_t> > sizes) {
@@ -166,19 +166,19 @@ public:
 
 template <class T>
 class NoOp : public FAO<T> {
-	/* Zero out the output. */
-	void forward_eval() {
+    /* Zero out the output. */
+    void forward_eval() {
         cml::vector_scale<T>(&this->output_data, 0.0);
         cudaDeviceSynchronize();
         CUDA_CHECK_ERR();
-	}
+    }
 
-	/* Zero out the input. */
-	void adjoint_eval() {
+    /* Zero out the input. */
+    void adjoint_eval() {
         cml::vector_scale<T>(&this->input_data, 0.0);
         cudaDeviceSynchronize();
         CUDA_CHECK_ERR();
-	}
+    }
 };
 
 template <class T>
@@ -209,14 +209,14 @@ public:
     /* Standard dense matrix multiplication. */
     void forward_eval() {
         cml::blas_gemv(hdl, CUBLAS_OP_N, 1., &matrix,
-        	&this->input_data, 0., &this->output_data);
+            &this->input_data, 0., &this->output_data);
         cudaDeviceSynchronize();
         CUDA_CHECK_ERR();
     }
 
     void adjoint_eval() {
         cml::blas_gemv(hdl, CUBLAS_OP_T, 1., &matrix,
-        	&this->output_data, 0., &this->input_data);
+            &this->output_data, 0., &this->input_data);
         cudaDeviceSynchronize();
         CUDA_CHECK_ERR();
     }
@@ -327,7 +327,7 @@ public:
 
     /* Get the scalar value. */
     virtual T get_scalar() {
-    	return scalar;
+        return scalar;
     }
 
     /* Operation is in-place. */
@@ -351,7 +351,7 @@ template <class T>
 class Neg : public ScalarMul<T> {
 public:
     T get_scalar() {
-    	return -1;
+        return -1;
     }
 };
 
@@ -372,24 +372,24 @@ public:
     /* Sum the inputs. */
     void forward_eval() {
         // printf("Sum forward eval\n");
-    	forward_eval_base(this->input_data, this->output_data,
+        forward_eval_base(this->input_data, this->output_data,
             this->input_sizes);
     }
 
     /* Factored out so usable by Sum and Copy. */
     void forward_eval_base(cml::vector<T> input_data,
-    					   cml::vector<T> output_data,
-    					   std::vector<std::vector<size_t> > input_sizes) {
-    	size_t elem_size = output_data.size;
-    	cml::vector_subvec_memcpy(&output_data, 0, &input_data, 0, elem_size);
+                           cml::vector<T> output_data,
+                           std::vector<std::vector<size_t> > input_sizes) {
+        size_t elem_size = output_data.size;
+        cml::vector_subvec_memcpy(&output_data, 0, &input_data, 0, elem_size);
         cudaDeviceSynchronize();
-    	for (size_t i=1; i < input_sizes.size(); ++i) {
-    		auto subvec = cml::vector_subvector(&input_data,
-    			i*elem_size, elem_size);
-    		cml::blas_axpy(hdl, 1, &subvec, &output_data);
+        for (size_t i=1; i < input_sizes.size(); ++i) {
+            auto subvec = cml::vector_subvector(&input_data,
+                i*elem_size, elem_size);
+            cml::blas_axpy(hdl, 1, &subvec, &output_data);
             // cudaDeviceSynchronize();
             // CUDA_CHECK_ERR();
-    	}
+        }
         cudaDeviceSynchronize();
         CUDA_CHECK_ERR();
         // double *input = new double[input_data.size];
@@ -419,12 +419,12 @@ public:
 
     /* Factored out so usable by Sum and Copy. */
     void adjoint_eval_base(cml::vector<T> input_data,
-    					   cml::vector<T> output_data,
-    					   std::vector<std::vector<size_t> > output_sizes) {
+                           cml::vector<T> output_data,
+                           std::vector<std::vector<size_t> > output_sizes) {
         size_t elem_size = input_data.size;
         for (size_t i=0; i < output_sizes.size(); ++i) {
-        	cml::vector_subvec_memcpy<T>(&output_data, i*elem_size,
-        									  &input_data, 0, elem_size);
+            cml::vector_subvec_memcpy<T>(&output_data, i*elem_size,
+                                              &input_data, 0, elem_size);
         }
         cudaDeviceSynchronize();
         CUDA_CHECK_ERR();
@@ -437,13 +437,13 @@ class Copy : public Sum<T> {
 public:
     /* Copy the inputs. */
     void forward_eval() {
-    	Sum<T>::adjoint_eval_base(this->input_data, this->output_data,
+        Sum<T>::adjoint_eval_base(this->input_data, this->output_data,
             this->output_sizes);
     }
 
     /* Sum the inputs. */
     void adjoint_eval() {
-    	Sum<T>::forward_eval_base(this->output_data, this->input_data,
+        Sum<T>::forward_eval_base(this->output_data, this->input_data,
             this->output_sizes);
     }
 };
@@ -451,15 +451,15 @@ public:
 template <class T>
 class Vstack : public FAO<T> {
 public:
-	/* Operation is in-place. */
-	bool is_inplace() {
-	    return true;
-	}
+    /* Operation is in-place. */
+    bool is_inplace() {
+        return true;
+    }
 };
 
 template <class T>
 class Split : public Vstack<T> {
-	/* Adjoint of vstack. */
+    /* Adjoint of vstack. */
 };
 
 // TODO use cuFFT HERE
@@ -467,97 +467,102 @@ template <class T>
 class Conv : public FAO<T> {
 public:
 
-	cml::vector<double> kernel;
-	size_t input_len;
-	size_t kernel_len;
-	size_t padded_len;
+    cml::vector<T> kernel;
+    size_t input_len;
+    size_t kernel_len;
+    size_t padded_len;
     // Actually fftw_complex.
-	cml::vector<double> kernel_fft;
-	cml::vector<double> rev_kernel_fft;
-	cml::vector<double> r2c_out;
+    cml::vector<T> kernel_fft;
+    cml::vector<T> rev_kernel_fft;
+    cml::vector<T> r2c_out;
 
-    cml::vector<double> input_padding;
-	fftw_plan forward_fft_plan;
-	fftw_plan forward_ifft_plan;
-	fftw_plan adjoint_fft_plan;
-	fftw_plan adjoint_ifft_plan;
+    cml::vector<T> input_padding;
+    cufftHandle forward_fft_plan;
+    cufftHandle forward_ifft_plan;
+    cufftHandle adjoint_fft_plan;
+    cufftHandle adjoint_ifft_plan;
 
-	void alloc_data() {
-		input_len = this->get_length(this->input_sizes);
+    void alloc_data() {
+        input_len = this->get_length(this->input_sizes);
         padded_len = this->get_length(this->output_sizes);
         // TODO could use fftw_alloc here.
-        this->input_data = cml::vector_calloc<double>(padded_len);
-       	this->output_data = cml::vector_calloc<double>(padded_len);
+        this->input_data = cml::vector_calloc<T>(padded_len);
+           this->output_data = cml::vector_calloc<T>(padded_len);
         /* Isolate extra part of input. */
-        input_padding = cml::vector_view_array<double>(
+        input_padding = cml::vector_view_array<T>(
             this->input_data.data + input_len, padded_len - input_len);
         // Actually complex.
-        kernel_fft = cml::vector_calloc<double>(2*padded_len);
-        rev_kernel_fft = cml::vector_calloc<double>(2*padded_len);
-        r2c_out = cml::vector_calloc<double>(2*padded_len);
+        kernel_fft = cml::vector_calloc<T>(2*padded_len);
+        rev_kernel_fft = cml::vector_calloc<T>(2*padded_len);
+        r2c_out = cml::vector_calloc<T>(2*padded_len);
 
         /* kernel_fft is DFT(padded kernel). */
         /* Must copy because FFTW destroys input array. */
         // TODO alignment of kernel_fft!
-        cml::vector<double> input_start = cml::vector_view_array<double>(
+        cml::vector<T> input_start = cml::vector_view_array<T>(
             this->input_data.data, kernel_len);
-        cml::vector_memcpy(&input_start, &kernel);
+        cml::vector_memcpy<T>(&input_start, &kernel);
         cudaDeviceSynchronize();
-        fftw_plan plan = fftw_plan_dft_r2c_1d(padded_len, this->input_data.data,
-        									  (fftw_complex *) kernel_fft.data,
-                                              FFTW_ESTIMATE);
-     	fftw_execute(plan);
-     	fftw_destroy_plan(plan);
-     	/* rev_kernel_fft is conj(DFT(padded kernel))=IDFT(padded kernel). */
-     	// TODO parallelize.
-        cml::vector<double> imag_part(rev_kernel_fft.data + 1, padded_len, 2);
-     	cml::vector_memcpy(&rev_kernel_fft, &kernel_fft);
+        cufftHandle plan;
+        cufftPlan1d(&plan, padded_len, CUFFT_D2Z, 1);
+        cufftExecD2Z(forward_fft_plan,
+            (cufftDoubleReal *) this->input_data.data,
+            (cufftDoubleComplex *) kernel_fft.data);
+        cufftDestroy(plan);
+         /* rev_kernel_fft is conj(DFT(padded kernel))=IDFT(padded kernel). */
+         // TODO parallelize.
+        cml::vector<T> imag_part(rev_kernel_fft.data + 1, padded_len, 2);
+        cml::vector_memcpy(&rev_kernel_fft, &kernel_fft);
         cudaDeviceSynchronize();
         CUDA_CHECK_ERR();
-        cml::vector_scale(&imag_part, -1.0);
+        cml::vector_scale(&imag_part, static_cast<T>(-1.0));
         // for (size_t i=0; i < padded_len; ++i) {
-     	// 	  rev_kernel_fft[i][0] = kernel_fft[i][0];
-     	// 	  rev_kernel_fft[i][1] = -kernel_fft[i][1];
-     	// }
+         //       rev_kernel_fft[i][0] = kernel_fft[i][0];
+         //       rev_kernel_fft[i][1] = -kernel_fft[i][1];
+         // }
 
-     	/* Initialize the plans for forward_eval. */
-     	// TODO also FFTW_MEASURE for faster planning, worse performance.
-     	forward_fft_plan = fftw_plan_dft_r2c_1d(padded_len,
-            this->input_data.data,
-     		(fftw_complex *) r2c_out.data,
-            FFTW_MEASURE);
-     	forward_ifft_plan = fftw_plan_dft_c2r_1d(padded_len,
-            (fftw_complex *) r2c_out.data, this->output_data.data,
-            FFTW_MEASURE);
-     	adjoint_fft_plan = fftw_plan_dft_r2c_1d(padded_len, this->output_data.data,
-     		(fftw_complex *) r2c_out.data, FFTW_MEASURE);
-     	adjoint_ifft_plan = fftw_plan_dft_c2r_1d(padded_len,
-            (fftw_complex *) r2c_out.data,
-     		this->input_data.data, FFTW_MEASURE);
+         /* Initialize the plans for forward_eval. */
+         // TODO also FFTW_MEASURE for faster planning, worse performance.
+        cufftPlan1d(&forward_fft_plan, padded_len, CUFFT_D2Z, 1);
+        cufftPlan1d(&forward_ifft_plan, padded_len, CUFFT_Z2D, 1);
+        cufftPlan1d(&adjoint_fft_plan, padded_len, CUFFT_D2Z, 1);
+        cufftPlan1d(&adjoint_ifft_plan, padded_len, CUFFT_Z2D, 1);
+         // forward_fft_plan = fftw_plan_dft_r2c_1d(padded_len,
+      //       this->input_data.data,
+         //     (fftw_complex *) r2c_out.data,
+      //       FFTW_MEASURE);
+         // forward_ifft_plan = fftw_plan_dft_c2r_1d(padded_len,
+      //       (fftw_complex *) r2c_out.data, this->output_data.data,
+      //       FFTW_MEASURE);
+         // adjoint_fft_plan = fftw_plan_dft_r2c_1d(padded_len, this->output_data.data,
+         //     (fftw_complex *) r2c_out.data, FFTW_MEASURE);
+         // adjoint_ifft_plan = fftw_plan_dft_c2r_1d(padded_len,
+      //       (fftw_complex *) r2c_out.data,
+         //     this->input_data.data, FFTW_MEASURE);
         cudaDeviceSynchronize();
         CUDA_CHECK_ERR();
     }
 
     void free_data() {
-    	fftw_destroy_plan(forward_fft_plan);
-    	fftw_destroy_plan(forward_ifft_plan);
-    	fftw_destroy_plan(adjoint_fft_plan);
-    	fftw_destroy_plan(adjoint_ifft_plan);
+        cufftDestroy(forward_fft_plan);
+        cufftDestroy(forward_ifft_plan);
+        cufftDestroy(adjoint_fft_plan);
+        cufftDestroy(adjoint_ifft_plan);
         vector_free(&kernel);
-    	vector_free(&kernel_fft);
-    	vector_free(&rev_kernel_fft);
-    	vector_free(&r2c_out);
-    	fftw_cleanup();
+        vector_free(&kernel_fft);
+        vector_free(&rev_kernel_fft);
+        vector_free(&r2c_out);
+        // fftw_cleanup();
         this->free_data();
     }
 
-	void set_conv_data(double *kernel, int kernel_len) {
-		this->kernel = cml::vector_alloc<double>(kernel_len);
-		this->kernel_len = kernel_len;
-        cml::vector_memcpy(&this->kernel, kernel);
+    void set_conv_data(T *kernel, int kernel_len) {
+        this->kernel = cml::vector_alloc<T>(kernel_len);
+        this->kernel_len = kernel_len;
+        cml::vector_memcpy<T>(&this->kernel, kernel);
         cudaDeviceSynchronize();
         CUDA_CHECK_ERR();
-	}
+    }
 
 
     // /* Functor for multiplying two complex numbers and dividing by n. */
@@ -577,46 +582,54 @@ public:
     //   }
     // };
 
-	/* Multiply kernel_fft and output.
-	   Divide by n because fftw doesn't.
-	   Writes to output.
-	*/
-	void multiply_fft(cml::vector<double>& kernel_fft, cml::vector<double>& output) {
-		thrust::complex<double> len((double) padded_len, 0.0);
-        cml::strided_range<thrust::device_ptr<thrust::complex<double> > > idx_a(
-            thrust::device_pointer_cast((thrust::complex<double> *) kernel_fft.data),
-            thrust::device_pointer_cast((thrust::complex<double> *) kernel_fft.data + padded_len), 1);
-        cml::strided_range<thrust::device_ptr<thrust::complex<double> > > idx_b(
-            thrust::device_pointer_cast((thrust::complex<double> *) output.data),
-            thrust::device_pointer_cast((thrust::complex<double> *) output.data + padded_len), 1);
+    /* Multiply kernel_fft and output.
+       Divide by n because fftw doesn't.
+       Writes to output.
+    */
+    void multiply_fft(cml::vector<T>& kernel_fft, cml::vector<T>& output) {
+        thrust::complex<T> len((T) padded_len, 0.0);
+        cml::strided_range<thrust::device_ptr<thrust::complex<T> > > idx_a(
+            thrust::device_pointer_cast((thrust::complex<T> *) kernel_fft.data),
+            thrust::device_pointer_cast((thrust::complex<T> *) kernel_fft.data + padded_len), 1);
+        cml::strided_range<thrust::device_ptr<thrust::complex<T> > > idx_b(
+            thrust::device_pointer_cast((thrust::complex<T> *) output.data),
+            thrust::device_pointer_cast((thrust::complex<T> *) output.data + padded_len), 1);
         thrust::transform(idx_a.begin(), idx_a.end(), idx_b.begin(), idx_b.begin(),
-            thrust::multiplies<thrust::complex<double> >());
+            thrust::multiplies<thrust::complex<T> >());
         thrust::transform(idx_b.begin(), idx_b.end(),
-            thrust::constant_iterator<thrust::complex<double> >(len), idx_b.begin(),
-            thrust::divides<thrust::complex<double> >());
-	}
+            thrust::constant_iterator<thrust::complex<T> >(len), idx_b.begin(),
+            thrust::divides<thrust::complex<T> >());
+    }
 
-	/* Fill out the input padding with zeros. */
-	void zero_pad_input() {
-        cml::vector_scale<double>(&input_padding, 0.0);
-	}
+    /* Fill out the input padding with zeros. */
+    void zero_pad_input() {
+        cml::vector_scale<T>(&input_padding, static_cast<T>(0.0));
+    }
 
-	/* Column convolution. */
+    /* Column convolution. */
     void forward_eval() {
-    	zero_pad_input();
-    	fftw_execute(forward_fft_plan);
-    	multiply_fft(kernel_fft, r2c_out);
-    	fftw_execute(forward_ifft_plan);
+        zero_pad_input();
+        cufftExecD2Z(forward_fft_plan,
+           (cufftDoubleReal *) this->input_data.data,
+           (cufftDoubleComplex *) r2c_out.data);
+        multiply_fft(kernel_fft, r2c_out);
+        cufftExecZ2D(forward_ifft_plan,
+           (cufftDoubleComplex *) r2c_out.data,
+           (cufftDoubleReal *) this->output_data.data);
         cudaDeviceSynchronize();
         CUDA_CHECK_ERR();
     }
 
     /* Row convolution. */
     void adjoint_eval() {
-    	fftw_execute(adjoint_fft_plan);
-    	multiply_fft(rev_kernel_fft, r2c_out);
-		fftw_execute(adjoint_ifft_plan);
-		// TODO do this? zero_pad_input();
+        cufftExecD2Z(adjoint_fft_plan,
+           (cufftDoubleReal *) this->output_data.data,
+           (cufftDoubleComplex *) r2c_out.data);
+        multiply_fft(rev_kernel_fft, r2c_out);
+        cufftExecZ2D(adjoint_ifft_plan,
+           (cufftDoubleComplex *) r2c_out.data,
+           (cufftDoubleReal *) this->input_data.data);
+        // TODO do this? zero_pad_input();
         cudaDeviceSynchronize();
         CUDA_CHECK_ERR();
     }

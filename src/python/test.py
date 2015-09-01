@@ -6,6 +6,10 @@ x = Variable()
 prob = Problem(Minimize(-x), [x <= 2])
 prob.solve(solver=MAT_FREE_POGS, verbose=True, max_iter=2500)
 print x.value
+print "MAT FREE POGS double obj", prob.value
+prob.solve(solver=MAT_FREE_POGS, verbose=True, max_iter=2500, double=False)
+print x.value
+print "MAT FREE POGS float obj", prob.value
 prob.solve(solver=POGS, rho=1, verbose=True, max_iters=2499)
 print "POGS obj", prob.value
 # prob = Problem(Minimize(-x), [x <= 2])
@@ -21,6 +25,11 @@ prob = Problem(Minimize(x[0]), [norm(x + y) <= 2, y == 0])
 prob.solve(solver=MAT_FREE_POGS, verbose=True, max_iters=2500,
     samples=200, equil_steps=0, rho=1)
 print x.value
+print "MAT FREE POGS double obj", prob.value
+prob.solve(solver=MAT_FREE_POGS, verbose=True, max_iters=2500,
+    samples=200, equil_steps=0, rho=1, double=False)
+print x.value
+print "MAT FREE POGS float obj", prob.value
 prob.solve(solver=POGS, rho=1, verbose=True, max_iters=2499)
 print "POGS obj", prob.value
 # print norm(x + y).value
@@ -67,9 +76,12 @@ A = np.random.randn(m, n)
 b = np.random.randn(m, 1)
 cost = norm(A*x - b) + norm(x, 1)
 prob = Problem(Minimize(cost))
+prob.solve(solver=MAT_FREE_POGS, rho=1, verbose=True, abs_tol=1e-4, rel_tol=1e-4, max_iters=2499, double=False)
+print "MAT FREE POGS float obj", prob.value
+print "MAT FREE POGS float cost", cost.value
 prob.solve(solver=MAT_FREE_POGS, rho=1, verbose=True, abs_tol=1e-4, rel_tol=1e-4, max_iters=2499)
-print "MAT FREE POGS obj", prob.value
-print "MAT FREE POGS cost", cost.value
+print "MAT FREE POGS double obj", prob.value
+print "MAT FREE POGS double cost", cost.value
 prob.solve(solver=POGS, rho=1, verbose=True, abs_tol=1e-4, rel_tol=1e-4, max_iters=2499)
 print "POGS obj", prob.value
 print "POGS cost", cost.value

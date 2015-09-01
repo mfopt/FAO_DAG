@@ -31,18 +31,21 @@
 
 /* Typemap for the addDenseData C++ routine in LinOp.hpp */
 %apply (double* IN_ARRAY2, int DIM1, int DIM2) {(double* data, int rows, int cols)};
-
+%apply (float* IN_ARRAY2, int DIM1, int DIM2) {(float* data, int rows, int cols)};
 
 /* Typemap for the addSparseData C++ routine in LinOp.hpp */
 %apply (double* INPLACE_ARRAY1, int DIM1) {(double *data, int data_len)}
+%apply (float* INPLACE_ARRAY1, int DIM1) {(float *data, int data_len)}
 
 %apply (int* INPLACE_ARRAY1, int DIM1) {(int *indices, int idx_len), (int *ptrs, int ptr_len)};
 
 %apply (double* INPLACE_ARRAY1, int DIM1) {(double *kernel, int kernel_len)};
+%apply (float* INPLACE_ARRAY1, int DIM1) {(float *kernel, int kernel_len)};
 /*%include "FAO.hpp" */
 %include "FAO.cuh"
 
 %apply (double* INPLACE_ARRAY1, int DIM1) {(double *c, int c_len),(double *b, int b_len), (double *x, int x_len), (double *y, int y_len), (double *Adata, int nnz)};
+%apply (float* INPLACE_ARRAY1, int DIM1) {(float *c, int c_len),(float *b, int b_len), (float *x, int x_len), (float *y, int y_len), (double *Adata, int nnz)};
 %apply (int* INPLACE_ARRAY1, int DIM1) {(int *Aindices, int nnz),(int *Aindptr, int nnz)};
 %include "POGS_Data.hpp"
 
@@ -72,8 +75,10 @@ namespace std {
 
 /* For FAO_DAG.hpp. */
 %apply (double* INPLACE_ARRAY1, int DIM1) {(double* input, int input_len)}
+%apply (float* INPLACE_ARRAY1, int DIM1) {(float* input, int input_len)}
 
 %apply (double* INPLACE_ARRAY1, int DIM1) {(double* output, int output_len)}
+%apply (float* INPLACE_ARRAY1, int DIM1) {(float* output, int output_len)}
 /* %include "FAO_DAG.hpp" */
 %include "FAO_DAG.cuh"
 
