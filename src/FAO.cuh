@@ -553,7 +553,7 @@ public:
         vector_free(&rev_kernel_fft);
         vector_free(&r2c_out);
         // fftw_cleanup();
-        this->free_data();
+        FAO<T>::free_data();
     }
 
     void set_conv_data(T *kernel, int kernel_len) {
