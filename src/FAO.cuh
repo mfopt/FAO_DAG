@@ -482,6 +482,8 @@ public:
     cufftHandle adjoint_fft_plan;
     cufftHandle adjoint_ifft_plan;
 
+    cublasHandle_t hdl;
+
     void alloc_data() {
         input_len = this->get_length(this->input_sizes);
         padded_len = this->get_length(this->output_sizes);
@@ -505,14 +507,16 @@ public:
         cudaDeviceSynchronize();
         cufftHandle plan;
         cufftPlan1d(&plan, padded_len, CUFFT_D2Z, 1);
-        cufftExecD2Z(forward_fft_plan,
+        cufftExecD2Z(plan,
             (cufftDoubleReal *) this->input_data.data,
             (cufftDoubleComplex *) kernel_fft.data);
         cufftDestroy(plan);
+        T nrm = cml::blas_nrm2<T>(hdl, &kernel_fft);
+        printf("kernel_fft nrm = %e\n", nrm);
          /* rev_kernel_fft is conj(DFT(padded kernel))=IDFT(padded kernel). */
          // TODO parallelize.
         cml::vector<T> imag_part(rev_kernel_fft.data + 1, padded_len, 2);
-        cml::vector_memcpy(&rev_kernel_fft, &kernel_fft);
+        cml::vector_memcpy<T>(&rev_kernel_fft, &kernel_fft);
         cudaDeviceSynchronize();
         CUDA_CHECK_ERR();
         cml::vector_scale(&imag_part, static_cast<T>(-1.0));
@@ -562,6 +566,8 @@ public:
         cml::vector_memcpy<T>(&this->kernel, kernel);
         cudaDeviceSynchronize();
         CUDA_CHECK_ERR();
+        T nrm = cml::blas_nrm2<T>(hdl, &this->kernel);
+        printf("kernel data nrm = %e\n", nrm);
     }
 
 
@@ -609,19 +615,29 @@ public:
     /* Column convolution. */
     void forward_eval() {
         zero_pad_input();
+        T nrm = cml::blas_nrm2<T>(hdl, &this->input_data);
+        printf("input data nrm = %e\n", nrm);
         cufftExecD2Z(forward_fft_plan,
            (cufftDoubleReal *) this->input_data.data,
            (cufftDoubleComplex *) r2c_out.data);
+        nrm = cml::blas_nrm2<T>(hdl, &r2c_out);
+        printf("r2c_out data pre multiply fft nrm = %e\n", nrm);
         multiply_fft(kernel_fft, r2c_out);
+        nrm = cml::blas_nrm2<T>(hdl, &r2c_out);
+        printf("r2c_out data post multiply fft nrm = %e\n", nrm);
         cufftExecZ2D(forward_ifft_plan,
            (cufftDoubleComplex *) r2c_out.data,
            (cufftDoubleReal *) this->output_data.data);
         cudaDeviceSynchronize();
         CUDA_CHECK_ERR();
+        nrm = cml::blas_nrm2<T>(hdl, &this->output_data);
+        printf("output data nrm = %e\n", nrm);
     }
 
     /* Row convolution. */
     void adjoint_eval() {
+        T nrm = cml::blas_nrm2<T>(hdl, &this->output_data);
+        printf("output data nrm = %e\n", nrm);
         cufftExecD2Z(adjoint_fft_plan,
            (cufftDoubleReal *) this->output_data.data,
            (cufftDoubleComplex *) r2c_out.data);
@@ -632,6 +648,8 @@ public:
         // TODO do this? zero_pad_input();
         cudaDeviceSynchronize();
         CUDA_CHECK_ERR();
+        nrm = cml::blas_nrm2<T>(hdl, &this->input_data);
+        printf("input data nrm = %e\n", nrm);
     }
 };
 #endif

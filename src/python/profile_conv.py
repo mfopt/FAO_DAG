@@ -29,7 +29,7 @@ mat_free_times = []
 scs_direct_times = []
 scs_indirect_times = []
 
-n = 23356
+n = 100
 NUM_SPIKES = 5
 DENSITY = NUM_SPIKES/n
 x = Variable(n)
