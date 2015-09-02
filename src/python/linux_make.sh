@@ -24,7 +24,7 @@ g++ -shared -L/usr/local/lib \
 FAO_DAG_wrap.o ../../include/pogs_fork/src/build/pogs.a \
 -L ../../include/scs/out -lscsindir \
 -L/usr/local/cuda/lib64 -L/usr/local/lib \
--lcuda -lcudart -lcublas -lcusparse -lcufftw \
+-lcuda -lcudart -lcublas -lcusparse -lcufftw -lcufft \
 -L/usr/lib -L/usr/lib \
 -L/usr/lib \
 -lblas -llapack -lgfortran \
