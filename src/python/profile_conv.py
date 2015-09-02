@@ -29,7 +29,7 @@ mat_free_times = []
 scs_direct_times = []
 scs_indirect_times = []
 
-n = 100
+n = 300
 NUM_SPIKES = 5
 DENSITY = NUM_SPIKES/n
 x = Variable(n)
@@ -120,6 +120,8 @@ if False:
     print "old mat free result", result
     print("recovered x fit", fit.value)
     print("solve time", prob.solve_time)
+    print("nnz =", np.sum(x.value >= 1))
+    print("max =", np.max(np.max(x.value)))
     solve_time = prob.solve_time
 else:
     solve_time = 0
@@ -176,17 +178,17 @@ if True:
     # import yep
     # yep.start('conv.prof')
     result = prob.solve(solver=MAT_FREE_POGS,
-                            verbose=True,
-                            max_iters=10000,
-                            equil_steps=0,
-                            # eps=1e-3,
-                            # cg_rate=2,
-                            # precond=True,
-                            # stoch=True,
-                            abs_tol=1e-4,
-                            rel_tol=1e-4,
-                            samples=200,
-                            double=True)
+                        verbose=True,
+                        max_iters=10000,
+                        equil_steps=0,
+                        # eps=1e-3,
+                        # cg_rate=2,
+                        # precond=True,
+                        # stoch=True,
+                        abs_tol=1e-4,
+                        rel_tol=1e-4,
+                        samples=200,
+                        double=False)
     # yep.stop()
     print "mat free pogs result", result
     print("recovered x fit", fit.value)

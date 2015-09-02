@@ -299,9 +299,10 @@ public:
      //      }
      // }
 };
-#endif
 
 #ifdef SWIG
 %template(POGS_Datad) POGS_Data<double>;
 %template(POGS_Dataf) POGS_Data<float>;
+#endif
+
 #endif

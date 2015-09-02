@@ -464,7 +464,7 @@ class Split : public Vstack<T> {
 
 // TODO use cuFFT HERE
 template <class T>
-class Conv : public FAO<T> {
+class ConvBase : public FAO<T> {
 public:
 
     cml::vector<T> kernel;
@@ -482,9 +482,7 @@ public:
     cufftHandle adjoint_fft_plan;
     cufftHandle adjoint_ifft_plan;
 
-    cublasHandle_t hdl;
-
-    void alloc_data() {
+    void alloc_data_base() {
         input_len = this->get_length(this->input_sizes);
         padded_len = this->get_length(this->output_sizes);
         // TODO could use fftw_alloc here.
@@ -497,54 +495,6 @@ public:
         kernel_fft = cml::vector_calloc<T>(2*padded_len);
         rev_kernel_fft = cml::vector_calloc<T>(2*padded_len);
         r2c_out = cml::vector_calloc<T>(2*padded_len);
-
-        /* kernel_fft is DFT(padded kernel). */
-        /* Must copy because FFTW destroys input array. */
-        // TODO alignment of kernel_fft!
-        cml::vector<T> input_start = cml::vector_view_array<T>(
-            this->input_data.data, kernel_len);
-        cml::vector_memcpy<T>(&input_start, &kernel);
-        cudaDeviceSynchronize();
-        cufftHandle plan;
-        cufftPlan1d(&plan, padded_len, CUFFT_D2Z, 1);
-        cufftExecD2Z(plan,
-            (cufftDoubleReal *) this->input_data.data,
-            (cufftDoubleComplex *) kernel_fft.data);
-        cufftDestroy(plan);
-        T nrm = cml::blas_nrm2<T>(hdl, &kernel_fft);
-        printf("kernel_fft nrm = %e\n", nrm);
-         /* rev_kernel_fft is conj(DFT(padded kernel))=IDFT(padded kernel). */
-         // TODO parallelize.
-        cml::vector<T> imag_part(rev_kernel_fft.data + 1, padded_len, 2);
-        cml::vector_memcpy<T>(&rev_kernel_fft, &kernel_fft);
-        cudaDeviceSynchronize();
-        CUDA_CHECK_ERR();
-        cml::vector_scale(&imag_part, static_cast<T>(-1.0));
-        // for (size_t i=0; i < padded_len; ++i) {
-         //       rev_kernel_fft[i][0] = kernel_fft[i][0];
-         //       rev_kernel_fft[i][1] = -kernel_fft[i][1];
-         // }
-
-         /* Initialize the plans for forward_eval. */
-         // TODO also FFTW_MEASURE for faster planning, worse performance.
-        cufftPlan1d(&forward_fft_plan, padded_len, CUFFT_D2Z, 1);
-        cufftPlan1d(&forward_ifft_plan, padded_len, CUFFT_Z2D, 1);
-        cufftPlan1d(&adjoint_fft_plan, padded_len, CUFFT_D2Z, 1);
-        cufftPlan1d(&adjoint_ifft_plan, padded_len, CUFFT_Z2D, 1);
-         // forward_fft_plan = fftw_plan_dft_r2c_1d(padded_len,
-      //       this->input_data.data,
-         //     (fftw_complex *) r2c_out.data,
-      //       FFTW_MEASURE);
-         // forward_ifft_plan = fftw_plan_dft_c2r_1d(padded_len,
-      //       (fftw_complex *) r2c_out.data, this->output_data.data,
-      //       FFTW_MEASURE);
-         // adjoint_fft_plan = fftw_plan_dft_r2c_1d(padded_len, this->output_data.data,
-         //     (fftw_complex *) r2c_out.data, FFTW_MEASURE);
-         // adjoint_ifft_plan = fftw_plan_dft_c2r_1d(padded_len,
-      //       (fftw_complex *) r2c_out.data,
-         //     this->input_data.data, FFTW_MEASURE);
-        cudaDeviceSynchronize();
-        CUDA_CHECK_ERR();
     }
 
     void free_data() {
@@ -566,8 +516,6 @@ public:
         cml::vector_memcpy<T>(&this->kernel, kernel);
         cudaDeviceSynchronize();
         CUDA_CHECK_ERR();
-        T nrm = cml::blas_nrm2<T>(hdl, &this->kernel);
-        printf("kernel data nrm = %e\n", nrm);
     }
 
 
@@ -611,52 +559,176 @@ public:
     void zero_pad_input() {
         cml::vector_scale<T>(&input_padding, static_cast<T>(0.0));
     }
+};
+
+#ifdef SWIG
+%template(FAOd) FAO<double>;
+%template(FAOf) FAO<float>;
+%template(ConvBased) ConvBase<double>;
+%template(ConvBasef) ConvBase<float>;
+#endif
+
+class Convd: public ConvBase<double> {
+public:
+    void alloc_data() {
+        this->alloc_data_base();
+        /* kernel_fft is DFT(padded kernel). */
+        /* Must copy because FFTW destroys input array. */
+        // TODO alignment of kernel_fft!
+        cml::vector<double> input_start = cml::vector_view_array<double>(
+            this->input_data.data, kernel_len);
+        cml::vector_memcpy<double>(&input_start, &kernel);
+        cudaDeviceSynchronize();
+        cufftHandle plan;
+        cufftPlan1d(&plan, padded_len, CUFFT_D2Z, 1);
+        cufftExecD2Z(plan,
+            (cufftDoubleReal *) this->input_data.data,
+            (cufftDoubleComplex *) kernel_fft.data);
+        cufftDestroy(plan);
+         /* rev_kernel_fft is conj(DFT(padded kernel))=IDFT(padded kernel). */
+         // TODO parallelize.
+        cml::vector<double> imag_part(rev_kernel_fft.data + 1, padded_len, 2);
+        cml::vector_memcpy<double>(&rev_kernel_fft, &kernel_fft);
+        cudaDeviceSynchronize();
+        CUDA_CHECK_ERR();
+        cml::vector_scale(&imag_part, static_cast<double>(-1.0));
+        // for (size_t i=0; i < padded_len; ++i) {
+         //       rev_kernel_fft[i][0] = kernel_fft[i][0];
+         //       rev_kernel_fft[i][1] = -kernel_fft[i][1];
+         // }
+
+         /* Initialize the plans for forward_eval. */
+         // TODO also FFTW_MEASURE for faster planning, worse performance.
+        cufftPlan1d(&forward_fft_plan, padded_len, CUFFT_D2Z, 1);
+        cufftPlan1d(&forward_ifft_plan, padded_len, CUFFT_Z2D, 1);
+        cufftPlan1d(&adjoint_fft_plan, padded_len, CUFFT_D2Z, 1);
+        cufftPlan1d(&adjoint_ifft_plan, padded_len, CUFFT_Z2D, 1);
+         // forward_fft_plan = fftw_plan_dft_r2c_1d(padded_len,
+      //       this->input_data.data,
+         //     (fftw_complex *) r2c_out.data,
+      //       FFTW_MEASURE);
+         // forward_ifft_plan = fftw_plan_dft_c2r_1d(padded_len,
+      //       (fftw_complex *) r2c_out.data, this->output_data.data,
+      //       FFTW_MEASURE);
+         // adjoint_fft_plan = fftw_plan_dft_r2c_1d(padded_len, this->output_data.data,
+         //     (fftw_complex *) r2c_out.data, FFTW_MEASURE);
+         // adjoint_ifft_plan = fftw_plan_dft_c2r_1d(padded_len,
+      //       (fftw_complex *) r2c_out.data,
+         //     this->input_data.data, FFTW_MEASURE);
+        cudaDeviceSynchronize();
+        CUDA_CHECK_ERR();
+    }
 
     /* Column convolution. */
     void forward_eval() {
-        zero_pad_input();
-        T nrm = cml::blas_nrm2<T>(hdl, &this->input_data);
-        printf("input data nrm = %e\n", nrm);
+        this->zero_pad_input();
         cufftExecD2Z(forward_fft_plan,
            (cufftDoubleReal *) this->input_data.data,
            (cufftDoubleComplex *) r2c_out.data);
-        nrm = cml::blas_nrm2<T>(hdl, &r2c_out);
-        printf("r2c_out data pre multiply fft nrm = %e\n", nrm);
-        multiply_fft(kernel_fft, r2c_out);
-        nrm = cml::blas_nrm2<T>(hdl, &r2c_out);
-        printf("r2c_out data post multiply fft nrm = %e\n", nrm);
+        this->multiply_fft(kernel_fft, r2c_out);
         cufftExecZ2D(forward_ifft_plan,
            (cufftDoubleComplex *) r2c_out.data,
            (cufftDoubleReal *) this->output_data.data);
         cudaDeviceSynchronize();
         CUDA_CHECK_ERR();
-        nrm = cml::blas_nrm2<T>(hdl, &this->output_data);
-        printf("output data nrm = %e\n", nrm);
     }
 
     /* Row convolution. */
     void adjoint_eval() {
-        T nrm = cml::blas_nrm2<T>(hdl, &this->output_data);
-        printf("output data nrm = %e\n", nrm);
         cufftExecD2Z(adjoint_fft_plan,
            (cufftDoubleReal *) this->output_data.data,
            (cufftDoubleComplex *) r2c_out.data);
-        multiply_fft(rev_kernel_fft, r2c_out);
+        this->multiply_fft(rev_kernel_fft, r2c_out);
         cufftExecZ2D(adjoint_ifft_plan,
            (cufftDoubleComplex *) r2c_out.data,
            (cufftDoubleReal *) this->input_data.data);
         // TODO do this? zero_pad_input();
         cudaDeviceSynchronize();
         CUDA_CHECK_ERR();
-        nrm = cml::blas_nrm2<T>(hdl, &this->input_data);
-        printf("input data nrm = %e\n", nrm);
     }
 };
-#endif
+
+class Convf: public ConvBase<float> {
+public:
+    void alloc_data() {
+        this->alloc_data_base();
+        /* kernel_fft is DFT(padded kernel). */
+        /* Must copy because FFTW destroys input array. */
+        // TODO alignment of kernel_fft!
+        cml::vector<float> input_start = cml::vector_view_array<float>(
+            this->input_data.data, kernel_len);
+        cml::vector_memcpy<float>(&input_start, &kernel);
+        cudaDeviceSynchronize();
+        cufftHandle plan;
+        cufftPlan1d(&plan, padded_len, CUFFT_R2C, 1);
+        cufftExecR2C(plan,
+            (cufftReal *) this->input_data.data,
+            (cufftComplex *) kernel_fft.data);
+        cufftDestroy(plan);
+         /* rev_kernel_fft is conj(DFT(padded kernel))=IDFT(padded kernel). */
+         // TODO parallelize.
+        cml::vector<float> imag_part(rev_kernel_fft.data + 1, padded_len, 2);
+        cml::vector_memcpy<float>(&rev_kernel_fft, &kernel_fft);
+        cudaDeviceSynchronize();
+        CUDA_CHECK_ERR();
+        cml::vector_scale(&imag_part, static_cast<float>(-1.0));
+        // for (size_t i=0; i < padded_len; ++i) {
+         //       rev_kernel_fft[i][0] = kernel_fft[i][0];
+         //       rev_kernel_fft[i][1] = -kernel_fft[i][1];
+         // }
+
+         /* Initialize the plans for forward_eval. */
+         // TODO also FFTW_MEASURE for faster planning, worse performance.
+        cufftPlan1d(&forward_fft_plan, padded_len, CUFFT_R2C, 1);
+        cufftPlan1d(&forward_ifft_plan, padded_len, CUFFT_C2R, 1);
+        cufftPlan1d(&adjoint_fft_plan, padded_len, CUFFT_R2C, 1);
+        cufftPlan1d(&adjoint_ifft_plan, padded_len, CUFFT_C2R, 1);
+         // forward_fft_plan = fftw_plan_dft_r2c_1d(padded_len,
+      //       this->input_data.data,
+         //     (fftw_complex *) r2c_out.data,
+      //       FFTW_MEASURE);
+         // forward_ifft_plan = fftw_plan_dft_c2r_1d(padded_len,
+      //       (fftw_complex *) r2c_out.data, this->output_data.data,
+      //       FFTW_MEASURE);
+         // adjoint_fft_plan = fftw_plan_dft_r2c_1d(padded_len, this->output_data.data,
+         //     (fftw_complex *) r2c_out.data, FFTW_MEASURE);
+         // adjoint_ifft_plan = fftw_plan_dft_c2r_1d(padded_len,
+      //       (fftw_complex *) r2c_out.data,
+         //     this->input_data.data, FFTW_MEASURE);
+        cudaDeviceSynchronize();
+        CUDA_CHECK_ERR();
+    }
+
+    /* Column convolution. */
+    void forward_eval() {
+        this->zero_pad_input();
+        cufftExecR2C(forward_fft_plan,
+           (cufftReal *) this->input_data.data,
+           (cufftComplex *) r2c_out.data);
+        this->multiply_fft(kernel_fft, r2c_out);
+        cufftExecC2R(forward_ifft_plan,
+           (cufftComplex *) r2c_out.data,
+           (cufftReal *) this->output_data.data);
+        cudaDeviceSynchronize();
+        CUDA_CHECK_ERR();
+    }
+
+    /* Row convolution. */
+    void adjoint_eval() {
+        cufftExecR2C(adjoint_fft_plan,
+           (cufftReal *) this->output_data.data,
+           (cufftComplex *) r2c_out.data);
+        this->multiply_fft(rev_kernel_fft, r2c_out);
+        cufftExecC2R(adjoint_ifft_plan,
+           (cufftComplex *) r2c_out.data,
+           (cufftReal *) this->input_data.data);
+        // TODO do this? zero_pad_input();
+        cudaDeviceSynchronize();
+        CUDA_CHECK_ERR();
+    }
+};
 
 #ifdef SWIG
-%template(FAOd) FAO<double>;
-%template(FAOf) FAO<float>;
 %template(NoOpd) NoOp<double>;
 %template(NoOpf) NoOp<float>;
 %template(DenseMatVecMuld) DenseMatVecMul<double>;
@@ -675,6 +747,6 @@ public:
 %template(Vstackf) Vstack<float>;
 %template(Splitd) Split<double>;
 %template(Splitf) Split<float>;
-%template(Convd) Conv<double>;
-// %template(Convf) Conv<float>;
+#endif
+
 #endif

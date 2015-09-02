@@ -219,9 +219,9 @@ public:
 
 };
 
-#endif
-
 #ifdef SWIG
 %template(FAO_DAGd) FAO_DAG<double>;
 %template(FAO_DAGf) FAO_DAG<float>;
+#endif
+
 #endif
