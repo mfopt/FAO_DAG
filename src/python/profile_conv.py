@@ -29,7 +29,7 @@ mat_free_times = []
 scs_direct_times = []
 scs_indirect_times = []
 
-n = 300
+n = 23356
 NUM_SPIKES = 5
 DENSITY = NUM_SPIKES/n
 x = Variable(n)
@@ -188,7 +188,7 @@ if True:
                         abs_tol=1e-4,
                         rel_tol=1e-4,
                         samples=200,
-                        double=False)
+                        double=True)
     # yep.stop()
     print "mat free pogs result", result
     print("recovered x fit", fit.value)
