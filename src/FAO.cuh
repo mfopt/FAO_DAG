@@ -729,13 +729,22 @@ public:
 
     /* Row convolution. */
     void adjoint_eval() {
+        double t = timer<double>();
         cufftExecR2C(adjoint_fft_plan,
            (cufftReal *) this->output_data.data,
            (cufftComplex *) r2c_out.data);
+        cudaDeviceSynchronize();
+        printf("T_exec_r2c = %e\n", timer<double>() - t);
+        t = timer<double>();
         this->multiply_fft(rev_kernel_fft, r2c_out);
+        cudaDeviceSynchronize();
+        printf("T_multiply_fft = %e\n", timer<double>() - t);
+        t = timer<double>();
         cufftExecC2R(adjoint_ifft_plan,
            (cufftComplex *) r2c_out.data,
            (cufftReal *) this->input_data.data);
+        cudaDeviceSynchronize();
+        printf("T_exec_c2r = %e\n", timer<double>() - t);
         // TODO do this? zero_pad_input();
         cudaDeviceSynchronize();
         CUDA_CHECK_ERR();

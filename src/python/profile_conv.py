@@ -29,7 +29,7 @@ mat_free_times = []
 scs_direct_times = []
 scs_indirect_times = []
 
-n = 100000
+n = 10000000
 NUM_SPIKES = 5
 DENSITY = NUM_SPIKES/n
 x = Variable(n)
@@ -111,7 +111,7 @@ if False:
     print "OLD MAT FREE"
     result = prob.solve(solver=OLD_SCS_MAT_FREE,
                         verbose=True,
-                        max_iters=10000,
+                        max_iters=100,
                         eps=1e-3,
                         equil_steps=1,
                         cg_rate=2,
@@ -119,6 +119,7 @@ if False:
                         stoch=True,
                         samples=200)
     print "old mat free result", result
+    print prob.cg_iters
     print("recovered x fit", fit.value)
     print("solve time", prob.solve_time)
     print("nnz =", np.sum(x.value >= 1))
@@ -144,15 +145,16 @@ if False:
     # import yep
     # yep.start('conv.prof')
     result = prob.solve(solver=MAT_FREE_SCS,
-                            verbose=False,
-                            max_iters=10000,
-                            equil_steps=1,
-                            eps=1e-3,
-                            cg_rate=2,
-                            precond=True,
-                            stoch=True,
-                            samples=200)
+                        verbose=False,
+                        max_iters=100,
+                        equil_steps=1,
+                        eps=1e-3,
+                        cg_rate=2,
+                        precond=True,
+                        stoch=True,
+                        samples=200)
     # yep.stop()
+    print prob.cg_iters
     print "mat free scs result", result
     print("solve time", prob.solve_time)
     print("nnz =", np.sum(x.value >= 1))
@@ -180,7 +182,7 @@ if True:
     # yep.start('conv.prof')
     result = prob.solve(solver=MAT_FREE_POGS,
                         verbose=True,
-                        max_iters=10000,
+                        max_iters=100,
                         equil_steps=0,
                         # eps=1e-3,
                         # cg_rate=2,

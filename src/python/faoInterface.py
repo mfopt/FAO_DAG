@@ -275,8 +275,8 @@ def scs_solve(py_dag, data, dims, solver_opts):
     solver_opts["eps"] = solver_opts.get("eps", 1e-3)
     solver_opts['cg_rate'] = solver_opts.get("cg_rate", 2.0)
     solver_opts["rand_seed"] = solver_opts.get("rand_seed", False)
-    start_node, end_node, edges = python_to_swig(py_dag, tmp)
-    dag = FAO_DAG.FAO_DAG(start_node, end_node, edges)
+    start_node, end_node, edges = python_to_swig(py_dag, tmp, True)
+    dag = FAO_DAG.FAO_DAGd(start_node, end_node, edges)
     scs_data = FAO_DAG.SCS_Data();
     c = data['c'].flatten()
     scs_data.load_c(c)
