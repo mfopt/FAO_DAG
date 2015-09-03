@@ -50,7 +50,7 @@ SNR = 20
 signal = conv(kernel, true_x)
 sigma = norm(signal,2).value/(SNR*sqrt(n+m-1))
 noise = np.random.normal(scale=sigma, size=n+m-1)
-print("SNR", norm(signal,2).value/norm(noise,2).value)
+# print("SNR", norm(signal,2).value/norm(noise,2).value)
 noisy_signal = signal + noise
 
 gamma = Parameter(sign="positive")
@@ -59,8 +59,9 @@ fit = norm(conv(kernel, x) - noisy_signal)
 constraints = [x >= 0]
 prob = Problem(Minimize(fit),
                constraints)
-print "True fit =", norm(conv(kernel, true_x) - noisy_signal).value
-print "all zero fit =", norm(conv(kernel, np.zeros(n)) - noisy_signal).value
+# print "True fit =", norm(conv(kernel, true_x) - noisy_signal).value
+# print "all zero fit =", norm(conv(kernel, np.zeros(n)) - noisy_signal).value
+
 # # Only solve one problem.
 # if r != script_num:# or n <= 16236:
 #     continue
@@ -191,6 +192,6 @@ if True:
                         double=False)
     # yep.stop()
     print "mat free pogs result", result
-    print("recovered x fit", fit.value)
-    print("nnz =", np.sum(x.value >= 1))
-    print("max =", np.max(np.max(x.value)))
+    # print("recovered x fit", fit.value)
+    # print("nnz =", np.sum(x.value >= 1))
+    # print("max =", np.max(np.max(x.value)))

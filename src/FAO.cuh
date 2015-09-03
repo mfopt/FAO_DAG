@@ -28,11 +28,13 @@
 #include "cml/cml_spblas.cuh"
 #include "cml/cml_utils.cuh"
 #include "pogs_fork/src/include/util.h"
+#include "pogs_fork/src/include/timer.h"
 #include <cufft.h>
 #include <thrust/device_ptr.h>
 #include <thrust/transform.h>
 #include <thrust/complex.h>
 #include <thrust/iterator/constant_iterator.h>
+
 
 // /* ID for all coefficient matrices associated with linOps of CONSTANT_TYPE */
 // static const int CONSTANT_ID = -1;
@@ -701,14 +703,26 @@ public:
 
     /* Column convolution. */
     void forward_eval() {
+        double t = timer<double>();
         this->zero_pad_input();
+        cudaDeviceSynchronize();
+        printf("T_zero_pad = %e\n", timer<double>() - t);
+        t = timer<double>();
         cufftExecR2C(forward_fft_plan,
            (cufftReal *) this->input_data.data,
            (cufftComplex *) r2c_out.data);
+        cudaDeviceSynchronize();
+        printf("T_exec_r2c = %e\n", timer<double>() - t);
+        t = timer<double>();
         this->multiply_fft(kernel_fft, r2c_out);
+        cudaDeviceSynchronize();
+        printf("T_multiply_fft = %e\n", timer<double>() - t);
+        t = timer<double>();
         cufftExecC2R(forward_ifft_plan,
            (cufftComplex *) r2c_out.data,
            (cufftReal *) this->output_data.data);
+        cudaDeviceSynchronize();
+        printf("T_exec_c2r = %e\n", timer<double>() - t);
         cudaDeviceSynchronize();
         CUDA_CHECK_ERR();
     }
