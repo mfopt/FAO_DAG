@@ -25,6 +25,7 @@
 #include <functional>
 #include "cml/cml_vector.cuh"
 #include <typeinfo>
+#include "pogs_fork/src/include/timer.h"
 
 template <class T>
 class FAO_DAG {
@@ -173,7 +174,10 @@ public:
 		// for (size_t i=0; i < input_arr->size; ++i) {
 		// 	printf("forward eval input[%u] = %e\n", i, input_arr->data[i]);
 		// }
+		double t = timer<double>();
 		traverse_graph(node_eval, true);
+		cudaDeviceSynchronize();
+        printf("T_forward_eval = %e\n", timer<double>() - t);
 		// auto output_arr = get_forward_output();
 		// for (size_t i=0; i < output_arr->size; ++i) {
 		// 	printf("forward eval output[%u] = %e\n", i, output_arr->data[i]);
@@ -202,7 +206,10 @@ public:
 		// for (size_t i=0; i < input_arr->size; ++i) {
 		// 	printf("adjoint eval input[%u] = %e\n", i, input_arr->data[i]);
 		// }
+		double t = timer<double>();
 		traverse_graph(node_eval, false);
+		cudaDeviceSynchronize();
+        printf("T_adjoint_eval = %e\n", timer<double>() - t);
 		// auto output_arr = get_adjoint_output();
 		// for (size_t i=0; i < output_arr->size; ++i) {
 		// 	printf("adjoint eval output[%u] = %e\n", i, output_arr->data[i]);

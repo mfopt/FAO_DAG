@@ -111,7 +111,7 @@ if False:
     print "OLD MAT FREE"
     result = prob.solve(solver=OLD_SCS_MAT_FREE,
                         verbose=True,
-                        max_iters=100,
+                        max_iters=1,
                         eps=1e-3,
                         equil_steps=1,
                         cg_rate=2,
