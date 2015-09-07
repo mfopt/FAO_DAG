@@ -38,6 +38,12 @@ public:
 	std::queue<FAO<T> *> ready_queue;
 	std::map<FAO<T> *, size_t> eval_map;
 
+	// Timing info.
+	int forward_evals = 0;
+	int adjoint_evals = 0;
+	double total_forward_eval_time = 0;
+	double total_adjoint_eval_time = 0;
+
 	FAO_DAG(FAO<T>* start_node, FAO<T>* end_node,
 			std::map<int, std::pair<FAO<T> *, FAO<T> *> > edges) {
 		this->start_node = start_node;
@@ -52,6 +58,11 @@ public:
 	}
 
 	~FAO_DAG() {
+		// For timing.
+		printf("forward_evals=%i, avg_forward_eval_time=%e\n", forward_evals,
+			total_forward_eval_time/forward_evals);
+		printf("adjoint_evals=%i, avg_adjoint_eval_time=%e\n", adjoint_evals,
+			total_adjoint_eval_time/adjoint_evals);
 		/* Deallocate input and output arrays on each node. */
 		auto node_fn = [](FAO<T>* node) {node->free_data();};
 		traverse_graph(node_fn, true);
@@ -170,18 +181,13 @@ public:
 			cudaDeviceSynchronize();
 			CUDA_CHECK_ERR();
 		};
-		// auto input_arr = get_forward_input();
-		// for (size_t i=0; i < input_arr->size; ++i) {
-		// 	printf("forward eval input[%u] = %e\n", i, input_arr->data[i]);
-		// }
 		double t = timer<double>();
 		traverse_graph(node_eval, true);
 		cudaDeviceSynchronize();
-        printf("T_forward_eval = %e\n", timer<double>() - t);
-		// auto output_arr = get_forward_output();
-		// for (size_t i=0; i < output_arr->size; ++i) {
-		// 	printf("forward eval output[%u] = %e\n", i, output_arr->data[i]);
-		// }
+		forward_evals++;
+		double eval_time = timer<double>() - t;
+		total_forward_eval_time += eval_time;
+        // printf("T_forward_eval = %e\n", eval_time);
 	}
 
 	/* Evaluate the adjoint DAG. */
@@ -202,18 +208,13 @@ public:
 			cudaDeviceSynchronize();
 			CUDA_CHECK_ERR();
 		};
-		// auto input_arr = get_adjoint_input();
-		// for (size_t i=0; i < input_arr->size; ++i) {
-		// 	printf("adjoint eval input[%u] = %e\n", i, input_arr->data[i]);
-		// }
 		double t = timer<double>();
 		traverse_graph(node_eval, false);
 		cudaDeviceSynchronize();
-        printf("T_adjoint_eval = %e\n", timer<double>() - t);
-		// auto output_arr = get_adjoint_output();
-		// for (size_t i=0; i < output_arr->size; ++i) {
-		// 	printf("adjoint eval output[%u] = %e\n", i, output_arr->data[i]);
-		// }
+		adjoint_evals++;
+		double eval_time = timer<double>() - t;
+		total_adjoint_eval_time += eval_time;
+        // printf("T_adjoint_eval = %e\n", eval_time);
 	}
 
 	static void static_forward_eval(void *ptr) {

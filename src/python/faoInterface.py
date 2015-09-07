@@ -122,10 +122,6 @@ def mat_free_pogs_solve(py_dag, data, dims, solver_opts):
     py_dag: The Python FAO DAG.
     data: A map with all the information needed by POGS.
     """
-    print len(py_dag.nodes)
-    for i, node in py_dag.nodes.items():
-        print node
-        print node.type
     tmp = []
     # solver_opts["stoch"] = solver_opts.get("stoch", False)
     # solver_opts["samples"] = solver_opts.get("samples", 200)
@@ -141,6 +137,11 @@ def mat_free_pogs_solve(py_dag, data, dims, solver_opts):
     samples = solver_opts.get("samples", 200)
     equil_steps = solver_opts.get("equil_steps", 1)
     double = solver_opts.get("double", True)
+    if verbose:
+        print len(py_dag.nodes)
+        for i, node in py_dag.nodes.items():
+            print node
+            print node.type
 
     start_node, end_node, edges = python_to_swig(py_dag, tmp, double)
     if double:

@@ -1,0 +1,9 @@
+CPU:
+FAO DAG branch pogs, commit b68a8323408b7702361c0c0916b6dae8434b4614
+SCS branch FAO, commit 7dce2ff1f4f343a5f8a3422241e2d5e4acd7a26e
+
+GPU:
+FAO DAG branch pogs_gpu, commit dcd97025b0aeebbe5f4934b675337847d7dcc795
+POGS fork branch cone, commit 592184aa9945841065b96884894d71df6ea6cb2d
+
+n,cpu_forward_r2c,cpu_forward,cpu_adjoint

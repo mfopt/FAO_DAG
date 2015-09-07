@@ -543,7 +543,6 @@ public:
        Writes to output.
     */
     void multiply_fft(cml::vector<T>& kernel_fft, cml::vector<T>& output) {
-        thrust::complex<T> len((T) padded_len, 0.0);
         cml::strided_range<thrust::device_ptr<thrust::complex<T> > > idx_a(
             thrust::device_pointer_cast((thrust::complex<T> *) kernel_fft.data),
             thrust::device_pointer_cast((thrust::complex<T> *) kernel_fft.data + padded_len), 1);
@@ -552,9 +551,9 @@ public:
             thrust::device_pointer_cast((thrust::complex<T> *) output.data + padded_len), 1);
         thrust::transform(idx_a.begin(), idx_a.end(), idx_b.begin(), idx_b.begin(),
             thrust::multiplies<thrust::complex<T> >());
-        thrust::transform(idx_b.begin(), idx_b.end(),
-            thrust::constant_iterator<thrust::complex<T> >(len), idx_b.begin(),
-            thrust::divides<thrust::complex<T> >());
+        // TODO replace with blas scale 1/n.
+        cml::vector_scale<T>(&output,
+            static_cast<T>(1)/static_cast<T>(padded_len));
     }
 
     /* Fill out the input padding with zeros. */
@@ -652,6 +651,12 @@ public:
 
 class Convf: public ConvBase<float> {
 public:
+    // Timing info.
+    int forward_evals = 0;
+    int adjoint_evals = 0;
+    double total_forward_r2c_time = 0;
+    double total_adjoint_r2c_time = 0;
+
     void alloc_data() {
         this->alloc_data_base();
         /* kernel_fft is DFT(padded kernel). */
@@ -701,50 +706,65 @@ public:
         CUDA_CHECK_ERR();
     }
 
+    // For timing purposes.
+    void free_data() {
+        printf("n=%u, avg_forward_r2c=%e\n", input_len,
+            total_forward_r2c_time/forward_evals);
+        printf("n=%u, avg_adjoint_r2c=%e\n", input_len,
+            total_adjoint_r2c_time/adjoint_evals);
+        ConvBase<float>::free_data();
+    }
+
     /* Column convolution. */
     void forward_eval() {
+        forward_evals++;
         double t = timer<double>();
         this->zero_pad_input();
         cudaDeviceSynchronize();
-        printf("T_zero_pad = %e\n", timer<double>() - t);
+        // printf("T_zero_pad = %e\n", timer<double>() - t);
         t = timer<double>();
         cufftExecR2C(forward_fft_plan,
            (cufftReal *) this->input_data.data,
            (cufftComplex *) r2c_out.data);
         cudaDeviceSynchronize();
-        printf("T_exec_r2c = %e\n", timer<double>() - t);
+        double r2c_time = timer<double>() - t;
+        total_forward_r2c_time += r2c_time;
+        // printf("T_exec_r2c = %e\n", r2c_time);
         t = timer<double>();
         this->multiply_fft(kernel_fft, r2c_out);
         cudaDeviceSynchronize();
-        printf("T_multiply_fft = %e\n", timer<double>() - t);
+        // printf("T_multiply_fft = %e\n", timer<double>() - t);
         t = timer<double>();
         cufftExecC2R(forward_ifft_plan,
            (cufftComplex *) r2c_out.data,
            (cufftReal *) this->output_data.data);
         cudaDeviceSynchronize();
-        printf("T_exec_c2r = %e\n", timer<double>() - t);
+        // printf("T_exec_c2r = %e\n", timer<double>() - t);
         cudaDeviceSynchronize();
         CUDA_CHECK_ERR();
     }
 
     /* Row convolution. */
     void adjoint_eval() {
+        adjoint_evals++;
         double t = timer<double>();
         cufftExecR2C(adjoint_fft_plan,
            (cufftReal *) this->output_data.data,
            (cufftComplex *) r2c_out.data);
         cudaDeviceSynchronize();
-        printf("T_exec_r2c = %e\n", timer<double>() - t);
+        double r2c_time = timer<double>() - t;
+        total_adjoint_r2c_time += r2c_time;
+        // printf("T_exec_r2c = %e\n", r2c_time);
         t = timer<double>();
         this->multiply_fft(rev_kernel_fft, r2c_out);
         cudaDeviceSynchronize();
-        printf("T_multiply_fft = %e\n", timer<double>() - t);
+        // printf("T_multiply_fft = %e\n", timer<double>() - t);
         t = timer<double>();
         cufftExecC2R(adjoint_ifft_plan,
            (cufftComplex *) r2c_out.data,
            (cufftReal *) this->input_data.data);
         cudaDeviceSynchronize();
-        printf("T_exec_c2r = %e\n", timer<double>() - t);
+        // printf("T_exec_c2r = %e\n", timer<double>() - t);
         // TODO do this? zero_pad_input();
         cudaDeviceSynchronize();
         CUDA_CHECK_ERR();
