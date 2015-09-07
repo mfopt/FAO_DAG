@@ -1,0 +1,133 @@
+CPU:
+FAO DAG branch pogs, commit b68a8323408b7702361c0c0916b6dae8434b4614
+SCS branch FAO, commit 7dce2ff1f4f343a5f8a3422241e2d5e4acd7a26e
+
+GPU:
+FAO DAG branch pogs_gpu, commit dcd97025b0aeebbe5f4934b675337847d7dcc795
+POGS fork branch cone, commit 592184aa9945841065b96884894d71df6ea6cb2d
+
+n,cpu_forward_r2c,cpu_forward,cpu_adjoint
+
+GPU results:
+FAO MAT FREE
+forward_evals=1174, avg_forward_eval_time=2.765469e-04
+adjoint_evals=974, avg_adjoint_eval_time=2.647609e-04
+n=1000, avg_forward_r2c=3.813722e-05
+n=1000, avg_adjoint_r2c=3.800940e-05
+FAO MAT FREE
+forward_evals=1193, avg_forward_eval_time=3.665297e-04
+adjoint_evals=993, avg_adjoint_eval_time=3.512019e-04
+n=2782, avg_forward_r2c=8.026193e-05
+n=2782, avg_adjoint_r2c=7.974657e-05
+FAO MAT FREE
+forward_evals=1258, avg_forward_eval_time=4.002133e-04
+adjoint_evals=1058, avg_adjoint_eval_time=3.858372e-04
+n=7742, avg_forward_r2c=9.574060e-05
+n=7742, avg_adjoint_r2c=9.546636e-05
+FAO MAT FREE
+forward_evals=1422, avg_forward_eval_time=4.891167e-04
+adjoint_evals=1222, avg_adjoint_eval_time=4.752170e-04
+n=21544, avg_forward_r2c=1.364430e-04
+n=21544, avg_adjoint_r2c=1.363842e-04
+FAO MAT FREE
+forward_evals=1381, avg_forward_eval_time=6.958561e-04
+adjoint_evals=1181, avg_adjoint_eval_time=6.801458e-04
+n=59948, avg_forward_r2c=2.357040e-04
+n=59948, avg_adjoint_r2c=2.335729e-04
+FAO MAT FREE
+forward_evals=1178, avg_forward_eval_time=1.503863e-03
+adjoint_evals=978, avg_adjoint_eval_time=1.488635e-03
+n=166810, avg_forward_r2c=5.877961e-04
+n=166810, avg_adjoint_r2c=5.881872e-04
+FAO MAT FREE
+forward_evals=1098, avg_forward_eval_time=3.280176e-03
+adjoint_evals=898, avg_adjoint_eval_time=3.234774e-03
+n=464158, avg_forward_r2c=1.297962e-03
+n=464158, avg_adjoint_r2c=1.292507e-03
+FAO MAT FREE
+forward_evals=859, avg_forward_eval_time=7.978224e-03
+adjoint_evals=659, avg_adjoint_eval_time=7.860212e-03
+n=1291548, avg_forward_r2c=3.214385e-03
+n=1291548, avg_adjoint_r2c=3.211552e-03
+FAO MAT FREE
+forward_evals=908, avg_forward_eval_time=2.502993e-02
+adjoint_evals=708, avg_adjoint_eval_time=2.475143e-02
+n=3593812, avg_forward_r2c=1.058594e-02
+n=3593812, avg_adjoint_r2c=1.055369e-02
+FAO MAT FREE
+forward_evals=1871, avg_forward_eval_time=1.578573e-02
+adjoint_evals=1671, avg_adjoint_eval_time=1.583174e-02
+n=10000000, avg_forward_r2c=3.403871e-03
+n=10000000, avg_adjoint_r2c=3.411799e-03
+FAO MAT FREE
+forward_evals=2780, avg_forward_eval_time=3.074951e-02
+adjoint_evals=2580, avg_adjoint_eval_time=3.124002e-02
+n=20000000, avg_forward_r2c=6.717156e-03
+n=20000000, avg_adjoint_r2c=6.710002e-03
+FAO MAT FREE
+forward_evals=3617, avg_forward_eval_time=4.964827e-02
+adjoint_evals=3417, avg_adjoint_eval_time=5.062063e-02
+n=30000000, avg_forward_r2c=1.193372e-02
+n=30000000, avg_adjoint_r2c=1.191447e-02
+FAO MAT FREE
+forward_evals=4389, avg_forward_eval_time=6.362288e-02
+adjoint_evals=4189, avg_adjoint_eval_time=6.538726e-02
+n=40000000, avg_forward_r2c=1.468996e-02
+n=40000000, avg_adjoint_r2c=1.469996e-02
+
+CPU results:
+FAO MAT FREE
+forward_evals=2015, avg_forward_eval_time=6.492889e-05
+adjoint_evals=1820, avg_adjoint_eval_time=6.585881e-05
+n=1000, avg_forward_r2c=8.068842e-06
+n=1000, avg_adjoint_r2c=8.294478e-06
+FAO MAT FREE
+forward_evals=1991, avg_forward_eval_time=2.819579e-04
+adjoint_evals=1796, avg_adjoint_eval_time=2.803887e-04
+n=2782, avg_forward_r2c=1.087771e-04
+n=2782, avg_adjoint_r2c=1.086606e-04
+FAO MAT FREE
+forward_evals=1900, avg_forward_eval_time=6.439293e-04
+adjoint_evals=1705, avg_adjoint_eval_time=6.428203e-04
+n=7742, avg_forward_r2c=2.565102e-04
+n=7742, avg_adjoint_r2c=2.568883e-04
+FAO MAT FREE
+forward_evals=1816, avg_forward_eval_time=2.429599e-03
+adjoint_evals=1621, avg_adjoint_eval_time=2.413831e-03
+n=21544, avg_forward_r2c=1.062697e-03
+n=21544, avg_adjoint_r2c=1.073459e-03
+FAO MAT FREE
+forward_evals=1623, avg_forward_eval_time=6.045459e-03
+adjoint_evals=1428, avg_adjoint_eval_time=6.116449e-03
+n=59948, avg_forward_r2c=2.569255e-03
+n=59948, avg_adjoint_r2c=2.648112e-03
+FAO MAT FREE
+forward_evals=1476, avg_forward_eval_time=1.588266e-02
+adjoint_evals=1281, avg_adjoint_eval_time=1.602076e-02
+n=166810, avg_forward_r2c=6.707230e-03
+n=166810, avg_adjoint_r2c=6.787332e-03
+FAO MAT FREE
+forward_evals=1298, avg_forward_eval_time=8.720063e-02
+adjoint_evals=1103, avg_adjoint_eval_time=8.673469e-02
+n=464158, avg_forward_r2c=3.967588e-02
+n=464158, avg_adjoint_r2c=3.964164e-02
+FAO MAT FREE
+forward_evals=1280, avg_forward_eval_time=1.981189e-01
+adjoint_evals=1085, avg_adjoint_eval_time=1.950596e-01
+n=1291548, avg_forward_r2c=9.034835e-02
+n=1291548, avg_adjoint_r2c=8.822051e-02
+FAO MAT FREE
+forward_evals=1382, avg_forward_eval_time=6.404052e-01
+adjoint_evals=1187, avg_adjoint_eval_time=6.408481e-01
+n=3593812, avg_forward_r2c=2.917550e-01
+n=3593812, avg_adjoint_r2c=2.917901e-01
+FAO MAT FREE
+forward_evals=1785, avg_forward_eval_time=9.294534e-01
+adjoint_evals=1590, avg_adjoint_eval_time=9.281547e-01
+n=10000000, avg_forward_r2c=3.647339e-01
+n=10000000, avg_adjoint_r2c=3.653280e-01
+FAO MAT FREE
+forward_evals=2080, avg_forward_eval_time=1.983621e+00
+adjoint_evals=1885, avg_adjoint_eval_time=1.975986e+00
+n=20000000, avg_forward_r2c=7.822036e-01
+n=20000000, avg_adjoint_r2c=7.792005e-01

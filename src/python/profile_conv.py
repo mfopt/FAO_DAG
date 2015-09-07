@@ -19,7 +19,7 @@ def gauss(n=11,sigma=1, scale=1, min_val=1):
 np.random.seed(5)
 random.seed(5)
 n_vals = []
-for n in np.logspace(3, 7, 10):
+for n in [1000]:#np.logspace(3, 7, 10):
     n = int(n)
     if n % 2 == 1:
         n -= 1
@@ -58,13 +58,13 @@ for n in np.logspace(3, 7, 10):
     constraints = [x >= 0]
     prob = Problem(Minimize(fit),
                    constraints)
-    # print "True fit =", norm(conv(kernel, true_x) - noisy_signal).value
-    # print "all zero fit =", norm(conv(kernel, np.zeros(n)) - noisy_signal).value
+    print "True fit =", norm(conv(kernel, true_x) - noisy_signal).value
+    print "all zero fit =", norm(conv(kernel, np.zeros(n)) - noisy_signal).value
 
     # # Only solve one problem.
     # if r != script_num:# or n <= 16236:
     #     continue
-    if False:
+    if True:
         result = prob.solve(solver=ECOS, verbose=True,
             # abstol=1e-3, reltol=1e-3, feastol=1e-3)
             abstol=1e-5, reltol=1e-5, feastol=1e-5)
@@ -181,7 +181,7 @@ for n in np.logspace(3, 7, 10):
         # yep.start('conv.prof')
         result = prob.solve(solver=MAT_FREE_POGS,
                             verbose=False,
-                            max_iters=200,
+                            max_iters=10000,
                             equil_steps=0,
                             # eps=1e-3,
                             # cg_rate=2,
@@ -192,7 +192,7 @@ for n in np.logspace(3, 7, 10):
                             samples=200,
                             double=False)
         # yep.stop()
-        # print "mat free pogs result", result
-        # print("recovered x fit", fit.value)
-        # print("nnz =", np.sum(x.value >= 1))
-        # print("max =", np.max(np.max(x.value)))
+        print "mat free pogs result", result
+        print("recovered x fit", fit.value)
+        print("nnz =", np.sum(x.value >= 1))
+        print("max =", np.max(np.max(x.value)))
