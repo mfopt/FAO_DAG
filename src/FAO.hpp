@@ -456,6 +456,7 @@ public:
 
 	/* Column convolution. */
     void forward_eval() {
+        forward_evals++;
         double t = timer<double>();
     	zero_pad_input();
         double r2c_time = timer<double>() - t;
@@ -474,6 +475,7 @@ public:
 
     /* Row convolution. */
     void adjoint_eval() {
+        adjoint_evals++;
         double t = timer<double>();
     	fftw_execute(adjoint_fft_plan);
         double r2c_time = timer<double>() - t;

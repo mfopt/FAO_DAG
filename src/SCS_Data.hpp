@@ -78,7 +78,7 @@ public:
                int f, int l, std::vector<int> q, std::vector<int> s,
                int ep, size_t max_iters, size_t equil_steps,
                size_t samples, bool precond, double eps, double cg_rate,
-               bool rand_seed) {
+               bool rand_seed, bool verbose) {
           scs::Cone * k;
           scs::Data * d;
           scs::Info info = { 0 };
@@ -110,7 +110,7 @@ public:
           d->dag_output = fao_dag->get_adjoint_input()->data;
 
           d->CG_RATE = cg_rate;
-          d->VERBOSE = true;
+          d->VERBOSE = verbose;
           d->MAX_ITERS = max_iters;
           d->EPS = eps;
           d->ALPHA = 1.5;

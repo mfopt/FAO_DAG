@@ -116,9 +116,6 @@ def mat_free_pogs_solve(py_dag, data, dims, solver_opts):
     py_dag: The Python FAO DAG.
     data: A map with all the information needed by POGS.
     """
-    print len(py_dag.nodes)
-    for i, node in py_dag.nodes.items():
-        print node.type
     tmp = []
     # solver_opts["stoch"] = solver_opts.get("stoch", False)
     # solver_opts["samples"] = solver_opts.get("samples", 200)
@@ -133,6 +130,11 @@ def mat_free_pogs_solve(py_dag, data, dims, solver_opts):
     max_iter = solver_opts.get("max_iters", 2500)
     samples = solver_opts.get("samples", 200)
     equil_steps = solver_opts.get("equil_steps", 1)
+
+    if verbose:
+        print len(py_dag.nodes)
+        for i, node in py_dag.nodes.items():
+            print node.type
 
     start_node, end_node, edges = python_to_swig(py_dag, tmp)
     dag = FAO_DAG.FAO_DAG(start_node, end_node, edges)
@@ -279,7 +281,8 @@ def scs_solve(py_dag, data, dims, solver_opts):
                    solver_opts['precond'],
                    solver_opts['eps'],
                    solver_opts['cg_rate'],
-                   solver_opts['rand_seed'])
+                   solver_opts['rand_seed'],
+                   solver_opts["verbose"])
     info = {
         "statusVal": scs_data.statusVal,
         "iter": scs_data.iter,
