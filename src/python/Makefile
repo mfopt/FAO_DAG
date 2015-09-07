@@ -5,9 +5,10 @@
 swig:
 	swig -python -c++ -I../ -outcurrentdir -o FAO_DAG_wrap.cpp FAO_DAG.i
 
-	gcc -DNDEBUG -std=c++11 -g -fwrapv -O3 -Wall -Wstrict-prototypes -I/usr/local/include \
+	gcc -DNDEBUG -std=c++11 -g -pg -fwrapv -O3 -Wall -Wstrict-prototypes -I/usr/local/include \
 	-DLAPACK_LIB_FOUND -I/Users/stevend2/anaconda/envs/abs_ops/lib/python2.7/site-packages/numpy/core/include \
-	-I../ -I../../include/ -I../../include/scs/include/ -I/Users/stevend2/anaconda/envs/abs_ops/include/python2.7 \
+	-I../ -I../../include/ -I../../include/scs/include/ \
+	-I../../include/pogs_fork/src/include/ -I/Users/stevend2/anaconda/envs/abs_ops/include/python2.7 \
 	-c FAO_DAG_wrap.cpp
 
 	g++ -bundle -undefined dynamic_lookup \

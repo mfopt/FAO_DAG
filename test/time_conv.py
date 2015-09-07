@@ -15,7 +15,7 @@ def gauss(n=11,sigma=1, scale=1, min_val=1):
     r = range(-int(n/2),int(n/2)+1)
     return [max(scale /(sigma * sqrt(2*pi)) * exp(-float(x)**2/(2*sigma**2)), min_val) for x in r]
 
-with open("2old_vs_fao%s.csv" % script_num, "w") as f:
+with open("2scale_bc_times%s.csv" % script_num, "w") as f:
     f.write("n,ecos_time,scs_direct_time,old_mat_free_time,fao_mat_free_time\n")
 
     np.random.seed(5)
@@ -65,9 +65,9 @@ with open("2old_vs_fao%s.csv" % script_num, "w") as f:
             # Only solve one problem.
             if r != script_num:# or n <= 16236:
                 continue
-            if False and n <= 5454:
-                result = prob.solve(solver=ECOS, verbose=True,
-                    abstol=1e-3, reltol=1e-3, feastol=1e-3)
+            if True and n <= 5454:
+                result = prob.solve(solver=ECOS, verbose=True)
+                    #abstol=1e-3, reltol=1e-3, feastol=1e-3)
                 print "ecos result", result
                 print("recovered x fit", fit.value)
                 print("solve time", prob.solve_time)
@@ -88,16 +88,16 @@ with open("2old_vs_fao%s.csv" % script_num, "w") as f:
             else:
                 solve_time = 0
             scs_direct_times.append(solve_time)
-            # if False:
-            #     result = prob.solve(solver=SCS,
-            #                         verbose=True,
-            #                         max_iters=10000,
-            #                         eps=1e-3,
-            #                         use_indirect=True)
-            #     print "scs indirect result", result
-            #     print("recovered x fit", fit.value)
-            #     print("solve time", prob.solve_time)
-            #     solve_time = prob.solve_time
+            if True:
+                result = prob.solve(solver=SCS,
+                                    verbose=True,
+                                    max_iters=10000,
+                                    eps=1e-3,
+                                    use_indirect=True)
+                print "scs indirect result", result
+                print("recovered x fit", fit.value)
+                print("solve time", prob.solve_time)
+                solve_time = prob.solve_time
             # else:
             #     solve_time = 0
             # scs_indirect_times.append(solve_time)
@@ -112,7 +112,7 @@ with open("2old_vs_fao%s.csv" % script_num, "w") as f:
                                     precond=True,
                                     stoch=True,
                                     samples=200)
-                print "scs indirect result", result
+                print "old scs mat free result", result
                 print("recovered x fit", fit.value)
                 print("solve time", prob.solve_time)
                 solve_time = prob.solve_time
@@ -126,7 +126,7 @@ with open("2old_vs_fao%s.csv" % script_num, "w") as f:
                                     verbose=True,
                                     max_iters=10000,
                                     equil_steps=1,
-                                    eps=1e-3,
+                                    eps=5e-4,
                                     cg_rate=2,
                                     precond=True,
                                     stoch=True,

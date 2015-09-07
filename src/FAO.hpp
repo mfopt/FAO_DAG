@@ -28,6 +28,7 @@
 #include "gsl/gsl_spmat.h"
 #include "gsl/gsl_spblas.h"
 #include <fftw3.h>
+#include "pogs_fork/src/include/timer.h"
 
 // /* ID for all coefficient matrices associated with linOps of CONSTANT_TYPE */
 // static const int CONSTANT_ID = -1;
@@ -367,6 +368,12 @@ public:
 	fftw_plan adjoint_fft_plan;
 	fftw_plan adjoint_ifft_plan;
 
+    // Timing info.
+    int forward_evals = 0;
+    int adjoint_evals = 0;
+    double total_forward_r2c_time = 0;
+    double total_adjoint_r2c_time = 0;
+
 	void alloc_data() {
 		input_len = get_length(input_sizes);
         padded_len = get_length(output_sizes);
@@ -403,6 +410,10 @@ public:
     }
 
     void free_data() {
+        printf("n=%u, avg_forward_r2c=%e\n", input_len,
+            total_forward_r2c_time/forward_evals);
+        printf("n=%u, avg_adjoint_r2c=%e\n", input_len,
+            total_adjoint_r2c_time/adjoint_evals);
     	fftw_destroy_plan(forward_fft_plan);
     	fftw_destroy_plan(forward_ifft_plan);
     	fftw_destroy_plan(adjoint_fft_plan);
@@ -445,17 +456,35 @@ public:
 
 	/* Column convolution. */
     void forward_eval() {
+        double t = timer<double>();
     	zero_pad_input();
+        double r2c_time = timer<double>() - t;
+        total_forward_r2c_time += r2c_time;
+        // printf("T_exec_r2c = %e\n", r2c_time);
+        t = timer<double>();
     	fftw_execute(forward_fft_plan);
+        // printf("T_exec_r2c = %e\n", timer<double>() - t);
+        t = timer<double>();
     	multiply_fft(kernel_fft, r2c_out);
+        // printf("T_multiply_fft = %e\n", timer<double>() - t);
+        t = timer<double>();
     	fftw_execute(forward_ifft_plan);
+        // printf("T_exec_c2r = %e\n", timer<double>() - t);
     }
 
     /* Row convolution. */
     void adjoint_eval() {
+        double t = timer<double>();
     	fftw_execute(adjoint_fft_plan);
+        double r2c_time = timer<double>() - t;
+        total_adjoint_r2c_time += r2c_time;
+        // printf("T_exec_r2c = %e\n", r2c_time);
+        t = timer<double>();
     	multiply_fft(rev_kernel_fft, r2c_out);
+        // printf("T_multiply_fft = %e\n", timer<double>() - t);
+        t = timer<double>();
 		fftw_execute(adjoint_ifft_plan);
+        // printf("T_exec_c2r = %e\n", timer<double>() - t);
 		// TODO do this? zero_pad_input();
     }
 };
