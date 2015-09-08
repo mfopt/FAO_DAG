@@ -19,7 +19,7 @@ def gauss(n=11,sigma=1, scale=1, min_val=1):
 np.random.seed(5)
 random.seed(5)
 n_vals = []
-for n in [2e7, 3e7, 4e7, 5e7]:#np.logspace(3, 7, 10):
+for n in [1e7]:#np.logspace(3, 7, 10):
     n = int(n)
     if n % 2 == 1:
         n -= 1

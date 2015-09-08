@@ -64,7 +64,7 @@ for n in [1000]:#np.logspace(3, 7, 10):
     # # Only solve one problem.
     # if r != script_num:# or n <= 16236:
     #     continue
-    if True:
+    if False:
         result = prob.solve(solver=ECOS, verbose=True,
             # abstol=1e-3, reltol=1e-3, feastol=1e-3)
             abstol=1e-5, reltol=1e-5, feastol=1e-5)

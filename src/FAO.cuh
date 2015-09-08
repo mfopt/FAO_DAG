@@ -546,12 +546,14 @@ public:
        Divide by n because fftw doesn't.
        Writes to output.
     */
+    // TODO make special complex multiply kernel that handles division by n
+    // and forward vs adjoint.
     void multiply_fft(cml::vector<T>& kernel_fft, cml::vector<T>& output,
         bool forward) {
         if (!forward) {
             /* rev_kernel_fft is conj(DFT(padded kernel))=IDFT(padded kernel). */
             cml::vector_scale<T>(&kernel_fft_imag_part,
-                static_cast<double>(-1.0));
+                static_cast<T>(-1.0));
         }
         cml::strided_range<thrust::device_ptr<thrust::complex<T> > > idx_a(
             thrust::device_pointer_cast((thrust::complex<T> *) kernel_fft.data),
@@ -566,7 +568,7 @@ public:
         // Undo transformation.
         if (!forward) {
             cml::vector_scale<T>(&kernel_fft_imag_part,
-                static_cast<double>(-1.0));
+                static_cast<T>(-1.0));
         }
     }
 
@@ -673,14 +675,15 @@ public:
             this->input_data.data, kernel_len);
         cml::vector_memcpy<float>(&input_start, &kernel);
         cudaDeviceSynchronize();
+        // Done with kernel.
+        vector_free(&kernel);
+
         cufftHandle plan;
         cufftPlan1d(&plan, padded_len, CUFFT_R2C, 1);
         cufftExecR2C(plan,
             (cufftReal *) this->input_data.data,
             (cufftComplex *) kernel_fft.data);
         cufftDestroy(plan);
-        // Done with kernel.
-        vector_free(&kernel);
 
          /* Initialize the plans for forward_eval. */
          // TODO also FFTW_MEASURE for faster planning, worse performance.
