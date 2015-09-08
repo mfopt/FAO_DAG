@@ -53,7 +53,7 @@ with open("mat_free_times%s.csv" % script_num, "w") as f:
             signal = conv(kernel, true_x)
             sigma = norm(signal,2).value/(SNR*sqrt(n+m-1))
             noise = np.random.normal(scale=sigma, size=n+m-1)
-            print("SNR", norm(signal,2).value/norm(noise,2).value)
+            # print("SNR", norm(signal,2).value/norm(noise,2).value)
             noisy_signal = signal + noise
 
             gamma = Parameter(sign="positive")
@@ -62,12 +62,13 @@ with open("mat_free_times%s.csv" % script_num, "w") as f:
             constraints = [x >= 0]
             prob = Problem(Minimize(fit),
                            constraints)
-            print "True fit =", norm(conv(kernel, true_x) - noisy_signal).value
-            print "all zero fit =", norm(conv(kernel, np.zeros(n)) - noisy_signal).value
-
             # Only solve one problem.
             if r != script_num:# or n <= 16236:
                 continue
+
+            print "True fit =", norm(conv(kernel, true_x) - noisy_signal).value
+            print "all zero fit =", norm(conv(kernel, np.zeros(n)) - noisy_signal).value
+
             if False and n <= 5454:
                 result = prob.solve(solver=ECOS, verbose=True,
                     abstol=1e-3, reltol=1e-3, feastol=1e-3)
@@ -133,6 +134,8 @@ with open("mat_free_times%s.csv" % script_num, "w") as f:
                                     double=False)
                 print "MAT FREE POGS result", result
                 print "MAT FREE POGS solve time", prob.solve_time
+                print "MAT FREE POGS A evals", prob.A_evals
+                print "MAT FREE POGS AT evals", prob.AT_evals
                 solve_time = prob.solve_time
             else:
                 solve_time = 0

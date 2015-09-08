@@ -171,7 +171,9 @@ def mat_free_pogs_solve(py_dag, data, dims, solver_opts):
 
     opt_val = pogs_data.mat_free_solve(dag, cones, rho, verbose,
                               abs_tol, rel_tol, max_iter, samples, equil_steps)
-
+    solveTime = pogs_data.solveTime
+    A_evals = dag.forward_evals
+    AT_evals = dag.adjoint_evals
     # pogs_data.solve(dag, dims['f'], dims['l'], q_vec, s_vec, dims['ep'],
     #                solver_opts['max_iters'],
     #                solver_opts['equil_steps'],
@@ -195,7 +197,8 @@ def mat_free_pogs_solve(py_dag, data, dims, solver_opts):
     # Must destroy FAO DAG before calling FAO destructors.
     del dag
     return {'info':{'status': "Solved", 'pobj': opt_val,
-            "solveTime": pogs_data.solveTime},
+            "solveTime": solveTime, "A_evals": A_evals,
+            "AT_evals": AT_evals},
             'x': x, 'y':y}
 
 def pogs_solve(data, dims, solver_opts):
