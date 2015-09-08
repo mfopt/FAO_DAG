@@ -4,6 +4,7 @@
 #include <vector>
 #include <string>
 #include "pogs.h"
+#include "pogs_fork/src/include/timer.h"
 
 #ifdef FAO_GPU
 #include "FAO_DAG.cuh"
@@ -194,7 +195,9 @@ public:
           pogs_data.SetMaxIter(max_iter);
           std::vector<T> c_vec(c, c + c_len);
           std::vector<T> b_vec(b, b + b_len);
+          double t = timer<double>();
           pogs_data.Solve(b_vec, c_vec);
+          this->solveTime = timer<double>() - t;
           // Copy out results.
           for (size_t i=0; i < c_len; i++) {
                x[i] = pogs_data.GetX()[i];
@@ -256,7 +259,9 @@ public:
           pogs_data.SetMaxIter(max_iter);
           std::vector<T> c_vec(c, c + c_len);
           std::vector<T> b_vec(b, b + b_len);
+          double t = timer<double>();
           pogs_data.Solve(b_vec, c_vec);
+          this->solveTime = timer<double>() - t;
           // Copy out results.
           for (size_t i=0; i < c_len; i++) {
                x[i] = pogs_data.GetX()[i];

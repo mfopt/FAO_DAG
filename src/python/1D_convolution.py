@@ -58,7 +58,7 @@ with open("mat_free_times%s.csv" % script_num, "w") as f:
 
             gamma = Parameter(sign="positive")
             gamma.value = 0
-            fit = sum_squares(conv(kernel, x) - noisy_signal)
+            fit = norm(conv(kernel, x) - noisy_signal)
             constraints = [x >= 0]
             prob = Problem(Minimize(fit),
                            constraints)
@@ -127,10 +127,13 @@ with open("mat_free_times%s.csv" % script_num, "w") as f:
                                     # cg_rate=2,
                                     # precond=True,
                                     # stoch=True,
-                                    abs_tol=1e-3,
-                                    rel_tol=1e-3,
+                                    abs_tol=1e-4,
+                                    rel_tol=1e-4,
                                     samples=200,
                                     double=False)
+                print "MAT FREE POGS result", result
+                print "MAT FREE POGS solve time", prob.solve_time
+                solve_time = prob.solve_time
             else:
                 solve_time = 0
             mat_free_times.append(solve_time)

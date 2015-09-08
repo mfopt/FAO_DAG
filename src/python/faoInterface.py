@@ -194,7 +194,8 @@ def mat_free_pogs_solve(py_dag, data, dims, solver_opts):
     # }
     # Must destroy FAO DAG before calling FAO destructors.
     del dag
-    return {'info':{'status': "Solved", 'pobj': opt_val},
+    return {'info':{'status': "Solved", 'pobj': opt_val,
+            "solveTime": pogs_data.solveTime},
             'x': x, 'y':y}
 
 def pogs_solve(data, dims, solver_opts):
