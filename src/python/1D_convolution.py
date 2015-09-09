@@ -16,7 +16,7 @@ def gauss(n=11,sigma=1, scale=1, min_val=1):
     return [max(scale /(sigma * sqrt(2*pi)) * exp(-float(x)**2/(2*sigma**2)), min_val) for x in r]
 
 with open("mat_free_times%s.csv" % script_num, "w") as f:
-    f.write("n,ecos_time,scs_direct_time,scs_indirect_time,mat_free_time\n")
+     f.write("n,mat_free_scs_time,mat_free_scs_evals,mat_free_pogs_time,mat_free_pogs_evals\n")
 
     np.random.seed(5)
     random.seed(5)
@@ -123,7 +123,7 @@ with open("mat_free_times%s.csv" % script_num, "w") as f:
                 result = prob.solve(solver=MAT_FREE_POGS,
                                     verbose=False,
                                     max_iters=10000,
-                                    equil_steps=0,
+                                    equil_steps=1,
                                     # eps=1e-3,
                                     # cg_rate=2,
                                     # precond=True,
@@ -137,6 +137,9 @@ with open("mat_free_times%s.csv" % script_num, "w") as f:
                 print "MAT FREE POGS A evals", prob.A_evals
                 print "MAT FREE POGS AT evals", prob.AT_evals
                 solve_time = prob.solve_time
+                evals = prob.A_evals + prob.AT_evals
+                f.write("%s,%s,%s,%s,%s\n" % (n, 0, 0, solve_time, evals))
+                f.flush()
             else:
                 solve_time = 0
             mat_free_times.append(solve_time)
@@ -144,9 +147,9 @@ with open("mat_free_times%s.csv" % script_num, "w") as f:
 
             print("nnz =", np.sum(x.value >= 1))
             print("max =", np.max(np.max(x.value)))
-            f.write("%s,%s,%s,%s,%s\n" % (n, ecos_times[-1], scs_direct_times[-1],
-                                        scs_indirect_times[-1], mat_free_times[-1]))
-            f.flush()
+            # f.write("%s,%s,%s,%s,%s\n" % (n, ecos_times[-1], scs_direct_times[-1],
+            #                             scs_indirect_times[-1], mat_free_times[-1]))
+            # f.flush()
 
 # # Plot result and fit.
 # # Assumes convolution kernel is centered around m/2.
