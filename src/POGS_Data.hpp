@@ -166,7 +166,8 @@ public:
                   int max_iter,
                   size_t samples,
                   size_t equil_steps,
-                  bool adaptive_rho) {
+                  bool adaptive_rho,
+                  bool use_exact_tol) {
 
           // printf("size of cones=%d\n", cones.size());
           std::vector<ConeConstraint> Kx, Ky;
@@ -195,6 +196,7 @@ public:
           pogs_data.SetAbsTol(abs_tol);
           pogs_data.SetRelTol(rel_tol);
           pogs_data.SetMaxIter(max_iter);
+          pogs_data.SetUseExactTol(use_exact_tol);
           std::vector<T> c_vec(c, c + c_len);
           std::vector<T> b_vec(b, b + b_len);
           double t = timer<double>();

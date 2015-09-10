@@ -15,7 +15,7 @@ def gauss(n=11,sigma=1, scale=1, min_val=1):
     r = range(-int(n/2),int(n/2)+1)
     return [max(scale /(sigma * sqrt(2*pi)) * exp(-float(x)**2/(2*sigma**2)), min_val) for x in r]
 
-with open("float_mat_free_times%s.csv" % script_num, "w") as f:
+with open("testing123%s.csv" % script_num, "w") as f:
     f.write("n,mat_free_scs_time,mat_free_scs_evals,mat_free_pogs_time,mat_free_pogs_evals\n")
 
     np.random.seed(5)
@@ -131,7 +131,8 @@ with open("float_mat_free_times%s.csv" % script_num, "w") as f:
                                     abs_tol=1e-4,
                                     rel_tol=1e-3,
                                     samples=200,
-                                    double=False)
+                                    double=False,
+                                    use_exact_tol=False)
                 print "MAT FREE POGS result", result
                 print "MAT FREE POGS solve time", prob.solve_time
                 print "MAT FREE POGS A evals", prob.A_evals

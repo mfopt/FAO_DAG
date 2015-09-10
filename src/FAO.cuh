@@ -464,6 +464,22 @@ class Split : public Vstack<T> {
     /* Adjoint of vstack. */
 };
 
+// Operator for multiplying complex numbers in convolution.
+template <typename T>
+struct MulComplexF {
+  T divisor, conj_mul;
+  MulComplexF(T divisor, T conj_mul) :
+    divisor(divisor), conj_mul(conj_mul) { }
+  __host__ __device__ thrust::complex<T> operator()(
+        thrust::complex<T> x,
+        thrust::complex<T> y
+    ) {
+    T real = x.real()*y.real() - conj_mul*x.imag()*y.imag();
+    T imag = x.real()*y.imag() + conj_mul*x.imag()*y.real();
+    return thrust::complex<T>(real/divisor, imag/divisor);
+  }
+};
+
 // TODO use cuFFT HERE
 template <class T>
 class ConvBase : public FAO<T> {
@@ -546,15 +562,10 @@ public:
        Divide by n because fftw doesn't.
        Writes to output.
     */
-    // TODO make special complex multiply kernel that handles division by n
-    // and forward vs adjoint.
     void multiply_fft(cml::vector<T>& kernel_fft, cml::vector<T>& output,
         bool forward) {
-        if (!forward) {
-            /* rev_kernel_fft is conj(DFT(padded kernel))=IDFT(padded kernel). */
-            cml::vector_scale<T>(&kernel_fft_imag_part,
-                static_cast<T>(-1.0));
-        }
+        T divisor = static_cast<T>(padded_len);
+        T conj_mul = forward ? 1.0 : -1.0;
         cml::strided_range<thrust::device_ptr<thrust::complex<T> > > idx_a(
             thrust::device_pointer_cast((thrust::complex<T> *) kernel_fft.data),
             thrust::device_pointer_cast((thrust::complex<T> *) kernel_fft.data + padded_len), 1);
@@ -562,14 +573,7 @@ public:
             thrust::device_pointer_cast((thrust::complex<T> *) output.data),
             thrust::device_pointer_cast((thrust::complex<T> *) output.data + padded_len), 1);
         thrust::transform(idx_a.begin(), idx_a.end(), idx_b.begin(), idx_b.begin(),
-            thrust::multiplies<thrust::complex<T> >());
-        cml::vector_scale<T>(&output,
-            static_cast<T>(1)/static_cast<T>(padded_len));
-        // Undo transformation.
-        if (!forward) {
-            cml::vector_scale<T>(&kernel_fft_imag_part,
-                static_cast<T>(-1.0));
-        }
+            MulComplexF<T>(divisor, conj_mul));
     }
 
     /* Fill out the input padding with zeros. */
