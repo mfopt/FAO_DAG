@@ -136,6 +136,7 @@ def mat_free_pogs_solve(py_dag, data, dims, solver_opts):
     max_iter = solver_opts.get("max_iters", 2500)
     samples = solver_opts.get("samples", 200)
     equil_steps = solver_opts.get("equil_steps", 1)
+    adaptive_rho = solver_opts.get("adaptive_rho", True)
     double = solver_opts.get("double", True)
     if verbose:
         print len(py_dag.nodes)
@@ -170,7 +171,8 @@ def mat_free_pogs_solve(py_dag, data, dims, solver_opts):
     cones = python_cones_to_pogs_cones(dims)
 
     opt_val = pogs_data.mat_free_solve(dag, cones, rho, verbose,
-                              abs_tol, rel_tol, max_iter, samples, equil_steps)
+                              abs_tol, rel_tol, max_iter, samples, equil_steps,
+                              adaptive_rho)
     solveTime = pogs_data.solveTime
     A_evals = dag.forward_evals
     AT_evals = dag.adjoint_evals

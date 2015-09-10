@@ -1,0 +1,506 @@
+('n=', 100)
+True fit = 0.192191856579
+all zero fit = 3.90574613047
+('true signal fit', None)
+forward_evals=985, avg_forward_eval_time=3.304990e-05
+adjoint_evals=789, avg_adjoint_eval_time=3.202575e-05
+n=100, avg_forward_r2c=6.315067e-07
+n=100, avg_adjoint_r2c=6.110043e-07
+mat free scs result 0.183831348311
+('solve time', 0.06074663799999999)
+evals 1774
+('recovered x fit', 0.1838560383795925)
+('nnz =', 6)
+('max =', 1.1828662237410674)
+('n=', 100)
+('n=', 100)
+('n=', 100)
+('n=', 100)
+('n=', 100)
+('n=', 100)
+('n=', 100)
+('n=', 100)
+('n=', 100)
+('n=', 142)
+True fit = 0.158290762565
+all zero fit = 3.18211706903
+('true signal fit', None)
+forward_evals=1661, avg_forward_eval_time=4.662167e-05
+adjoint_evals=1467, avg_adjoint_eval_time=4.511572e-05
+n=142, avg_forward_r2c=4.983537e-06
+n=142, avg_adjoint_r2c=4.947795e-06
+mat free scs result 0.155810510435
+('solve time', 0.151538761)
+evals 3128
+('recovered x fit', 0.15565604390922871)
+('nnz =', 10)
+('max =', 2.1126279181951535)
+('n=', 142)
+('n=', 142)
+('n=', 142)
+('n=', 142)
+('n=', 142)
+('n=', 142)
+('n=', 142)
+('n=', 142)
+('n=', 142)
+('n=', 206)
+True fit = 0.0672722375375
+all zero fit = 1.32324885915
+('true signal fit', None)
+forward_evals=2440, avg_forward_eval_time=5.189366e-05
+adjoint_evals=2248, avg_adjoint_eval_time=5.106273e-05
+n=206, avg_forward_r2c=8.183425e-06
+n=206, avg_adjoint_r2c=8.213987e-06
+mat free scs result 0.0671393533226
+('solve time', 0.256971044)
+evals 4688
+('recovered x fit', 0.067044111710253693)
+('nnz =', 0)
+('max =', 0.71268280278824125)
+('n=', 206)
+('n=', 206)
+('n=', 206)
+('n=', 206)
+('n=', 206)
+('n=', 206)
+('n=', 206)
+('n=', 206)
+('n=', 206)
+('n=', 296)
+True fit = 0.25169427553
+all zero fit = 4.96385105564
+('true signal fit', None)
+forward_evals=2963, avg_forward_eval_time=4.553409e-05
+adjoint_evals=2773, avg_adjoint_eval_time=4.528380e-05
+n=296, avg_forward_r2c=6.043022e-06
+n=296, avg_adjoint_r2c=6.043176e-06
+mat free scs result 0.248637743281
+('solve time', 0.28522606399999995)
+evals 5736
+('recovered x fit', 0.24847154120294401)
+('nnz =', 33)
+('max =', 2.5086748006238642)
+('n=', 296)
+('n=', 296)
+('n=', 296)
+('n=', 296)
+('n=', 296)
+('n=', 296)
+('n=', 296)
+('n=', 296)
+('n=', 296)
+('n=', 428)
+True fit = 0.346743773934
+all zero fit = 6.89168618858
+('true signal fit', None)
+forward_evals=2448, avg_forward_eval_time=6.732413e-05
+adjoint_evals=2256, avg_adjoint_eval_time=6.702320e-05
+n=428, avg_forward_r2c=1.636557e-05
+n=428, avg_adjoint_r2c=1.643905e-05
+mat free scs result 0.346149087573
+('solve time', 0.346035244)
+evals 4704
+('recovered x fit', 0.34610837789466886)
+('nnz =', 67)
+('max =', 1.8876050562545195)
+('n=', 428)
+('n=', 428)
+('n=', 428)
+('n=', 428)
+('n=', 428)
+('n=', 428)
+('n=', 428)
+('n=', 428)
+('n=', 428)
+('n=', 614)
+True fit = 0.140505411294
+all zero fit = 2.69467470562
+('true signal fit', None)
+forward_evals=6754, avg_forward_eval_time=9.077143e-05
+adjoint_evals=6574, avg_adjoint_eval_time=8.976688e-05
+n=614, avg_forward_r2c=2.682022e-05
+n=614, avg_adjoint_r2c=2.663604e-05
+mat free scs result 0.140096138068
+('solve time', 1.3207081120000002)
+evals 13328
+('recovered x fit', 0.14007423009166139)
+('nnz =', 29)
+('max =', 2.2486818645381765)
+('n=', 614)
+('n=', 614)
+('n=', 614)
+('n=', 614)
+('n=', 614)
+('n=', 614)
+('n=', 614)
+('n=', 614)
+('n=', 614)
+('n=', 884)
+True fit = 0.51643992065
+all zero fit = 10.3541673894
+('true signal fit', None)
+forward_evals=1305, avg_forward_eval_time=8.309372e-05
+adjoint_evals=1109, avg_adjoint_eval_time=8.568987e-05
+n=884, avg_forward_r2c=1.694672e-05
+n=884, avg_adjoint_r2c=1.753527e-05
+mat free scs result 0.515023869628
+('solve time', 0.24322888399999998)
+evals 2414
+('recovered x fit', 0.5150418609784233)
+('nnz =', 129)
+('max =', 2.5345384835001421)
+('n=', 884)
+('n=', 884)
+('n=', 884)
+('n=', 884)
+('n=', 884)
+('n=', 884)
+('n=', 884)
+('n=', 884)
+('n=', 884)
+('n=', 1274)
+True fit = 0.492624730026
+all zero fit = 9.8795315815
+('true signal fit', None)
+forward_evals=4028, avg_forward_eval_time=9.137516e-05
+adjoint_evals=3840, avg_adjoint_eval_time=9.054585e-05
+n=1274, avg_forward_r2c=1.593143e-05
+n=1274, avg_adjoint_r2c=1.606954e-05
+mat free scs result 0.491800600293
+('solve time', 0.898222364)
+evals 7868
+('recovered x fit', 0.49180127081535174)
+('nnz =', 134)
+('max =', 2.9591391035693086)
+('n=', 1274)
+('n=', 1274)
+('n=', 1274)
+('n=', 1274)
+('n=', 1274)
+('n=', 1274)
+('n=', 1274)
+('n=', 1274)
+('n=', 1274)
+('n=', 1832)
+True fit = 0.576089601972
+all zero fit = 11.6254510935
+('true signal fit', None)
+forward_evals=6356, avg_forward_eval_time=1.998660e-04
+adjoint_evals=6174, avg_adjoint_eval_time=1.985344e-04
+n=1832, avg_forward_r2c=7.037587e-05
+n=1832, avg_adjoint_r2c=7.045489e-05
+mat free scs result 0.575198264727
+('solve time', 2.878790212)
+evals 12530
+('recovered x fit', 0.57515773673953863)
+('nnz =', 180)
+('max =', 4.2256900232033985)
+('n=', 1832)
+('n=', 1832)
+('n=', 1832)
+('n=', 1832)
+('n=', 1832)
+('n=', 1832)
+('n=', 1832)
+('n=', 1832)
+('n=', 1832)
+('n=', 2636)
+True fit = 0.900541620262
+all zero fit = 18.0976547502
+('true signal fit', None)
+forward_evals=4281, avg_forward_eval_time=3.416790e-04
+adjoint_evals=4094, avg_adjoint_eval_time=3.411537e-04
+n=2636, avg_forward_r2c=1.308119e-04
+n=2636, avg_adjoint_r2c=1.316475e-04
+mat free scs result 0.900699461023
+('solve time', 3.249580521)
+evals 8375
+('recovered x fit', 0.90068096028554445)
+('nnz =', 334)
+('max =', 4.8742808233189816)
+('n=', 2636)
+('n=', 2636)
+('n=', 2636)
+('n=', 2636)
+('n=', 2636)
+('n=', 2636)
+('n=', 2636)
+('n=', 2636)
+('n=', 2636)
+('n=', 3792)
+True fit = 0.701002731426
+all zero fit = 13.9606986155
+('true signal fit', None)
+forward_evals=4673, avg_forward_eval_time=3.459609e-04
+adjoint_evals=4487, avg_adjoint_eval_time=3.460505e-04
+n=3792, avg_forward_r2c=1.281835e-04
+n=3792, avg_adjoint_r2c=1.293154e-04
+mat free scs result 0.700955495916
+('solve time', 3.7498858999999998)
+evals 9160
+('recovered x fit', 0.70083173493486939)
+('nnz =', 305)
+('max =', 3.3482687123448565)
+('n=', 3792)
+('n=', 3792)
+('n=', 3792)
+('n=', 3792)
+('n=', 3792)
+('n=', 3792)
+('n=', 3792)
+('n=', 3792)
+('n=', 3792)
+('n=', 5454)
+True fit = 1.01756773566
+all zero fit = 20.3645213649
+('true signal fit', None)
+forward_evals=3473, avg_forward_eval_time=5.894825e-04
+adjoint_evals=3284, avg_adjoint_eval_time=5.979701e-04
+n=5454, avg_forward_r2c=2.356419e-04
+n=5454, avg_adjoint_r2c=2.448442e-04
+mat free scs result 1.01742806688
+('solve time', 4.633350429)
+evals 6757
+('recovered x fit', 1.0173539409879151)
+('nnz =', 630)
+('max =', 5.7160936938974389)
+('n=', 5454)
+('n=', 5454)
+('n=', 5454)
+('n=', 5454)
+('n=', 5454)
+('n=', 5454)
+('n=', 5454)
+('n=', 5454)
+('n=', 5454)
+('n=', 7846)
+True fit = 0.876623587337
+all zero fit = 17.461684559
+('true signal fit', None)
+forward_evals=3156, avg_forward_eval_time=8.724720e-04
+adjoint_evals=2966, avg_adjoint_eval_time=8.575782e-04
+n=7846, avg_forward_r2c=3.857052e-04
+n=7846, avg_adjoint_r2c=3.792833e-04
+mat free scs result 0.877501377801
+('solve time', 6.0548612639999995)
+evals 6122
+('recovered x fit', 0.87702251703396783)
+('nnz =', 532)
+('max =', 1.3792625855223142)
+('n=', 7846)
+('n=', 7846)
+('n=', 7846)
+('n=', 7846)
+('n=', 7846)
+('n=', 7846)
+('n=', 7846)
+('n=', 7846)
+('n=', 7846)
+('n=', 11288)
+True fit = 0.687814438999
+all zero fit = 13.6635904087
+('true signal fit', None)
+forward_evals=1835, avg_forward_eval_time=1.229355e-03
+adjoint_evals=1641, avg_adjoint_eval_time=1.241601e-03
+n=11288, avg_forward_r2c=5.153369e-04
+n=11288, avg_adjoint_r2c=5.144049e-04
+mat free scs result 0.687895168577
+('solve time', 4.958434148)
+evals 3476
+('recovered x fit', 0.68782542200853947)
+('nnz =', 480)
+('max =', 1.7801398873913936)
+('n=', 11288)
+('n=', 11288)
+('n=', 11288)
+('n=', 11288)
+('n=', 11288)
+('n=', 11288)
+('n=', 11288)
+('n=', 11288)
+('n=', 11288)
+('n=', 16236)
+True fit = 1.04818939611
+all zero fit = 21.0154074512
+('true signal fit', None)
+forward_evals=3332, avg_forward_eval_time=1.316361e-03
+adjoint_evals=3143, avg_adjoint_eval_time=1.330246e-03
+n=16236, avg_forward_r2c=5.205413e-04
+n=16236, avg_adjoint_r2c=5.209049e-04
+mat free scs result 1.05155733361
+('solve time', 10.503260973)
+evals 6475
+('recovered x fit', 1.0501701384942563)
+('nnz =', 1019)
+('max =', 2.0007044405631511)
+('n=', 16236)
+('n=', 16236)
+('n=', 16236)
+('n=', 16236)
+('n=', 16236)
+('n=', 16236)
+('n=', 16236)
+('n=', 16236)
+('n=', 16236)
+('n=', 23356)
+True fit = 3.2232913268
+all zero fit = 64.6763174734
+('true signal fit', None)
+forward_evals=2554, avg_forward_eval_time=3.152407e-03
+adjoint_evals=2363, avg_adjoint_eval_time=3.125752e-03
+n=23356, avg_forward_r2c=1.335654e-03
+n=23356, avg_adjoint_r2c=1.338939e-03
+mat free scs result 3.2307500188
+('solve time', 17.646198221)
+evals 4917
+('recovered x fit', 3.2268968249266332)
+('nnz =', 4099)
+('max =', 2.2396982077275784)
+('n=', 23356)
+('n=', 23356)
+('n=', 23356)
+('n=', 23356)
+('n=', 23356)
+('n=', 23356)
+('n=', 23356)
+('n=', 23356)
+('n=', 23356)
+('n=', 33598)
+True fit = 2.73331735532
+all zero fit = 54.8228519763
+('true signal fit', None)
+forward_evals=1611, avg_forward_eval_time=5.417623e-03
+adjoint_evals=1417, avg_adjoint_eval_time=5.386584e-03
+n=33598, avg_forward_r2c=2.391570e-03
+n=33598, avg_adjoint_r2c=2.390383e-03
+mat free scs result 2.73776990148
+('solve time', 18.390890666)
+evals 3028
+('recovered x fit', 2.7373779859623197)
+('nnz =', 3763)
+('max =', 1.3259776806888544)
+('n=', 33598)
+('n=', 33598)
+('n=', 33598)
+('n=', 33598)
+('n=', 33598)
+('n=', 33598)
+('n=', 33598)
+('n=', 33598)
+('n=', 33598)
+('n=', 48328)
+True fit = 4.27086670047
+all zero fit = 85.5879045738
+('true signal fit', None)
+forward_evals=1343, avg_forward_eval_time=4.921860e-03
+adjoint_evals=1148, avg_adjoint_eval_time=5.086263e-03
+n=48328, avg_forward_r2c=2.120342e-03
+n=48328, avg_adjoint_r2c=2.231988e-03
+mat free scs result 4.27644142201
+('solve time', 14.730283362000002)
+evals 2491
+('recovered x fit', 4.2777638275215804)
+('nnz =', 6374)
+('max =', 2.1248727613773366)
+('n=', 48328)
+('n=', 48328)
+('n=', 48328)
+('n=', 48328)
+('n=', 48328)
+('n=', 48328)
+('n=', 48328)
+('n=', 48328)
+('n=', 48328)
+('n=', 69518)
+True fit = 4.3969789334
+all zero fit = 88.0666143373
+('true signal fit', None)
+forward_evals=1816, avg_forward_eval_time=1.080963e-02
+adjoint_evals=1623, avg_adjoint_eval_time=1.082858e-02
+n=69518, avg_forward_r2c=4.880871e-03
+n=69518, avg_adjoint_r2c=4.906913e-03
+mat free scs result 4.427246254
+('solve time', 41.511222679)
+evals 3439
+('recovered x fit', 4.4177992795556831)
+('nnz =', 5755)
+('max =', 1.3691006846635136)
+('n=', 69518)
+('n=', 69518)
+('n=', 69518)
+('n=', 69518)
+('n=', 69518)
+('n=', 69518)
+('n=', 69518)
+('n=', 69518)
+('n=', 69518)
+('n=', 100000)
+True fit = 5.36410464132
+all zero fit = 107.381835174
+('true signal fit', None)
+forward_evals=2156, avg_forward_eval_time=3.966393e-03
+adjoint_evals=1964, avg_adjoint_eval_time=4.052359e-03
+n=100000, avg_forward_r2c=1.260751e-03
+n=100000, avg_adjoint_r2c=1.332432e-03
+mat free scs result 5.4105422837
+('solve time', 23.523305967000002)
+evals 4120
+('recovered x fit', 5.3969681772366265)
+('nnz =', 11661)
+('max =', 3.4601273727963355)
+('n=', 100000)
+('n=', 100000)
+('n=', 100000)
+('n=', 100000)
+('n=', 100000)
+('n=', 100000)
+('n=', 100000)
+('n=', 100000)
+('n=', 100000)
+('n=', 316226)
+True fit = 10.7710080352
+all zero fit = 215.299055163
+('true signal fit', None)
+forward_evals=2165, avg_forward_eval_time=6.198788e-02
+adjoint_evals=1975, avg_adjoint_eval_time=6.194986e-02
+n=316226, avg_forward_r2c=2.781390e-02
+n=316226, avg_adjoint_r2c=2.786244e-02
+mat free scs result 11.1308991795
+('solve time', 281.014591045)
+evals 4140
+('recovered x fit', 11.069666768181783)
+('nnz =', 32346)
+('max =', 2.219372805592204)
+('n=', 316226)
+('n=', 316226)
+('n=', 316226)
+('n=', 316226)
+('n=', 316226)
+('n=', 316226)
+('n=', 316226)
+('n=', 316226)
+('n=', 316226)
+('n=', 1000000)
+True fit = 23.536494113
+all zero fit = 471.291870367
+('true signal fit', None)
+forward_evals=5085, avg_forward_eval_time=6.034628e-02
+adjoint_evals=4909, avg_adjoint_eval_time=6.010748e-02
+n=1000000, avg_forward_r2c=2.044810e-02
+n=1000000, avg_adjoint_r2c=2.054919e-02
+mat free scs result 25.0886611965
+('solve time', 796.7142917909999)
+evals 9994
+('recovered x fit', 24.907688572502103)
+('nnz =', 94319)
+('max =', 9.1543417687659456)
+('n=', 1000000)
+('n=', 1000000)
+('n=', 1000000)
+('n=', 1000000)
+('n=', 1000000)
+('n=', 1000000)
+('n=', 1000000)
+('n=', 1000000)
+('n=', 1000000)

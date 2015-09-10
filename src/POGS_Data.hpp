@@ -165,7 +165,8 @@ public:
                   double rel_tol,
                   int max_iter,
                   size_t samples,
-                  size_t equil_steps) {
+                  size_t equil_steps,
+                  bool adaptive_rho) {
 
           // printf("size of cones=%d\n", cones.size());
           std::vector<ConeConstraint> Kx, Ky;
@@ -190,6 +191,7 @@ public:
                pogs_data.SetVerbose(0);
           }
           pogs_data.SetRho(rho);
+          pogs_data.SetAdaptiveRho(adaptive_rho);
           pogs_data.SetAbsTol(abs_tol);
           pogs_data.SetRelTol(rel_tol);
           pogs_data.SetMaxIter(max_iter);

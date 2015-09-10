@@ -1,0 +1,21 @@
+For GPU with
+n=3e7, max usage 7835MiB
+n=1e7, max usage 2723MiB
+n=5e6, max usage 1445MiB
+n=1e6, max usage 423MiB
+n=5e5, max usage 295MiB
+
+from __future__ import division
+from cvxpy import *
+import numpy as np
+y = np.array([7835, 2723, 1445, 423, 295])*(1024)**2/4
+yhat = y/y.min()
+x = np.array([3e7, 1e7, 5e6, 1e6, 5e5])
+xhat = x/x.min()
+a = Variable()
+b = Variable()
+cost = norm(a*xhat + b - yhat)
+prob = Problem(Minimize(cost))
+prob.solve()
+print a.value*y.min()/x.min()
+print b.value*y.min()

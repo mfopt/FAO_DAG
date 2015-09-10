@@ -1,0 +1,520 @@
+('n=', 100)
+True fit = 0.192191856579
+all zero fit = 3.90574613047
+('true signal fit', None)
+forward_evals=1751, avg_forward_eval_time=2.440862e-04
+adjoint_evals=1428, avg_adjoint_eval_time=2.564679e-04
+n=100, avg_forward_r2c=3.043656e-05
+n=100, avg_adjoint_r2c=3.065599e-05
+n=100, avg_forward_mul=3.334619e-05
+n=100, avg_adjoint_mul=5.945722e-05
+MAT FREE POGS result 0.183832168579
+MAT FREE POGS solve time 1.54662704468
+MAT FREE POGS A evals 1751
+MAT FREE POGS AT evals 1428
+('recovered x fit', 0.18384946757602147)
+('nnz =', 2)
+('max =', 1.0028350353240967)
+('n=', 100)
+('n=', 100)
+('n=', 100)
+('n=', 100)
+('n=', 100)
+('n=', 100)
+('n=', 100)
+('n=', 100)
+('n=', 100)
+('n=', 142)
+True fit = 0.158290762565
+all zero fit = 3.18211706903
+('true signal fit', None)
+forward_evals=4585, avg_forward_eval_time=3.007688e-04
+adjoint_evals=3775, avg_adjoint_eval_time=3.125679e-04
+n=142, avg_forward_r2c=5.810341e-05
+n=142, avg_adjoint_r2c=5.792643e-05
+n=142, avg_forward_mul=3.567610e-05
+n=142, avg_adjoint_mul=6.166022e-05
+MAT FREE POGS result 0.155365943909
+MAT FREE POGS solve time 4.56478595734
+MAT FREE POGS A evals 4585
+MAT FREE POGS AT evals 3775
+('recovered x fit', 0.15538898594321224)
+('nnz =', 9)
+('max =', 2.1560237407684326)
+('n=', 142)
+('n=', 142)
+('n=', 142)
+('n=', 142)
+('n=', 142)
+('n=', 142)
+('n=', 142)
+('n=', 142)
+('n=', 142)
+('n=', 206)
+True fit = 0.0672722375375
+all zero fit = 1.32324885915
+('true signal fit', None)
+forward_evals=3349, avg_forward_eval_time=2.994846e-04
+adjoint_evals=2772, avg_adjoint_eval_time=3.123454e-04
+n=206, avg_forward_r2c=5.768583e-05
+n=206, avg_adjoint_r2c=5.755400e-05
+n=206, avg_forward_mul=3.588474e-05
+n=206, avg_adjoint_mul=6.170620e-05
+MAT FREE POGS result 0.0670855045319
+MAT FREE POGS solve time 3.31781792641
+MAT FREE POGS A evals 3349
+MAT FREE POGS AT evals 2772
+('recovered x fit', 0.06713927540227442)
+('nnz =', 0)
+('max =', 0.81647026538848877)
+('n=', 206)
+('n=', 206)
+('n=', 206)
+('n=', 206)
+('n=', 206)
+('n=', 206)
+('n=', 206)
+('n=', 206)
+('n=', 206)
+('n=', 296)
+True fit = 0.25169427553
+all zero fit = 4.96385105564
+('true signal fit', None)
+forward_evals=5604, avg_forward_eval_time=2.998356e-04
+adjoint_evals=4657, avg_adjoint_eval_time=3.124811e-04
+n=296, avg_forward_r2c=5.719093e-05
+n=296, avg_adjoint_r2c=5.730683e-05
+n=296, avg_forward_mul=3.575134e-05
+n=296, avg_adjoint_mul=6.176152e-05
+MAT FREE POGS result 0.248419761658
+MAT FREE POGS solve time 5.5827229023
+MAT FREE POGS A evals 5604
+MAT FREE POGS AT evals 4657
+('recovered x fit', 0.2484490870872261)
+('nnz =', 37)
+('max =', 2.2004292011260986)
+('n=', 296)
+('n=', 296)
+('n=', 296)
+('n=', 296)
+('n=', 296)
+('n=', 296)
+('n=', 296)
+('n=', 296)
+('n=', 296)
+('n=', 428)
+True fit = 0.346743773934
+all zero fit = 6.89168618858
+('true signal fit', None)
+forward_evals=4446, avg_forward_eval_time=3.001625e-04
+adjoint_evals=3693, avg_adjoint_eval_time=3.126817e-04
+n=428, avg_forward_r2c=5.722502e-05
+n=428, avg_adjoint_r2c=5.713608e-05
+n=428, avg_forward_mul=3.585797e-05
+n=428, avg_adjoint_mul=6.220259e-05
+MAT FREE POGS result 0.34619140625
+MAT FREE POGS solve time 4.45639896393
+MAT FREE POGS A evals 4446
+MAT FREE POGS AT evals 3693
+('recovered x fit', 0.34622182825703823)
+('nnz =', 63)
+('max =', 1.6816763877868652)
+('n=', 428)
+('n=', 428)
+('n=', 428)
+('n=', 428)
+('n=', 428)
+('n=', 428)
+('n=', 428)
+('n=', 428)
+('n=', 428)
+('n=', 614)
+True fit = 0.140505411294
+all zero fit = 2.69467470562
+('true signal fit', None)
+forward_evals=5191, avg_forward_eval_time=3.595875e-04
+adjoint_evals=4277, avg_adjoint_eval_time=3.714403e-04
+n=614, avg_forward_r2c=8.741782e-05
+n=614, avg_adjoint_r2c=8.707630e-05
+n=614, avg_forward_mul=3.612880e-05
+n=614, avg_adjoint_mul=6.224146e-05
+MAT FREE POGS result 0.140099525452
+MAT FREE POGS solve time 5.76391196251
+MAT FREE POGS A evals 5191
+MAT FREE POGS AT evals 4277
+('recovered x fit', 0.14018115639897341)
+('nnz =', 30)
+('max =', 1.8396942615509033)
+('n=', 614)
+('n=', 614)
+('n=', 614)
+('n=', 614)
+('n=', 614)
+('n=', 614)
+('n=', 614)
+('n=', 614)
+('n=', 614)
+('n=', 884)
+True fit = 0.51643992065
+all zero fit = 10.3541673894
+('true signal fit', None)
+forward_evals=6189, avg_forward_eval_time=3.153008e-04
+adjoint_evals=5149, avg_adjoint_eval_time=3.275149e-04
+n=884, avg_forward_r2c=6.461028e-05
+n=884, avg_adjoint_r2c=6.410793e-05
+n=884, avg_forward_mul=3.608646e-05
+n=884, avg_adjoint_mul=6.237686e-05
+MAT FREE POGS result 0.514995574951
+MAT FREE POGS solve time 6.37716794014
+MAT FREE POGS A evals 6189
+MAT FREE POGS AT evals 5149
+('recovered x fit', 0.51504299598940328)
+('nnz =', 125)
+('max =', 2.2446670532226562)
+('n=', 884)
+('n=', 884)
+('n=', 884)
+('n=', 884)
+('n=', 884)
+('n=', 884)
+('n=', 884)
+('n=', 884)
+('n=', 884)
+('n=', 1274)
+True fit = 0.492624730026
+all zero fit = 9.8795315815
+('true signal fit', None)
+forward_evals=5733, avg_forward_eval_time=3.693906e-04
+adjoint_evals=4758, avg_adjoint_eval_time=3.814393e-04
+n=1274, avg_forward_r2c=9.216265e-05
+n=1274, avg_adjoint_r2c=9.184176e-05
+n=1274, avg_forward_mul=3.634218e-05
+n=1274, avg_adjoint_mul=6.260662e-05
+MAT FREE POGS result 0.491821289062
+MAT FREE POGS solve time 6.4696419239
+MAT FREE POGS A evals 5733
+MAT FREE POGS AT evals 4758
+('recovered x fit', 0.49184988966837012)
+('nnz =', 140)
+('max =', 2.2146122455596924)
+('n=', 1274)
+('n=', 1274)
+('n=', 1274)
+('n=', 1274)
+('n=', 1274)
+('n=', 1274)
+('n=', 1274)
+('n=', 1274)
+('n=', 1274)
+('n=', 1832)
+True fit = 0.576089601972
+all zero fit = 11.6254510935
+('true signal fit', None)
+forward_evals=8917, avg_forward_eval_time=3.686803e-04
+adjoint_evals=7442, avg_adjoint_eval_time=3.807540e-04
+n=1832, avg_forward_r2c=9.072269e-05
+n=1832, avg_adjoint_r2c=9.050753e-05
+n=1832, avg_forward_mul=3.653162e-05
+n=1832, avg_adjoint_mul=6.296112e-05
+MAT FREE POGS result 0.575546264648
+MAT FREE POGS solve time 10.0919702053
+MAT FREE POGS A evals 8917
+MAT FREE POGS AT evals 7442
+('recovered x fit', 0.57562715439300571)
+('nnz =', 225)
+('max =', 2.5510685443878174)
+('n=', 1832)
+('n=', 1832)
+('n=', 1832)
+('n=', 1832)
+('n=', 1832)
+('n=', 1832)
+('n=', 1832)
+('n=', 1832)
+('n=', 1832)
+('n=', 2636)
+True fit = 0.900541620262
+all zero fit = 18.0976547502
+('true signal fit', None)
+forward_evals=9020, avg_forward_eval_time=3.906275e-04
+adjoint_evals=7525, avg_adjoint_eval_time=4.033331e-04
+n=2636, avg_forward_r2c=1.026153e-04
+n=2636, avg_adjoint_r2c=1.022027e-04
+n=2636, avg_forward_mul=3.556883e-05
+n=2636, avg_adjoint_mul=6.211620e-05
+MAT FREE POGS result 0.900817871094
+MAT FREE POGS solve time 10.5489621162
+MAT FREE POGS A evals 9020
+MAT FREE POGS AT evals 7525
+('recovered x fit', 0.90090694549353256)
+('nnz =', 385)
+('max =', 3.1208088397979736)
+('n=', 2636)
+('n=', 2636)
+('n=', 2636)
+('n=', 2636)
+('n=', 2636)
+('n=', 2636)
+('n=', 2636)
+('n=', 2636)
+('n=', 2636)
+('n=', 3792)
+True fit = 0.701002731426
+all zero fit = 13.9606986155
+('true signal fit', None)
+forward_evals=7074, avg_forward_eval_time=3.732332e-04
+adjoint_evals=5852, avg_adjoint_eval_time=3.851090e-04
+n=3792, avg_forward_r2c=9.165826e-05
+n=3792, avg_adjoint_r2c=9.153733e-05
+n=3792, avg_forward_mul=3.632746e-05
+n=3792, avg_adjoint_mul=6.263071e-05
+MAT FREE POGS result 0.701110839844
+MAT FREE POGS solve time 8.0568010807
+MAT FREE POGS A evals 7074
+MAT FREE POGS AT evals 5852
+('recovered x fit', 0.70123651496743145)
+('nnz =', 348)
+('max =', 2.287437915802002)
+('n=', 3792)
+('n=', 3792)
+('n=', 3792)
+('n=', 3792)
+('n=', 3792)
+('n=', 3792)
+('n=', 3792)
+('n=', 3792)
+('n=', 3792)
+('n=', 5454)
+True fit = 1.01756773566
+all zero fit = 20.3645213649
+('true signal fit', None)
+forward_evals=11929, avg_forward_eval_time=3.705785e-04
+adjoint_evals=10101, avg_adjoint_eval_time=3.828233e-04
+n=5454, avg_forward_r2c=9.300395e-05
+n=5454, avg_adjoint_r2c=9.236859e-05
+n=5454, avg_forward_mul=3.635265e-05
+n=5454, avg_adjoint_mul=6.285996e-05
+MAT FREE POGS result 1.01760864258
+MAT FREE POGS solve time 13.5231721401
+MAT FREE POGS A evals 11929
+MAT FREE POGS AT evals 10101
+('recovered x fit', 1.0177825482965812)
+('nnz =', 578)
+('max =', 5.2366914749145508)
+('n=', 5454)
+('n=', 5454)
+('n=', 5454)
+('n=', 5454)
+('n=', 5454)
+('n=', 5454)
+('n=', 5454)
+('n=', 5454)
+('n=', 5454)
+('n=', 7846)
+True fit = 0.876623587337
+all zero fit = 17.461684559
+('true signal fit', None)
+forward_evals=5509, avg_forward_eval_time=3.425066e-04
+adjoint_evals=4480, avg_adjoint_eval_time=3.539412e-04
+n=7846, avg_forward_r2c=7.732340e-05
+n=7846, avg_adjoint_r2c=7.677403e-05
+n=7846, avg_forward_mul=3.611555e-05
+n=7846, avg_adjoint_mul=6.227185e-05
+MAT FREE POGS result 0.876983642578
+MAT FREE POGS solve time 5.96843504906
+MAT FREE POGS A evals 5509
+MAT FREE POGS AT evals 4480
+('recovered x fit', 0.87715140215134091)
+('nnz =', 508)
+('max =', 1.2390888929367065)
+('n=', 7846)
+('n=', 7846)
+('n=', 7846)
+('n=', 7846)
+('n=', 7846)
+('n=', 7846)
+('n=', 7846)
+('n=', 7846)
+('n=', 7846)
+('n=', 11288)
+True fit = 0.687814438999
+all zero fit = 13.6635904087
+('true signal fit', None)
+forward_evals=5327, avg_forward_eval_time=3.469305e-04
+adjoint_evals=4428, avg_adjoint_eval_time=3.585511e-04
+n=11288, avg_forward_r2c=7.729878e-05
+n=11288, avg_adjoint_r2c=7.682005e-05
+n=11288, avg_forward_mul=3.746985e-05
+n=11288, avg_adjoint_mul=6.299570e-05
+MAT FREE POGS result 0.687454223633
+MAT FREE POGS solve time 5.84222412109
+MAT FREE POGS A evals 5327
+MAT FREE POGS AT evals 4428
+('recovered x fit', 0.68778691711145656)
+('nnz =', 483)
+('max =', 1.7059681415557861)
+('n=', 11288)
+('n=', 11288)
+('n=', 11288)
+('n=', 11288)
+('n=', 11288)
+('n=', 11288)
+('n=', 11288)
+('n=', 11288)
+('n=', 11288)
+('n=', 16236)
+True fit = 1.04818939611
+all zero fit = 21.0154074512
+('true signal fit', None)
+forward_evals=7765, avg_forward_eval_time=3.923241e-04
+adjoint_evals=6382, avg_adjoint_eval_time=4.050192e-04
+n=16236, avg_forward_r2c=1.006902e-04
+n=16236, avg_adjoint_r2c=1.005628e-04
+n=16236, avg_forward_mul=3.767747e-05
+n=16236, avg_adjoint_mul=6.373969e-05
+MAT FREE POGS result 1.04913330078
+MAT FREE POGS solve time 9.52619194984
+MAT FREE POGS A evals 7765
+MAT FREE POGS AT evals 6382
+('recovered x fit', 1.0493921888239495)
+('nnz =', 1219)
+('max =', 2.17791748046875)
+('n=', 16236)
+('n=', 16236)
+('n=', 16236)
+('n=', 16236)
+('n=', 16236)
+('n=', 16236)
+('n=', 16236)
+('n=', 16236)
+('n=', 16236)
+('n=', 23356)
+True fit = 3.2232913268
+all zero fit = 64.6763174734
+('true signal fit', None)
+forward_evals=10035, avg_forward_eval_time=4.998761e-04
+adjoint_evals=8381, avg_adjoint_eval_time=5.119090e-04
+n=23356, avg_forward_r2c=1.515510e-04
+n=23356, avg_adjoint_r2c=1.514857e-04
+n=23356, avg_forward_mul=3.865631e-05
+n=23356, avg_adjoint_mul=6.444783e-05
+MAT FREE POGS result 3.22473144531
+MAT FREE POGS solve time 14.2871441841
+MAT FREE POGS A evals 10035
+MAT FREE POGS AT evals 8381
+('recovered x fit', 3.2249587101035457)
+('nnz =', 3926)
+('max =', 2.438849925994873)
+('n=', 23356)
+('n=', 23356)
+('n=', 23356)
+('n=', 23356)
+('n=', 23356)
+('n=', 23356)
+('n=', 23356)
+('n=', 23356)
+('n=', 23356)
+('n=', 33598)
+True fit = 2.73331735532
+all zero fit = 54.8228519763
+('true signal fit', None)
+forward_evals=7510, avg_forward_eval_time=5.289803e-04
+adjoint_evals=6360, avg_adjoint_eval_time=5.412938e-04
+n=33598, avg_forward_r2c=1.637997e-04
+n=33598, avg_adjoint_r2c=1.641828e-04
+n=33598, avg_forward_mul=3.939519e-05
+n=33598, avg_adjoint_mul=6.504231e-05
+MAT FREE POGS result 2.73510742188
+MAT FREE POGS solve time 10.8297319412
+MAT FREE POGS A evals 7510
+MAT FREE POGS AT evals 6360
+('recovered x fit', 2.7354844329316816)
+('nnz =', 4294)
+('max =', 1.3411986827850342)
+('n=', 33598)
+('n=', 33598)
+('n=', 33598)
+('n=', 33598)
+('n=', 33598)
+('n=', 33598)
+('n=', 33598)
+('n=', 33598)
+('n=', 33598)
+('n=', 48328)
+True fit = 4.27086670047
+all zero fit = 85.5879045738
+('true signal fit', None)
+forward_evals=90172, avg_forward_eval_time=5.819120e-04
+adjoint_evals=80172, avg_adjoint_eval_time=5.945378e-04
+n=48328, avg_forward_r2c=1.885196e-04
+n=48328, avg_adjoint_r2c=1.894636e-04
+n=48328, avg_forward_mul=3.962185e-05
+n=48328, avg_adjoint_mul=6.521683e-05
+MAT FREE POGS result 371597344.0
+MAT FREE POGS solve time 146.213366985
+MAT FREE POGS A evals 90172
+MAT FREE POGS AT evals 80172
+('recovered x fit', 363055588.58977193)
+('nnz =', 48328)
+('max =', 19790082.0)
+('n=', 48328)
+('n=', 48328)
+('n=', 48328)
+('n=', 48328)
+('n=', 48328)
+('n=', 48328)
+('n=', 48328)
+('n=', 48328)
+('n=', 48328)
+('n=', 69518)
+True fit = 4.3969789334
+all zero fit = 88.0666143373
+('true signal fit', None)
+forward_evals=7908, avg_forward_eval_time=6.503643e-04
+adjoint_evals=6638, avg_adjoint_eval_time=6.643776e-04
+n=69518, avg_forward_r2c=2.210107e-04
+n=69518, avg_adjoint_r2c=2.221238e-04
+n=69518, avg_forward_mul=4.000256e-05
+n=69518, avg_adjoint_mul=6.471279e-05
+MAT FREE POGS result 4.40490722656
+MAT FREE POGS solve time 13.9386172295
+MAT FREE POGS A evals 7908
+MAT FREE POGS AT evals 6638
+('recovered x fit', 4.4053409798566925)
+('nnz =', 9864)
+('max =', 1.805514931678772)
+('n=', 69518)
+('n=', 69518)
+('n=', 69518)
+('n=', 69518)
+('n=', 69518)
+('n=', 69518)
+('n=', 69518)
+('n=', 69518)
+('n=', 69518)
+('n=', 100000)
+True fit = 5.36410464133
+all zero fit = 107.381835174
+('true signal fit', None)
+forward_evals=78060, avg_forward_eval_time=3.573748e-04
+adjoint_evals=68060, avg_adjoint_eval_time=3.698347e-04
+n=100000, avg_forward_r2c=6.762021e-05
+n=100000, avg_adjoint_r2c=6.805401e-05
+n=100000, avg_forward_mul=4.625201e-05
+n=100000, avg_adjoint_mul=7.228775e-05
+MAT FREE POGS result 135684400.0
+MAT FREE POGS solve time 96.9786159992
+MAT FREE POGS A evals 78060
+MAT FREE POGS AT evals 68060
+('recovered x fit', 116642546.18909404)
+('nnz =', 100000)
+('max =', 3370721.5)
+('n=', 100000)
+('n=', 100000)
+('n=', 100000)
+('n=', 100000)
+('n=', 100000)
+('n=', 100000)
+('n=', 100000)
+('n=', 100000)
+('n=', 100000)

@@ -15,13 +15,13 @@ def gauss(n=11,sigma=1, scale=1, min_val=1):
     r = range(-int(n/2),int(n/2)+1)
     return [max(scale /(sigma * sqrt(2*pi)) * exp(-float(x)**2/(2*sigma**2)), min_val) for x in r]
 
-with open("float_mat_free_times%s.csv" % script_num, "w") as f:
+with open("lalalal%s.csv" % script_num, "w") as f:
     f.write("n,mat_free_scs_time,mat_free_scs_evals,mat_free_pogs_time,mat_free_pogs_evals\n")
 
     np.random.seed(5)
     random.seed(5)
     n_vals = []
-    for n in np.hstack([np.logspace(2, 5, 20), np.logspace(5, 7, 5)[1:]]):
+    for n in [3162276, 1e7]:#np.hstack([np.logspace(2, 5, 20), np.logspace(5, 7, 5)[1:]]):
         n = int(n)
         if n % 2 == 1:
             n -= 1
@@ -63,7 +63,7 @@ with open("float_mat_free_times%s.csv" % script_num, "w") as f:
             prob = Problem(Minimize(fit),
                            constraints)
             # Only solve one problem.
-            if r != script_num:
+            if r != script_num:# or n <= 16236:
                 continue
 
             print "True fit =", norm(conv(kernel, true_x) - noisy_signal).value
@@ -107,38 +107,38 @@ with open("float_mat_free_times%s.csv" % script_num, "w") as f:
             scs_indirect_times.append(solve_time)
             print("true signal fit", fit.value)
             if True:
-                # result = prob.solve(solver=SCS_MAT_FREE,
-                #                     verbose=True,
-                #                     max_iters=10000,
-                #                     equil_steps=1,
-                #                     eps=1e-3,
-                #                     cg_rate=2,
-                #                     precond=True,
-                #                     stoch=True,
-                #                     samples=200,
-                #                     equil_gamma=1e-8)
-                # print "mat free scs result", result
-                # print("solve time", prob.solve_time)
-                # solve_time = prob.solve_time
-                result = prob.solve(solver=MAT_FREE_POGS,
+                result = prob.solve(solver=MAT_FREE_SCS,
                                     verbose=False,
                                     max_iters=10000,
                                     equil_steps=1,
-                                    # eps=1e-3,
-                                    # cg_rate=2,
-                                    # precond=True,
-                                    # stoch=True,
-                                    abs_tol=1e-4,
-                                    rel_tol=1e-3,
+                                    eps=1e-3,
+                                    cg_rate=2,
+                                    precond=True,
+                                    stoch=True,
                                     samples=200,
-                                    double=False)
-                print "MAT FREE POGS result", result
-                print "MAT FREE POGS solve time", prob.solve_time
-                print "MAT FREE POGS A evals", prob.A_evals
-                print "MAT FREE POGS AT evals", prob.AT_evals
-                solve_time = prob.solve_time
+                                    equil_gamma=1e-8)
+                print "mat free scs result", result
+                print("solve time", prob.solve_time)
+                print "evals", prob.A_evals + prob.AT_evals
                 evals = prob.A_evals + prob.AT_evals
-                f.write("%s,%s,%s,%s,%s\n" % (n, 0, 0, solve_time, evals))
+                solve_time = prob.solve_time
+                # result = prob.solve(solver=MAT_FREE_POGS,
+                #                     verbose=False,
+                #                     max_iters=10000,
+                #                     equil_steps=0,
+                #                     # eps=1e-3,
+                #                     # cg_rate=2,
+                #                     # precond=True,
+                #                     # stoch=True,
+                #                     abs_tol=1e-4,
+                #                     rel_tol=1e-4,
+                #                     samples=200,
+                #                     double=False)
+                # print "MAT FREE POGS result", result
+                # print "MAT FREE POGS solve time", prob.solve_time
+                # solve_time = prob.solve_time
+                f.write("%s,%s,%s,%s,%s\n" % (n, solve_time, evals,
+                                              0, 0))
                 f.flush()
             else:
                 solve_time = 0
