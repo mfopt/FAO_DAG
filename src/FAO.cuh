@@ -394,23 +394,6 @@ public:
         }
         cudaDeviceSynchronize();
         CUDA_CHECK_ERR();
-        // double *input = new double[input_data.size];
-        // cudaMemcpy(input, input_data.data, input_data.size * sizeof(double), cudaMemcpyDeviceToHost);
-        // printf("input_data.size = %zu\n", input_data.size);
-        // for (int i = 0; i < input_data.size; ++i)
-        //    printf("input[%i] = %e\n", i, input[i]);
-        // cudaDeviceSynchronize();
-        // CUDA_CHECK_ERR();
-        // delete [] input;
-        // cudaDeviceSynchronize();
-        // CUDA_CHECK_ERR();
-        // double *output = new double[output_data.size];
-        // cudaMemcpy(output, output_data.data, output_data.size * sizeof(double), cudaMemcpyDeviceToHost);
-        // cudaDeviceSynchronize();
-        // CUDA_CHECK_ERR();
-        // for (int i = 0; i < output_data.size; ++i)
-        //    printf("output[%i] = %e\n", i, output[i]);
-        // delete [] output;
     }
 
     /* Copy the input. */
@@ -464,6 +447,7 @@ class Split : public Vstack<T> {
     /* Adjoint of vstack. */
 };
 
+#ifndef SWIG
 // Operator for multiplying complex numbers in convolution.
 template <typename T>
 struct MulComplexF {
@@ -479,8 +463,8 @@ struct MulComplexF {
     return thrust::complex<T>(real/divisor, imag/divisor);
   }
 };
+#endif
 
-// TODO use cuFFT HERE
 template <class T>
 class ConvBase : public FAO<T> {
 public:
@@ -489,6 +473,7 @@ public:
     size_t input_len;
     size_t kernel_len;
     size_t padded_len;
+    size_t cplx_len;
     // Actually fftw_complex.
     cml::vector<T> kernel_fft;
     cml::vector<T> kernel_fft_imag_part;
@@ -508,6 +493,8 @@ public:
     void alloc_data_base() {
         input_len = this->get_length(this->input_sizes);
         padded_len = this->get_length(this->output_sizes);
+        // R2C padded_len transform has this size output.
+        cplx_len = 2*(padded_len/2 + 1);
         // TODO could use fftw_alloc here.
         this->input_data = cml::vector_calloc<T>(padded_len);
         // Input and output can be same array.
@@ -516,9 +503,10 @@ public:
         input_padding = cml::vector_view_array<T>(
         this->input_data.data + input_len, padded_len - input_len);
         // Actually complex.
-        kernel_fft = cml::vector_calloc<T>(2*padded_len);
-        kernel_fft_imag_part = cml::vector<T>(kernel_fft.data + 1, padded_len, 2);
-        r2c_out = cml::vector_calloc<T>(2*padded_len);
+        kernel_fft = cml::vector_calloc<T>(2*cplx_len);
+        kernel_fft_imag_part = cml::vector<T>(kernel_fft.data + 1,
+            2*cplx_len, 2);
+        r2c_out = cml::vector_calloc<T>(2*cplx_len);
     }
 
     void free_data() {
@@ -695,18 +683,6 @@ public:
         cufftPlan1d(&forward_ifft_plan, padded_len, CUFFT_C2R, 1);
         cufftPlan1d(&adjoint_fft_plan, padded_len, CUFFT_R2C, 1);
         cufftPlan1d(&adjoint_ifft_plan, padded_len, CUFFT_C2R, 1);
-         // forward_fft_plan = fftw_plan_dft_r2c_1d(padded_len,
-      //       this->input_data.data,
-         //     (fftw_complex *) r2c_out.data,
-      //       FFTW_MEASURE);
-         // forward_ifft_plan = fftw_plan_dft_c2r_1d(padded_len,
-      //       (fftw_complex *) r2c_out.data, this->output_data.data,
-      //       FFTW_MEASURE);
-         // adjoint_fft_plan = fftw_plan_dft_r2c_1d(padded_len, this->output_data.data,
-         //     (fftw_complex *) r2c_out.data, FFTW_MEASURE);
-         // adjoint_ifft_plan = fftw_plan_dft_c2r_1d(padded_len,
-      //       (fftw_complex *) r2c_out.data,
-         //     this->input_data.data, FFTW_MEASURE);
         cudaDeviceSynchronize();
         CUDA_CHECK_ERR();
     }
@@ -783,6 +759,117 @@ public:
         CUDA_CHECK_ERR();
     }
 };
+
+// template <class T>
+// class Conv2DBase : public FAO<T> {
+// public:
+
+//     cml::vector<T> kernel;
+//     size_t input_rows;
+//     size_t input_cols;
+//     size_t kernel_rows;
+//     size_t kernel_cols;
+//     size_t padded_rows;
+//     size_t padded_cols;
+//     // Actually fftw_complex.
+//     cml::vector<T> kernel_fft;
+//     cml::vector<T> kernel_fft_imag_part;
+//     cml::vector<T> r2c_out;
+
+//     cml::vector<T> input_padding;
+//     cufftHandle forward_fft_plan;
+//     cufftHandle forward_ifft_plan;
+//     cufftHandle adjoint_fft_plan;
+//     cufftHandle adjoint_ifft_plan;
+
+//     /* Operation is in-place. */
+//     bool is_inplace() {
+//         return true;
+//     }
+
+//     void alloc_data_base() {
+//         input_len = this->get_length(this->input_sizes);
+//         padded_len = this->get_length(this->output_sizes);
+//         // TODO could use fftw_alloc here.
+//         this->input_data = cml::vector_calloc<T>(padded_len);
+//         // Input and output can be same array.
+//         this->output_data = this->input_data;
+//         /* Isolate extra part of input. */
+//         input_padding = cml::vector_view_array<T>(
+//         this->input_data.data + input_len, padded_len - input_len);
+//         // Actually complex.
+//         kernel_fft = cml::vector_calloc<T>(2*padded_len);
+//         kernel_fft_imag_part = cml::vector<T>(kernel_fft.data + 1, padded_len, 2);
+//         r2c_out = cml::vector_calloc<T>(2*padded_len);
+//     }
+
+//     void free_data() {
+//         cufftDestroy(forward_fft_plan);
+//         cufftDestroy(forward_ifft_plan);
+//         cufftDestroy(adjoint_fft_plan);
+//         cufftDestroy(adjoint_ifft_plan);
+//         vector_free(&kernel_fft);
+//         vector_free(&r2c_out);
+//         // fftw_cleanup();
+//         FAO<T>::free_data();
+//     }
+
+//     void set_conv_data(T *kernel, int kernel_len) {
+//         this->kernel = cml::vector_alloc<T>(kernel_len);
+//         this->kernel_len = kernel_len;
+//         cml::vector_memcpy<T>(&this->kernel, kernel);
+//         cudaDeviceSynchronize();
+//         CUDA_CHECK_ERR();
+//     }
+
+
+//     // /* Functor for multiplying two complex numbers and dividing by n. */
+//     // struct complex_mul
+//     // {
+//     //   const double n;
+
+//     //   complex_mul(double _n) : n(_n) {}
+
+//     //   __host__ __device__
+//     //   fftw_complex operator()(const fftw_complex& x, const fftw_complex& y) const
+//     //   {
+//     //     fftw_complex result;
+//     //     result[0] = (x[0]*y[0] - x[1]*y[1])/n;
+//     //     result[1] = (x[0]*y[1] + x[1]*y[0])/n;
+//     //     return result;
+//     //   }
+//     // };
+
+//     /* Multiply kernel_fft and output.
+//        Divide by n because fftw doesn't.
+//        Writes to output.
+//     */
+//     void multiply_fft(cml::vector<T>& kernel_fft, cml::vector<T>& output,
+//         bool forward) {
+//         T divisor = static_cast<T>(padded_len);
+//         T conj_mul = forward ? 1.0 : -1.0;
+//         cml::strided_range<thrust::device_ptr<thrust::complex<T> > > idx_a(
+//             thrust::device_pointer_cast((thrust::complex<T> *) kernel_fft.data),
+//             thrust::device_pointer_cast((thrust::complex<T> *) kernel_fft.data + padded_len), 1);
+//         cml::strided_range<thrust::device_ptr<thrust::complex<T> > > idx_b(
+//             thrust::device_pointer_cast((thrust::complex<T> *) output.data),
+//             thrust::device_pointer_cast((thrust::complex<T> *) output.data + padded_len), 1);
+//         thrust::transform(idx_a.begin(), idx_a.end(), idx_b.begin(), idx_b.begin(),
+//             MulComplexF<T>(divisor, conj_mul));
+//     }
+
+//     /* Fill out the input padding with zeros. */
+//     void zero_pad_input() {
+//         cml::vector_scale<T>(&input_padding, static_cast<T>(0.0));
+//     }
+// };
+
+// #ifdef SWIG
+// %template(Conv2DBased) Conv2DBase<double>;
+// %template(Conv2DBasef) Conv2DBase<float>;
+// #endif
+
+// TODO
 
 #ifdef SWIG
 %template(NoOpd) NoOp<double>;

@@ -66,8 +66,8 @@ with open("testing123%s.csv" % script_num, "w") as f:
             if r != script_num:
                 continue
 
-            print "True fit =", norm(conv(kernel, true_x) - noisy_signal).value
-            print "all zero fit =", norm(conv(kernel, np.zeros(n)) - noisy_signal).value
+            print "True fit =", norm(noise).value
+            print "all zero fit =", norm(noisy_signal).value
 
             if False and n <= 5454:
                 result = prob.solve(solver=ECOS, verbose=True,
@@ -129,10 +129,10 @@ with open("testing123%s.csv" % script_num, "w") as f:
                                     # precond=True,
                                     # stoch=True,
                                     abs_tol=1e-4,
-                                    rel_tol=1e-3,
+                                    rel_tol=1e-4,
                                     samples=200,
                                     double=False,
-                                    use_exact_tol=False)
+                                    use_exact_tol=True)
                 print "MAT FREE POGS result", result
                 print "MAT FREE POGS solve time", prob.solve_time
                 print "MAT FREE POGS A evals", prob.A_evals
