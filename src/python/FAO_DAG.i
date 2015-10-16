@@ -41,6 +41,8 @@
 
 %apply (double* INPLACE_ARRAY1, int DIM1) {(double *kernel, int kernel_len)};
 %apply (float* INPLACE_ARRAY1, int DIM1) {(float *kernel, int kernel_len)};
+%apply (double* INPLACE_ARRAY2, int DIM1, int DIM2) {(double *kernel, int kernel_rows, int kernel_cols)};
+%apply (float* INPLACE_ARRAY2, int DIM1, int DIM2) {(float *kernel, int kernel_rows, int kernel_cols)};
 /*%include "FAO.hpp" */
 %include "FAO.cuh"
 

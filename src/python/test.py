@@ -76,13 +76,13 @@ A = np.random.randn(m, n)
 b = np.random.randn(m, 1)
 cost = norm(A*x - b) + norm(x, 1)
 prob = Problem(Minimize(cost))
-prob.solve(solver=MAT_FREE_POGS, rho=1, verbose=True, abs_tol=1e-4, rel_tol=1e-4, max_iters=2499, double=False)
+prob.solve(solver=MAT_FREE_POGS, rho=1, verbose=True, abs_tol=1e-3, rel_tol=1e-3, max_iters=2499, double=False)
 print "MAT FREE POGS float obj", prob.value
 print "MAT FREE POGS float cost", cost.value
-prob.solve(solver=MAT_FREE_POGS, rho=1, verbose=True, abs_tol=1e-4, rel_tol=1e-4, max_iters=2499)
+prob.solve(solver=MAT_FREE_POGS, rho=1, verbose=True, abs_tol=1e-3, rel_tol=1e-3, max_iters=2499)
 print "MAT FREE POGS double obj", prob.value
 print "MAT FREE POGS double cost", cost.value
-prob.solve(solver=POGS, rho=1, verbose=True, abs_tol=1e-4, rel_tol=1e-4, max_iters=2499)
+prob.solve(solver=POGS, rho=1, verbose=True, abs_tol=1e-3, rel_tol=1e-3, max_iters=2499)
 print "POGS obj", prob.value
 print "POGS cost", cost.value
 print "ECOS obj", prob.solve(solver=ECOS)

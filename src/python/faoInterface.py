@@ -131,8 +131,8 @@ def mat_free_pogs_solve(py_dag, data, dims, solver_opts):
     # solver_opts["rand_seed"] = solver_opts.get("rand_seed", False)
     rho = solver_opts.get("rho", 1)
     verbose = solver_opts.get("verbose", False)
-    abs_tol = solver_opts.get("abs_tol", 1e-4)
-    rel_tol = solver_opts.get("rel_tol", 1e-4)
+    abs_tol = solver_opts.get("abs_tol", 1e-3)
+    rel_tol = solver_opts.get("rel_tol", 1e-3)
     max_iter = solver_opts.get("max_iters", 2500)
     samples = solver_opts.get("samples", 200)
     equil_steps = solver_opts.get("equil_steps", 1)
@@ -169,11 +169,18 @@ def mat_free_pogs_solve(py_dag, data, dims, solver_opts):
     pogs_data.load_x(x)
     pogs_data.load_y(y)
 
+    pogs_data.rel_tol = rel_tol
+    pogs_data.abs_tol = abs_tol
+    pogs_data.max_iter = max_iter
+    pogs_data.use_exact_tol = use_exact_tol
+    pogs_data.adaptive_rho = adaptive_rho
+    pogs_data.samples = samples
+    pogs_data.equil_steps = equil_steps
+    pogs_data.rho = rho
+
     cones = python_cones_to_pogs_cones(dims)
 
-    opt_val = pogs_data.mat_free_solve(dag, cones, rho, verbose,
-                              abs_tol, rel_tol, max_iter, samples, equil_steps,
-                              adaptive_rho, use_exact_tol)
+    opt_val = pogs_data.mat_free_solve(dag, cones, verbose)
     solveTime = pogs_data.solveTime
     A_evals = dag.forward_evals
     AT_evals = dag.adjoint_evals
@@ -216,6 +223,7 @@ def pogs_solve(data, dims, solver_opts):
     rel_tol = solver_opts.get("rel_tol", 1e-3)
     max_iter = solver_opts.get("max_iters", 2500)
     double = solver_opts.get("double", True)
+    use_exact_tol = solver_opts.get("use_exact_tol", True)
 
     # start_node, end_node, edges = python_to_swig(py_dag, tmp)
     # dag = FAO_DAG.FAO_DAG(start_node, end_node, edges)
@@ -238,10 +246,15 @@ def pogs_solve(data, dims, solver_opts):
     pogs_data.load_x(x)
     pogs_data.load_y(y)
 
+    pogs_data.rel_tol = rel_tol
+    pogs_data.abs_tol = abs_tol
+    pogs_data.max_iter = max_iter
+    pogs_data.use_exact_tol = use_exact_tol
+    pogs_data.rho = rho
+
     cones = python_cones_to_pogs_cones(dims)
 
-    opt_val = pogs_data.solve(nnz, Adata, Aindices, Aindptr, cones, rho, verbose,
-                              abs_tol, rel_tol, max_iter)
+    opt_val = pogs_data.solve(nnz, Adata, Aindices, Aindptr, cones, verbose)
 
     # pogs_data.solve(dag, dims['f'], dims['l'], q_vec, s_vec, dims['ep'],
     #                solver_opts['max_iters'],
@@ -390,7 +403,7 @@ type_map = {
         # "TRANSPOSE": FAO_DAG.TRANSPOSE,
         # "SUM_ENTRIES": FAO_DAG.SUM_ENTRIES,
         # "TRACE": FAO_DAG.TRACE,
-        # "RESHAPE": FAO_DAG.RESHAPE,
+        RESHAPE: FAO_DAG.Reshaped,
         # "DIAG_VEC": FAO_DAG.DIAG_VEC,
         # "DIAG_MAT": FAO_DAG.DIAG_MAT,
         # "UPPER_TRI": FAO_DAG.UPPER_TRI,
@@ -422,12 +435,12 @@ type_map = {
         # "TRANSPOSE": FAO_DAG.TRANSPOSE,
         # "SUM_ENTRIES": FAO_DAG.SUM_ENTRIES,
         # "TRACE": FAO_DAG.TRACE,
-        # "RESHAPE": FAO_DAG.RESHAPE,
+        RESHAPE: FAO_DAG.Reshapef,
         # "DIAG_VEC": FAO_DAG.DIAG_VEC,
         # "DIAG_MAT": FAO_DAG.DIAG_MAT,
         # "UPPER_TRI": FAO_DAG.UPPER_TRI,
         CONV: FAO_DAG.Convf,
-        # CONV2D: FAO_DAG.Conv2Df,
+        CONV2D: FAO_DAG.Conv2Df,
         # "HSTACK": FAO_DAG.HSTACK,
         VSTACK: FAO_DAG.Vstackf,
         SCALAR_MUL: FAO_DAG.ScalarMulf,
@@ -528,7 +541,7 @@ def python_to_swig(py_dag, tmp, double):
             set_dense_data(cur_c, cur_py, dtype)
         elif cur_py.type in [SPARSE_MAT_VEC_MUL, SPARSE_MAT_MAT_MUL]:
             set_sparse_data(cur_c, cur_py, dtype)
-        elif cur_py.type == CONV:
+        elif cur_py.type in [CONV, CONV2D]:
             cur_c.set_conv_data(cur_py.data.astype(dtype))
 
     # Now populate Swig edges.

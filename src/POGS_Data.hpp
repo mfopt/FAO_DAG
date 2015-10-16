@@ -36,6 +36,16 @@ public:
      double setupTime;
      char* status;
 
+     // Solver options.
+     double rel_tol;
+     double abs_tol;
+     int max_iter;
+     bool use_exact_tol;
+     bool adaptive_rho;
+     int samples;
+     int equil_steps;
+     double rho;
+
      T *x;
      T *y;
 
@@ -159,15 +169,7 @@ public:
      */
      double mat_free_solve(FAO_DAG<T>* fao_dag,
                std::vector< std::pair<int, std::vector<int> > >& cones,
-                  double rho,
-                  bool verbose,
-                  double abs_tol,
-                  double rel_tol,
-                  int max_iter,
-                  size_t samples,
-                  size_t equil_steps,
-                  bool adaptive_rho,
-                  bool use_exact_tol) {
+                  bool verbose) {
 
           // printf("size of cones=%d\n", cones.size());
           std::vector<ConeConstraint> Kx, Ky;
@@ -237,11 +239,7 @@ public:
                std::vector<int>& Aindices,
                std::vector<int>& Aindptr,
                std::vector< std::pair<int, std::vector<int> > >& cones,
-                  double rho,
-                  bool verbose,
-                  double abs_tol,
-                  double rel_tol,
-                  int max_iter) {
+                  bool verbose) {
 
           // printf("size of cones=%d\n", cones.size());
           std::vector<ConeConstraint> Kx, Ky;
@@ -261,6 +259,7 @@ public:
           pogs_data.SetAbsTol(abs_tol);
           pogs_data.SetRelTol(rel_tol);
           pogs_data.SetMaxIter(max_iter);
+          pogs_data.SetUseExactTol(use_exact_tol);
           std::vector<T> c_vec(c, c + c_len);
           std::vector<T> b_vec(b, b + b_len);
           double t = timer<double>();
