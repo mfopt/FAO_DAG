@@ -259,8 +259,16 @@ def scs_solve(py_dag, data, dims, solver_opts):
     solver_opts["eps"] = solver_opts.get("eps", 1e-3)
     solver_opts['cg_rate'] = solver_opts.get("cg_rate", 2.0)
     solver_opts["rand_seed"] = solver_opts.get("rand_seed", False)
+    solver_opts["verbose"] = solver_opts.get("verbose", False)
     start_node, end_node, edges = python_to_swig(py_dag, tmp)
     dag = FAO_DAG.FAO_DAG(start_node, end_node, edges)
+
+    if solver_opts["verbose"]:
+        print len(py_dag.nodes)
+        for i, node in py_dag.nodes.items():
+            print node
+            print node.type
+
     scs_data = FAO_DAG.SCS_Data();
     c = data['c'].flatten()
     scs_data.load_c(c)
@@ -295,6 +303,8 @@ def scs_solve(py_dag, data, dims, solver_opts):
         "solveTime": (scs_data.solveTime / 1e3),
         "setupTime": (scs_data.setupTime / 1e3),
         "status": ''.join(scs_data.status),
+        "A_evals": dag.forward_evals,
+        "AT_evals": dag.adjoint_evals,
     }
     # Must destroy FAO DAG before calling FAO destructors.
     del dag
@@ -321,7 +331,7 @@ def eval_FAO_DAG(py_dag, input_arr, output_arr, forward=True):
 def set_dense_data(node_c, node_py):
     """Stores dense matrix data on the Swig FAO.
     """
-    matrix = node_py.data.astype(float, order='F')
+    matrix = node_py.data.astype("float64", order='C')
     node_c.set_matrix_data(matrix)
 
 def set_sparse_data(node_c, node_py):
@@ -366,7 +376,7 @@ type_map = {
     # "TRANSPOSE": FAO_DAG.TRANSPOSE,
     # "SUM_ENTRIES": FAO_DAG.SUM_ENTRIES,
     # "TRACE": FAO_DAG.TRACE,
-    # "RESHAPE": FAO_DAG.RESHAPE,
+    RESHAPE: FAO_DAG.Reshape,
     # "DIAG_VEC": FAO_DAG.DIAG_VEC,
     # "DIAG_MAT": FAO_DAG.DIAG_MAT,
     # "UPPER_TRI": FAO_DAG.UPPER_TRI,

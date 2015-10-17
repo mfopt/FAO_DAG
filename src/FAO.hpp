@@ -178,7 +178,8 @@ public:
     // gsl::matrix<T, CblasRowMajor> matrix_trans;
 
     void set_matrix_data(double* data, int rows, int cols) {
-        matrix = gsl::matrix_init<double, CblasRowMajor>(rows, cols, data);
+        matrix = gsl::matrix_alloc<double, CblasRowMajor>(rows, cols);
+        gsl::matrix_memcpy<double, CblasRowMajor>(&matrix, data);
     }
 
     /* Standard dense matrix multiplication. */
@@ -197,16 +198,29 @@ public:
 class DenseMatMatMul : public DenseMatVecMul {
 public:
 
-    /* Standard dense matrix matrix multiplication. */
+    /* Standard dense matrix matrix multiplication AX = Y.
+       A in R^{M x K}, X in R^{K x N}, Y in R^{M x N}
+    */
     void forward_eval() {
         int M = static_cast<int>(output_sizes[0][0]);
         int N = static_cast<int>(input_sizes[0][1]);
         int K = static_cast<int>(input_sizes[0][0]);
+        // printf("M = %i, N = %i, K = %i\n", M, N, K);
+        // printf("input size = %i, output size = %i\n", input_data.size, output_data.size);
         cblas_dgemm(CblasColMajor, CblasTrans,
                     CblasNoTrans, M, N,
                     K, 1, matrix.data,
                     K, input_data.data, K,
                     0, output_data.data, M);
+        // printf("A matrix\n");
+        // gsl::matrix_print<double,CblasRowMajor>(&matrix);
+        // gsl::matrix<double, CblasColMajor>  X_matrix = gsl::matrix_init<double, CblasColMajor>(K, N, input_data.data);
+        // printf("X matrix\n");
+        // gsl::matrix_print<double,CblasColMajor>(&X_matrix);
+        // printf("A*X matrix\n");
+        // gsl::matrix<double, CblasColMajor>  AX_matrix = gsl::matrix_init<double, CblasColMajor>(M, N, output_data.data);
+        // gsl::matrix_print<double,CblasColMajor>(&AX_matrix);
+
     }
 
     void adjoint_eval() {
@@ -353,6 +367,14 @@ class Split : public Vstack {
 };
 
 
+class Reshape : public FAO {
+public:
+    /* Operation is in-place. */
+    bool is_inplace() {
+        return true;
+    }
+};
+
 class Conv : public FAO {
 public:
 
@@ -459,12 +481,12 @@ public:
         forward_evals++;
         double t = timer<double>();
     	zero_pad_input();
+        // printf("T_exec_zero_pad = %e\n", timer<double>() - t);
+        t = timer<double>();
+    	fftw_execute(forward_fft_plan);
         double r2c_time = timer<double>() - t;
         total_forward_r2c_time += r2c_time;
         // printf("T_exec_r2c = %e\n", r2c_time);
-        t = timer<double>();
-    	fftw_execute(forward_fft_plan);
-        // printf("T_exec_r2c = %e\n", timer<double>() - t);
         t = timer<double>();
     	multiply_fft(kernel_fft, r2c_out);
         // printf("T_multiply_fft = %e\n", timer<double>() - t);
