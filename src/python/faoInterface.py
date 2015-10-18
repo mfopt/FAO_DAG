@@ -125,13 +125,14 @@ def mat_free_pogs_solve(py_dag, data, dims, solver_opts):
     # solver_opts["rand_seed"] = solver_opts.get("rand_seed", False)
     rho = solver_opts.get("rho", 1)
     verbose = solver_opts.get("verbose", False)
+    extra_verbose = solver_opts.get("extra_verbose", False)
     abs_tol = solver_opts.get("abs_tol", 1e-4)
     rel_tol = solver_opts.get("rel_tol", 1e-4)
     max_iter = solver_opts.get("max_iters", 2500)
     samples = solver_opts.get("samples", 200)
     equil_steps = solver_opts.get("equil_steps", 1)
 
-    if verbose:
+    if extra_verbose:
         print len(py_dag.nodes)
         for i, node in py_dag.nodes.items():
             print node.type
@@ -260,10 +261,11 @@ def scs_solve(py_dag, data, dims, solver_opts):
     solver_opts['cg_rate'] = solver_opts.get("cg_rate", 2.0)
     solver_opts["rand_seed"] = solver_opts.get("rand_seed", False)
     solver_opts["verbose"] = solver_opts.get("verbose", False)
+    extra_verbose = solver_opts.get("extra_verbose", False)
     start_node, end_node, edges = python_to_swig(py_dag, tmp)
     dag = FAO_DAG.FAO_DAG(start_node, end_node, edges)
 
-    if solver_opts["verbose"]:
+    if extra_verbose:
         print len(py_dag.nodes)
         for i, node in py_dag.nodes.items():
             print node
@@ -332,7 +334,7 @@ def set_dense_data(node_c, node_py):
     """Stores dense matrix data on the Swig FAO.
     """
     matrix = node_py.data.astype("float64", order='C')
-    node_c.set_matrix_data(matrix)
+    node_c.set_matrix_data(matrix.T)
 
 def set_sparse_data(node_c, node_py):
     """Stores dense matrix data on the Swig FAO.
@@ -388,6 +390,7 @@ type_map = {
     SPARSE_MAT_VEC_MUL: FAO_DAG.SparseMatVecMul,
     DENSE_MAT_MAT_MUL: FAO_DAG.DenseMatMatMul,
     SPARSE_MAT_MAT_MUL: FAO_DAG.SparseMatMatMul,
+    RMUL: FAO_DAG.DenseMatMatRMul,
     COPY: FAO_DAG.Copy,
     SPLIT: FAO_DAG.Split,
     # SCALAR_CONST: FAO_DAG.Constant,
@@ -474,7 +477,7 @@ def python_to_swig(py_dag, tmp):
             set_slice_data(cur_c, cur_py)
         elif cur_py.type in [SCALAR_MUL]:
             cur_c.scalar = float(cur_py.data)
-        elif cur_py.type in [DENSE_MAT_VEC_MUL, DENSE_MAT_MAT_MUL]:
+        elif cur_py.type in [DENSE_MAT_VEC_MUL, DENSE_MAT_MAT_MUL, RMUL]:
             set_dense_data(cur_c, cur_py)
         elif cur_py.type in [SPARSE_MAT_VEC_MUL, SPARSE_MAT_MAT_MUL]:
             set_sparse_data(cur_c, cur_py)

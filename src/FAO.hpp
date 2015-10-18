@@ -173,23 +173,25 @@ class NoOp : public FAO {
 
 class DenseMatVecMul : public FAO {
 public:
-    gsl::matrix<double, CblasRowMajor> matrix;
+    gsl::matrix<double, CblasColMajor> matrix;
     // TODO should I store the transpose separately?
     // gsl::matrix<T, CblasRowMajor> matrix_trans;
 
     void set_matrix_data(double* data, int rows, int cols) {
-        matrix = gsl::matrix_alloc<double, CblasRowMajor>(rows, cols);
-        gsl::matrix_memcpy<double, CblasRowMajor>(&matrix, data);
+        // Reverse rows and cols because data is transpose.
+        // Needed because SWIG alwasy passes in in row major order.
+        matrix = gsl::matrix_alloc<double, CblasColMajor>(cols, rows);
+        gsl::matrix_memcpy<double, CblasColMajor>(&matrix, data);
     }
 
     /* Standard dense matrix multiplication. */
     void forward_eval() {
-        return gsl::blas_gemv<double, CblasRowMajor>(CblasNoTrans, 1, &matrix,
+        return gsl::blas_gemv<double, CblasColMajor>(CblasNoTrans, 1, &matrix,
         	&input_data, 0, &output_data);
     }
 
     void adjoint_eval() {
-        return gsl::blas_gemv<double, CblasRowMajor>(CblasTrans, 1, &matrix,
+        return gsl::blas_gemv<double, CblasColMajor>(CblasTrans, 1, &matrix,
         	&output_data, 0, &input_data);
     }
 
@@ -203,34 +205,63 @@ public:
     */
     void forward_eval() {
         int M = static_cast<int>(output_sizes[0][0]);
-        int N = static_cast<int>(input_sizes[0][1]);
-        int K = static_cast<int>(input_sizes[0][0]);
-        // printf("M = %i, N = %i, K = %i\n", M, N, K);
-        // printf("input size = %i, output size = %i\n", input_data.size, output_data.size);
-        cblas_dgemm(CblasColMajor, CblasTrans,
-                    CblasNoTrans, M, N,
-                    K, 1, matrix.data,
-                    K, input_data.data, K,
-                    0, output_data.data, M);
-        // printf("A matrix\n");
-        // gsl::matrix_print<double,CblasRowMajor>(&matrix);
-        // gsl::matrix<double, CblasColMajor>  X_matrix = gsl::matrix_init<double, CblasColMajor>(K, N, input_data.data);
-        // printf("X matrix\n");
-        // gsl::matrix_print<double,CblasColMajor>(&X_matrix);
-        // printf("A*X matrix\n");
-        // gsl::matrix<double, CblasColMajor>  AX_matrix = gsl::matrix_init<double, CblasColMajor>(M, N, output_data.data);
-        // gsl::matrix_print<double,CblasColMajor>(&AX_matrix);
-
-    }
-
-    void adjoint_eval() {
-        int M = static_cast<int>(input_sizes[0][0]);
         int N = static_cast<int>(output_sizes[0][1]);
-        int K = static_cast<int>(output_sizes[0][0]);
+        int K = static_cast<int>(input_sizes[0][0]);
         cblas_dgemm(CblasColMajor, CblasNoTrans,
                     CblasNoTrans, M, N,
                     K, 1, matrix.data,
-                    M, output_data.data, K,
+                    M, input_data.data, K,
+                    0, output_data.data, M);
+
+    }
+
+    /* Standard dense matrix matrix multiplication A^TY = X.
+       A^T in R^{K x M}, Y in R^{M x N}, X in R^{K x N}
+    */
+    void adjoint_eval() {
+        int M = static_cast<int>(output_sizes[0][0]);
+        int N = static_cast<int>(output_sizes[0][1]);
+        int K = static_cast<int>(input_sizes[0][0]);
+        cblas_dgemm(CblasColMajor, CblasTrans,
+                    CblasNoTrans, K, N,
+                    M, 1, matrix.data,
+                    M, output_data.data, M,
+                    0, input_data.data, K);
+    }
+
+};
+
+class DenseMatMatRMul : public DenseMatVecMul {
+public:
+
+    /* Standard dense matrix matrix multiplication XA = Y.
+       X in R^{M x K}, A in R^{K x N}, Y in R^{M x N}
+    */
+    void forward_eval() {
+        int M = static_cast<int>(output_sizes[0][0]);
+        int N = static_cast<int>(output_sizes[0][1]);
+        int K = static_cast<int>(input_sizes[0][1]);
+        cblas_dgemm(CblasColMajor, CblasNoTrans,
+                    CblasNoTrans, M, N,
+                    K, 1, input_data.data,
+                    M, matrix.data, K,
+                    0, output_data.data, M);
+
+    }
+
+    /* Standard dense matrix matrix multiplication YA^T = X.
+       Y in R^{M x N}, A^T in R^{N x K}, X in R^{M x K}
+
+       We don't transpose A b/c actually in Row major order.
+    */
+    void adjoint_eval() {
+        int M = static_cast<int>(output_sizes[0][0]);
+        int N = static_cast<int>(output_sizes[0][1]);
+        int K = static_cast<int>(input_sizes[0][1]);
+        cblas_dgemm(CblasColMajor, CblasNoTrans,
+                    CblasTrans, M, K,
+                    N, 1, output_data.data,
+                    M, matrix.data, K,
                     0, input_data.data, M);
     }
 
