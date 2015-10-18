@@ -9,13 +9,13 @@ import numpy as np
 
 
 np.random.seed(1)
-n = 3
+n = 50
 m = 2*n
 X = Variable(n, n)
-A = np.abs(np.random.randn(m, n)) + 1e-3
-B = np.abs(np.random.randn(n, m)) + 1e-3
+A = np.abs(np.random.randn(m, n)) + 1e-6
+B = np.abs(np.random.randn(n, m)) + 1e-6
 C = np.random.randn(n, n)
-D = np.abs(np.random.randn(m, m)) + 1e-3
+D = np.abs(np.random.randn(m, m)) + 1e-6
 
 print "nnz = ", (m*n)**2
 

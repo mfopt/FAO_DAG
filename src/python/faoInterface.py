@@ -131,6 +131,7 @@ def mat_free_pogs_solve(py_dag, data, dims, solver_opts):
     # solver_opts["rand_seed"] = solver_opts.get("rand_seed", False)
     rho = solver_opts.get("rho", 1)
     verbose = solver_opts.get("verbose", False)
+    extra_verbose = solver_opts.get("extra_verbose", False)
     abs_tol = solver_opts.get("abs_tol", 1e-3)
     rel_tol = solver_opts.get("rel_tol", 1e-3)
     max_iter = solver_opts.get("max_iters", 2500)
@@ -140,7 +141,7 @@ def mat_free_pogs_solve(py_dag, data, dims, solver_opts):
     use_exact_tol = solver_opts.get("use_exact_tol", True)
     double = solver_opts.get("double", True)
 
-    if verbose:
+    if extra_verbose:
         print len(py_dag.nodes)
         for i, node in py_dag.nodes.items():
             print node
@@ -396,7 +397,7 @@ type_map = {
     True: {
         # "PROMOTE": FAO_DAG.PROMOTE,
         # "MUL": FAO_DAG.MUL,
-        # "RMUL": FAO_DAG.RMUL,
+        RMUL: FAO_DAG.DenseMatMatRMuld,
         # "MUL_ELEM": FAO_DAG.MUL_ELEM,
         # "DIV": FAO_DAG.DIV,
         SUM: FAO_DAG.Sumd,
@@ -428,7 +429,7 @@ type_map = {
     False: {
         # "PROMOTE": FAO_DAG.PROMOTE,
         # "MUL": FAO_DAG.MUL,
-        # "RMUL": FAO_DAG.RMUL,
+        RMUL: FAO_DAG.DenseMatMatRMulf,
         # "MUL_ELEM": FAO_DAG.MUL_ELEM,
         # "DIV": FAO_DAG.DIV,
         SUM: FAO_DAG.Sumf,
@@ -539,7 +540,7 @@ def python_to_swig(py_dag, tmp, double):
             set_slice_data(cur_c, cur_py)
         elif cur_py.type in [SCALAR_MUL]:
             cur_c.scalar = cur_py.data.astype(dtype)
-        elif cur_py.type in [DENSE_MAT_VEC_MUL, DENSE_MAT_MAT_MUL]:
+        elif cur_py.type in [DENSE_MAT_VEC_MUL, DENSE_MAT_MAT_MUL, RMUL]:
             set_dense_data(cur_c, cur_py, dtype)
         elif cur_py.type in [SPARSE_MAT_VEC_MUL, SPARSE_MAT_MAT_MUL]:
             set_sparse_data(cur_c, cur_py, dtype)

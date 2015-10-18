@@ -275,6 +275,47 @@ public:
 
 };
 
+template <class T>
+class DenseMatMatRMul : public DenseMatVecMul<T> {
+public:
+
+    cml::matrix<T, CblasColMajor> input_matrix;
+    cml::matrix<T, CblasColMajor> output_matrix;
+
+    void alloc_data() {
+        FAO<T>::alloc_data();
+        int M = static_cast<int>(this->output_sizes[0][0]);
+        int N = static_cast<int>(this->output_sizes[0][1]);
+        int K = static_cast<int>(this->input_sizes[0][1]);
+        input_matrix = cml::matrix_init<T, CblasColMajor>(M, K,
+            this->input_data.data);
+        output_matrix = cml::matrix_init<T, CblasColMajor>(M, N,
+            this->output_data.data);
+    }
+
+    /* Standard dense matrix matrix multiplication XA = Y.
+       X in R^{M x K}, A in R^{K x N}, Y in R^{M x N}
+    */
+    void forward_eval() {
+        cml::blas_gemm(this->hdl, CUBLAS_OP_N, CUBLAS_OP_N,
+                       static_cast<T>(1.0), &input_matrix, &this->matrix,
+                       static_cast<T>(0.0), &output_matrix);
+        cudaDeviceSynchronize();
+        CUDA_CHECK_ERR();
+    }
+
+    /* Standard dense matrix matrix multiplication YA^T = X.
+       Y in R^{M x N}, A^T in R^{N x K}, X in R^{M x K}
+    */
+    void adjoint_eval() {
+        cml::blas_gemm(this->hdl, CUBLAS_OP_N, CUBLAS_OP_T,
+                       static_cast<T>(1.0), &output_matrix, &this->matrix,
+                       static_cast<T>(0.0), &input_matrix);
+        cudaDeviceSynchronize();
+        CUDA_CHECK_ERR();
+    }
+};
+
 cusparseOperation_t OpToCusparseOp(char trans) {
   ASSERT(trans == 'n' || trans == 'N' || trans == 't' || trans == 'T');
   return (trans == 'n' || trans == 'N')
@@ -1030,6 +1071,8 @@ public:
 %template(SparseMatVecMulf) SparseMatVecMul<float>;
 %template(DenseMatMatMuld) DenseMatMatMul<double>;
 %template(DenseMatMatMulf) DenseMatMatMul<float>;
+%template(DenseMatMatRMuld) DenseMatMatRMul<double>;
+%template(DenseMatMatRMulf) DenseMatMatRMul<float>;
 %template(ScalarMuld) ScalarMul<double>;
 %template(ScalarMulf) ScalarMul<float>;
 %template(Negd) Neg<double>;
