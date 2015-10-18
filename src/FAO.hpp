@@ -414,6 +414,7 @@ public:
         FAO::free_data();
     }
 
+    // TODO copy kernel data?
 	void set_conv_data(double *kernel, int kernel_len) {
 		this->kernel = kernel;
 		this->kernel_len = kernel_len;

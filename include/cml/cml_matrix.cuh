@@ -19,18 +19,18 @@ struct matrix {
   T* data;
 };
 
-// template <typename T, CBLAS_ORDER O>
-// matrix<T, O> matrix_init(size_t m, size_t n, T *data) {
-//   matrix<T, O> mat;
-//   mat.size1 = m;
-//   mat.size2 = n;
-//   if (O == CblasRowMajor)
-//     mat.tda = n;
-//   else
-//     mat.tda = m;
-//   mat.data = data;
-//   return mat;
-// }
+template <typename T, CBLAS_ORDER O>
+matrix<T, O> matrix_init(size_t m, size_t n, T *data) {
+  matrix<T, O> mat;
+  mat.size1 = m;
+  mat.size2 = n;
+  if (O == CblasRowMajor)
+    mat.tda = n;
+  else
+    mat.tda = m;
+  mat.data = data;
+  return mat;
+}
 
 // Helper Methods
 namespace {

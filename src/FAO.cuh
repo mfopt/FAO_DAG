@@ -186,7 +186,7 @@ class NoOp : public FAO<T> {
 template <class T>
 class DenseMatVecMul : public FAO<T> {
 public:
-    cml::matrix<T, CblasRowMajor> matrix;
+    cml::matrix<T, CblasColMajor> matrix;
     cublasHandle_t hdl;
     // TODO should I store the transpose separately?
     // gsl::matrix<T, CblasRowMajor> matrix_trans;
@@ -202,7 +202,9 @@ public:
     }
 
     void set_matrix_data(T* data, int rows, int cols) {
-        matrix = cml::matrix_alloc<T, CblasRowMajor>(rows, cols);
+        // Reverse rows and cols because data is transpose.
+        // Needed because SWIG alwasy passes in in row major order.
+        matrix = cml::matrix_alloc<T, CblasColMajor>(cols, rows);
         cml::matrix_memcpy(&matrix, data);
         cudaDeviceSynchronize();
         CUDA_CHECK_ERR();
@@ -225,33 +227,53 @@ public:
 
 };
 
-// class DenseMatMatMul : public DenseMatVecMul {
-// public:
-//
-//     /* Standard dense matrix matrix multiplication. */
-//     void forward_eval() {
-//         int M = static_cast<int>(output_sizes[0][0]);
-//         int N = static_cast<int>(input_sizes[0][1]);
-//         int K = static_cast<int>(input_sizes[0][0]);
-//         cblas_dgemm(CblasColMajor, CblasTrans,
-//                     CblasNoTrans, M, N,
-//                     K, 1, matrix.data,
-//                     K, input_data.data, K,
-//                     0, output_data.data, M);
-//     }
-//
-//     void adjoint_eval() {
-//         int M = static_cast<int>(input_sizes[0][0]);
-//         int N = static_cast<int>(output_sizes[0][1]);
-//         int K = static_cast<int>(output_sizes[0][0]);
-//         cblas_dgemm(CblasColMajor, CblasNoTrans,
-//                     CblasNoTrans, M, N,
-//                     K, 1, matrix.data,
-//                     M, output_data.data, K,
-//                     0, input_data.data, M);
-//     }
-//
-// };
+template <class T>
+class DenseMatMatMul : public DenseMatVecMul<T> {
+public:
+    cml::matrix<T, CblasColMajor> input_matrix;
+    cml::matrix<T, CblasColMajor> output_matrix;
+
+    void alloc_data() {
+        FAO<T>::alloc_data();
+        int M = static_cast<int>(this->output_sizes[0][0]);
+        int N = static_cast<int>(this->output_sizes[0][1]);
+        int K = static_cast<int>(this->input_sizes[0][0]);
+        input_matrix = cml::matrix_init<T, CblasColMajor>(K, N,
+            this->input_data.data);
+        output_matrix = cml::matrix_init<T, CblasColMajor>(M, N,
+            this->output_data.data);
+    }
+
+    /* Standard dense matrix matrix multiplication AX = Y.
+       A in R^{M x K}, X in R^{K x N}, Y in R^{M x N}
+    */
+    void forward_eval() {
+        // cblas_dgemm(CblasColMajor, CblasTrans,
+        //             CblasNoTrans, M, N,
+        //             K, 1, matrix.data,
+        //             K, input_data.data, K,
+        //             0, output_data.data, M);
+        cml::blas_gemm(this->hdl, CUBLAS_OP_N, CUBLAS_OP_N,
+                       static_cast<T>(1.0), &this->matrix, &input_matrix,
+                       static_cast<T>(0.0), &output_matrix);
+        cudaDeviceSynchronize();
+        CUDA_CHECK_ERR();
+    }
+
+    void adjoint_eval() {
+        // cblas_dgemm(CblasColMajor, CblasNoTrans,
+        //             CblasNoTrans, M, N,
+        //             K, 1, matrix.data,
+        //             M, output_data.data, K,
+        //             0, input_data.data, M);
+        cml::blas_gemm(this->hdl, CUBLAS_OP_T, CUBLAS_OP_N,
+                       static_cast<T>(1.0), &this->matrix, &output_matrix,
+                       static_cast<T>(0.0), &input_matrix);
+        cudaDeviceSynchronize();
+        CUDA_CHECK_ERR();
+    }
+
+};
 
 cusparseOperation_t OpToCusparseOp(char trans) {
   ASSERT(trans == 'n' || trans == 'N' || trans == 't' || trans == 'T');
@@ -1006,6 +1028,8 @@ public:
 %template(DenseMatVecMulf) DenseMatVecMul<float>;
 %template(SparseMatVecMuld) SparseMatVecMul<double>;
 %template(SparseMatVecMulf) SparseMatVecMul<float>;
+%template(DenseMatMatMuld) DenseMatMatMul<double>;
+%template(DenseMatMatMulf) DenseMatMatMul<float>;
 %template(ScalarMuld) ScalarMul<double>;
 %template(ScalarMulf) ScalarMul<float>;
 %template(Negd) Neg<double>;

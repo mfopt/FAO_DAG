@@ -139,6 +139,7 @@ def mat_free_pogs_solve(py_dag, data, dims, solver_opts):
     adaptive_rho = solver_opts.get("adaptive_rho", True)
     use_exact_tol = solver_opts.get("use_exact_tol", True)
     double = solver_opts.get("double", True)
+
     if verbose:
         print len(py_dag.nodes)
         for i, node in py_dag.nodes.items():
@@ -358,7 +359,8 @@ def set_dense_data(node_c, node_py, dtype):
     """Stores dense matrix data on the Swig FAO.
     """
     matrix = node_py.data.astype(dtype, order='F')
-    node_c.set_matrix_data(matrix)
+    # Transpose because always row major and want column major.
+    node_c.set_matrix_data(matrix.T)
 
 def set_sparse_data(node_c, node_py, dtype):
     """Stores dense matrix data on the Swig FAO.
@@ -414,7 +416,7 @@ type_map = {
         SCALAR_MUL: FAO_DAG.ScalarMuld,
         DENSE_MAT_VEC_MUL: FAO_DAG.DenseMatVecMuld,
         SPARSE_MAT_VEC_MUL: FAO_DAG.SparseMatVecMuld,
-        # DENSE_MAT_MAT_MUL: FAO_DAG.DenseMatMatMul,
+        DENSE_MAT_MAT_MUL: FAO_DAG.DenseMatMatMuld,
         # SPARSE_MAT_MAT_MUL: FAO_DAG.SparseMatMatMul,
         COPY: FAO_DAG.Copyd,
         SPLIT: FAO_DAG.Splitd,
@@ -446,7 +448,7 @@ type_map = {
         SCALAR_MUL: FAO_DAG.ScalarMulf,
         DENSE_MAT_VEC_MUL: FAO_DAG.DenseMatVecMulf,
         SPARSE_MAT_VEC_MUL: FAO_DAG.SparseMatVecMulf,
-        # DENSE_MAT_MAT_MUL: FAO_DAG.DenseMatMatMul,
+        DENSE_MAT_MAT_MUL: FAO_DAG.DenseMatMatMulf,
         # SPARSE_MAT_MAT_MUL: FAO_DAG.SparseMatMatMul,
         COPY: FAO_DAG.Copyf,
         SPLIT: FAO_DAG.Splitf,
