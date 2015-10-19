@@ -9,8 +9,8 @@ import numpy as np
 
 
 np.random.seed(1)
-n = 50
-m = 2*n
+n = 75
+m = n
 X = Variable(n, n)
 A = np.abs(np.random.randn(m, n)) + 1e-6
 B = np.abs(np.random.randn(n, m)) + 1e-6
@@ -24,7 +24,7 @@ cost = trace(C.T*X)
 prob = Problem(Minimize(cost),
                 [X >= 0, Z*B <= 1, A*X == Z])
 
-print "ECOS obj", prob.solve(solver=ECOS, verbose=True)
+# print "ECOS obj", prob.solve(solver=ECOS, verbose=True)
 
 prob = Problem(Minimize(cost),
                 [X >= 0, A*X*B <= 1])

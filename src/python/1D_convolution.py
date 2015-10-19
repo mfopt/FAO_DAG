@@ -107,6 +107,20 @@ with open("testing123%s.csv" % script_num, "w") as f:
             scs_indirect_times.append(solve_time)
             print("true signal fit", fit.value)
             if True:
+                result = prob.solve(solver=POGS,
+                                    verbose=True,
+                                    max_iters=10000,
+                                    # eps=1e-3,
+                                    # cg_rate=2,
+                                    # precond=True,
+                                    # stoch=True,
+                                    abs_tol=1e-4,
+                                    rel_tol=1e-3,
+                                    samples=200,
+                                    double=True,
+                                    use_exact_tol=True)
+                print "POGS result", result
+            if True:
                 # result = prob.solve(solver=SCS_MAT_FREE,
                 #                     verbose=True,
                 #                     max_iters=10000,
@@ -120,18 +134,38 @@ with open("testing123%s.csv" % script_num, "w") as f:
                 # print "mat free scs result", result
                 # print("solve time", prob.solve_time)
                 # solve_time = prob.solve_time
+
+                # RESULTS: better to use no equilibration.
+                # result = prob.solve(solver=MAT_FREE_POGS,
+                #                     verbose=False,
+                #                     max_iters=10000,
+                #                     equil_steps=1,
+                #                     # eps=1e-3,
+                #                     # cg_rate=2,
+                #                     # precond=True,
+                #                     # stoch=True,
+                #                     abs_tol=1e-4,
+                #                     rel_tol=1e-3,
+                #                     samples=200,
+                #                     double=True,
+                #                     use_exact_tol=True)
+                # print "MAT FREE POGS result", result
+                # print "MAT FREE POGS solve time", prob.solve_time
+                # print "MAT FREE POGS A evals", prob.A_evals
+                # print "MAT FREE POGS AT evals", prob.AT_evals
+
                 result = prob.solve(solver=MAT_FREE_POGS,
                                     verbose=False,
                                     max_iters=10000,
-                                    equil_steps=1,
+                                    equil_steps=0,
                                     # eps=1e-3,
                                     # cg_rate=2,
                                     # precond=True,
                                     # stoch=True,
                                     abs_tol=1e-4,
-                                    rel_tol=1e-4,
+                                    rel_tol=1e-3,
                                     samples=200,
-                                    double=False,
+                                    double=True,
                                     use_exact_tol=True)
                 print "MAT FREE POGS result", result
                 print "MAT FREE POGS solve time", prob.solve_time
