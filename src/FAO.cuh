@@ -201,6 +201,11 @@ public:
         CUDA_CHECK_ERR();
     }
 
+    void free_data() {
+        cml::matrix_free(&matrix);
+        FAO<T>::free_data();
+    }
+
     void set_matrix_data(T* data, int rows, int cols) {
         // Reverse rows and cols because data is transpose.
         // Needed because SWIG alwasy passes in in row major order.
@@ -232,16 +237,30 @@ class DenseMatMatMul : public DenseMatVecMul<T> {
 public:
     cml::matrix<T, CblasColMajor> input_matrix;
     cml::matrix<T, CblasColMajor> output_matrix;
+    int M, N, K;
+
+    int forward_evals = 0;
+    int adjoint_evals = 0;
+    double total_forward_mul_time = 0;
+    double total_adjoint_mul_time = 0;
 
     void alloc_data() {
         FAO<T>::alloc_data();
-        int M = static_cast<int>(this->output_sizes[0][0]);
-        int N = static_cast<int>(this->output_sizes[0][1]);
-        int K = static_cast<int>(this->input_sizes[0][0]);
+        M = static_cast<int>(this->output_sizes[0][0]);
+        N = static_cast<int>(this->output_sizes[0][1]);
+        K = static_cast<int>(this->input_sizes[0][0]);
         input_matrix = cml::matrix_init<T, CblasColMajor>(K, N,
             this->input_data.data);
         output_matrix = cml::matrix_init<T, CblasColMajor>(M, N,
             this->output_data.data);
+    }
+
+    void free_data() {
+        printf("n=%u, avg_forward_mul=%e\n", N*K,
+            total_forward_mul_time/forward_evals);
+        printf("n=%u, avg_adjoint_mul=%e\n", M*N,
+            total_adjoint_mul_time/adjoint_evals);
+        DenseMatVecMul<T>::free_data();
     }
 
     /* Standard dense matrix matrix multiplication AX = Y.
@@ -253,14 +272,19 @@ public:
         //             K, 1, matrix.data,
         //             K, input_data.data, K,
         //             0, output_data.data, M);
+        forward_evals++;
+        double t = timer<double>();
         cml::blas_gemm(this->hdl, CUBLAS_OP_N, CUBLAS_OP_N,
                        static_cast<T>(1.0), &this->matrix, &input_matrix,
                        static_cast<T>(0.0), &output_matrix);
         cudaDeviceSynchronize();
         CUDA_CHECK_ERR();
+        total_forward_mul_time += timer<double>() - t;
     }
 
     void adjoint_eval() {
+        adjoint_evals++;
+        double t = timer<double>();
         // cblas_dgemm(CblasColMajor, CblasNoTrans,
         //             CblasNoTrans, M, N,
         //             K, 1, matrix.data,
@@ -271,48 +295,60 @@ public:
                        static_cast<T>(0.0), &input_matrix);
         cudaDeviceSynchronize();
         CUDA_CHECK_ERR();
+        total_adjoint_mul_time += timer<double>() - t;
     }
 
 };
 
 template <class T>
-class DenseMatMatRMul : public DenseMatVecMul<T> {
+class DenseMatMatRMul : public DenseMatMatMul<T> {
 public:
-
-    cml::matrix<T, CblasColMajor> input_matrix;
-    cml::matrix<T, CblasColMajor> output_matrix;
 
     void alloc_data() {
         FAO<T>::alloc_data();
-        int M = static_cast<int>(this->output_sizes[0][0]);
-        int N = static_cast<int>(this->output_sizes[0][1]);
-        int K = static_cast<int>(this->input_sizes[0][1]);
-        input_matrix = cml::matrix_init<T, CblasColMajor>(M, K,
+        this->M = static_cast<int>(this->output_sizes[0][0]);
+        this->N = static_cast<int>(this->output_sizes[0][1]);
+        this->K = static_cast<int>(this->input_sizes[0][1]);
+        this->input_matrix = cml::matrix_init<T, CblasColMajor>(this->M, this->K,
             this->input_data.data);
-        output_matrix = cml::matrix_init<T, CblasColMajor>(M, N,
+        this->output_matrix = cml::matrix_init<T, CblasColMajor>(this->M, this->N,
             this->output_data.data);
+    }
+
+    void free_data() {
+        printf("n=%u, avg_forward_rmul=%e\n", this->M*this->K,
+            this->total_forward_mul_time/this->forward_evals);
+        printf("n=%u, avg_adjoint_rmul=%e\n", this->M*this->N,
+            this->total_adjoint_mul_time/this->adjoint_evals);
+        DenseMatVecMul<T>::free_data();
     }
 
     /* Standard dense matrix matrix multiplication XA = Y.
        X in R^{M x K}, A in R^{K x N}, Y in R^{M x N}
     */
     void forward_eval() {
+        this->forward_evals++;
+        double t = timer<double>();
         cml::blas_gemm(this->hdl, CUBLAS_OP_N, CUBLAS_OP_N,
-                       static_cast<T>(1.0), &input_matrix, &this->matrix,
-                       static_cast<T>(0.0), &output_matrix);
+                       static_cast<T>(1.0), &this->input_matrix, &this->matrix,
+                       static_cast<T>(0.0), &this->output_matrix);
         cudaDeviceSynchronize();
         CUDA_CHECK_ERR();
+        this->total_forward_mul_time += timer<double>() - t;
     }
 
     /* Standard dense matrix matrix multiplication YA^T = X.
        Y in R^{M x N}, A^T in R^{N x K}, X in R^{M x K}
     */
     void adjoint_eval() {
+        this->adjoint_evals++;
+        double t = timer<double>();
         cml::blas_gemm(this->hdl, CUBLAS_OP_N, CUBLAS_OP_T,
-                       static_cast<T>(1.0), &output_matrix, &this->matrix,
-                       static_cast<T>(0.0), &input_matrix);
+                       static_cast<T>(1.0), &this->output_matrix, &this->matrix,
+                       static_cast<T>(0.0), &this->input_matrix);
         cudaDeviceSynchronize();
         CUDA_CHECK_ERR();
+        this->total_adjoint_mul_time += timer<double>() - t;
     }
 };
 
