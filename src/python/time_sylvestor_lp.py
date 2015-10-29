@@ -22,7 +22,7 @@ with open("sylvester_pogs_times%s.csv" % script_num, "w") as f:
 
     np.random.seed(5)
     random.seed(5)
-    n_vals = [int(n) for n in np.logspace(1, 3, 10)]
+    n_vals = [int(n) for n in np.logspace(2, 3, 10)]
     ecos_times = []
     scs_direct_times = []
     scs_indirect_times = []
@@ -31,11 +31,11 @@ with open("sylvester_pogs_times%s.csv" % script_num, "w") as f:
         for r in range(REPS):
             print("n=",n)
             m = 10*n
-            X = Variable(n, n)
-            A = np.abs(np.random.randn(m, n)) + 1e-6
-            B = np.abs(np.random.randn(n, m)) + 1e-6
-            C = np.random.randn(n, n)
-            # D = np.abs(np.random.randn(m, m)) + 1e-6
+            X = Variable(m, n)
+            A = np.abs(np.random.randn(m, m)) + 1e-6
+            B = np.abs(np.random.randn(n, n)) + 1e-6
+            C = np.random.randn(m, n)
+            D = np.abs(np.random.randn(m, m)) + 1e-6
 
             # Only solve one problem.
             if r != script_num:
