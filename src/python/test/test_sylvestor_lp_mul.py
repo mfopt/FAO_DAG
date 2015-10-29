@@ -9,12 +9,12 @@ import numpy as np
 
 
 np.random.seed(1)
-n = 75
-m = n
-X = Variable(n, n)
-A = np.abs(np.random.randn(m, n)) + 1e-6
-B = np.abs(np.random.randn(n, m)) + 1e-6
-C = np.random.randn(n, n)
+n = 10
+m = 10*n
+X = Variable(m, n)
+A = np.abs(np.random.randn(m, m)) + 1e-6
+B = np.abs(np.random.randn(n, n)) + 1e-6
+C = np.random.randn(m, n)
 D = np.abs(np.random.randn(m, m)) + 1e-6
 
 print "nnz = ", (m*n)**2
@@ -24,7 +24,7 @@ cost = trace(C.T*X)
 prob = Problem(Minimize(cost),
                 [X >= 0, Z*B <= 1, A*X == Z])
 
-# print "ECOS obj", prob.solve(solver=ECOS, verbose=True)
+print "ECOS obj", prob.solve(solver=ECOS, verbose=True)
 
 prob = Problem(Minimize(cost),
                 [X >= 0, A*X*B <= 1])

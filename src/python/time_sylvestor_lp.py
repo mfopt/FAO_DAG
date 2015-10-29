@@ -30,11 +30,12 @@ with open("sylvester_pogs_times%s.csv" % script_num, "w") as f:
     for n in n_vals:
         for r in range(REPS):
             print("n=",n)
-            m = n
-            X = Variable(n, n)
-            A = np.abs(np.random.randn(m, n)) + 1e-6
-            B = np.abs(np.random.randn(n, m)) + 1e-6
-            C = np.random.randn(n, n)
+            n = 10
+            m = 10*n
+            X = Variable(m, n)
+            A = np.abs(np.random.randn(m, m)) + 1e-6
+            B = np.abs(np.random.randn(n, n)) + 1e-6
+            C = np.random.randn(m, n)
             D = np.abs(np.random.randn(m, m)) + 1e-6
 
             # Only solve one problem.
@@ -105,7 +106,7 @@ with open("sylvester_pogs_times%s.csv" % script_num, "w") as f:
                                     equil_steps=1,
                                     abs_tol=1e-4,
                                     rel_tol=1e-3,
-                                    samples=500,
+                                    samples=200,
                                     double=True)
                 print "MAT FREE POGS double result", result
                 print "MAT FREE POGS double relative result", result/(norm(C).value*norm(X).value)
@@ -120,7 +121,7 @@ with open("sylvester_pogs_times%s.csv" % script_num, "w") as f:
                                     equil_steps=1,
                                     abs_tol=1e-4,
                                     rel_tol=1e-3,
-                                    samples=500,
+                                    samples=200,
                                     double=False)
                 print "MAT FREE POGS float result", result
                 print "MAT FREE POGS float relative result", result/(norm(C).value*norm(X).value)
