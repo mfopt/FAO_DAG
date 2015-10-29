@@ -31,11 +31,11 @@ with open("sylvester_pogs_times%s.csv" % script_num, "w") as f:
         for r in range(REPS):
             print("n=",n)
             m = 10*n
-            X = Variable(m, n)
-            A = np.abs(np.random.randn(m, m)) + 1e-6
-            B = np.abs(np.random.randn(n, n)) + 1e-6
-            C = np.random.randn(m, n)
-            D = np.abs(np.random.randn(m, m)) + 1e-6
+            X = Variable(n, n)
+            A = np.abs(np.random.randn(m, n)) + 1e-6
+            B = np.abs(np.random.randn(n, m)) + 1e-6
+            C = np.random.randn(n, n)
+            # D = np.abs(np.random.randn(m, m)) + 1e-6
 
             # Only solve one problem.
             if r != script_num:
