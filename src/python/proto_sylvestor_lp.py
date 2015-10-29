@@ -11,7 +11,7 @@ import time
 
 np.random.seed(1)
 n = 10
-m = n
+m = 10*n
 X = Variable(m, n)
 A = np.abs(np.random.randn(m, m)) + 1e-6
 B = np.abs(np.random.randn(n, n)) + 1e-6
@@ -40,12 +40,12 @@ prob = Problem(Minimize(cost),
 #                             max_iters=10000, eps=1e-3)
 # print "SCS cost", cost.value
 
-# prob.solve(solver=OLD_SCS_MAT_FREE, max_iters=2500, verbose=False,
-#            equil_steps=1, samples=200, precond=True, stoch=True, eps=1e-3)
-# print "OLD MAT FREE obj", prob.value
-# print "OLD MAT FREE cost", cost.value
+prob.solve(solver=OLD_SCS_MAT_FREE, max_iters=2500, verbose=False,
+           equil_steps=1, samples=200, precond=True, stoch=True, eps=1e-3)
+print "OLD MAT FREE obj", prob.value
+print "OLD MAT FREE cost", cost.value
+print "OLD MAT FREE solve time", prob.solve_time
 # print "OLD MAT FREE sltn error", norm(true_X - X, 'fro').value/norm(true_X).value
-# print "OLD MAT FREE solve time", prob.solve_time
 # prob.solve(solver=MAT_FREE_SCS, max_iters=5000, verbose=False,
 #            equil_steps=1, samples=200, precond=True, rand_seed=False, eps=1e-3)
 # print "SCS MAT FREE obj", prob.value
@@ -55,18 +55,18 @@ if true_X is not None:
     denom = norm(true_X, 'fro')*norm(C, 'fro')
 
 # TODO profile.
-prob.solve(solver=MAT_FREE_POGS, verbose=False, extra_verbose=True, max_iters=100,
-    samples=200, equil_steps=0, rho=1, double=True, abs_tol=1e-4, rel_tol=5e-4)
+prob.solve(solver=MAT_FREE_POGS, verbose=True, extra_verbose=False, max_iters=2500,
+    samples=200, equil_steps=1, rho=1, double=True, abs_tol=1e-4, rel_tol=1e-3)
 print "MAT FREE POGS double cost", cost.value
 print "MAT FREE POGS double solve time", prob.solve_time
 if true_X != None:
     print "MAT FREE POGS double relative error", cost.value/denom.value
     print "MAT FREE POGS double sltn error", norm(true_X - X, 'fro').value/norm(true_X).value
 
-# prob.solve(solver=MAT_FREE_POGS, verbose=False, max_iters=2500,
-#     samples=200, equil_steps=1, rho=1, double=False, abs_tol=1e-4, rel_tol=5e-4)
-# print "MAT FREE POGS float cost", cost.value
-# print "MAT FREE POGS float solve time", prob.solve_time
-# if true_X is not None:
-#     print "MAT FREE POGS float relative error", cost.value/denom.value
-#     print "MAT FREE POGS float sltn error", norm(true_X - X, 'fro').value/norm(true_X).value
+prob.solve(solver=MAT_FREE_POGS, verbose=True, max_iters=2500,
+    samples=200, equil_steps=1, rho=1, double=False, abs_tol=1e-4, rel_tol=1e-3)
+print "MAT FREE POGS float cost", cost.value
+print "MAT FREE POGS float solve time", prob.solve_time
+if true_X is not None:
+    print "MAT FREE POGS float relative error", cost.value/denom.value
+    print "MAT FREE POGS float sltn error", norm(true_X - X, 'fro').value/norm(true_X).value

@@ -30,7 +30,6 @@ with open("sylvester_pogs_times%s.csv" % script_num, "w") as f:
     for n in n_vals:
         for r in range(REPS):
             print("n=",n)
-            n = 10
             m = 10*n
             X = Variable(m, n)
             A = np.abs(np.random.randn(m, m)) + 1e-6
