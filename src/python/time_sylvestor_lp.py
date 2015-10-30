@@ -107,11 +107,11 @@ with open("sylvester_pogs_times%s.csv" % script_num, "w") as f:
                                     verbose=True,
                                     max_iters=10000,
                                     equil_steps=1,
-                                    abs_tol=1e-4,
+                                    abs_tol=5e-5,
                                     rel_tol=1e-4,
                                     samples=200,
                                     double=True,
-                                    rho=2)
+                                    rho=1)
                 print "MAT FREE POGS double result", result
                 print "MAT FREE POGS double relative result", result/(norm(C).value*norm(X).value)
                 print "MAT FREE POGS double solve time", prob.solve_time
@@ -124,11 +124,11 @@ with open("sylvester_pogs_times%s.csv" % script_num, "w") as f:
                                     verbose=True,
                                     max_iters=10000,
                                     equil_steps=1,
-                                    abs_tol=1e-4,
+                                    abs_tol=5e-5,
                                     rel_tol=1e-4,
                                     samples=200,
                                     double=False,
-                                    rho=2)
+                                    rho=1)
                 print "MAT FREE POGS float result", result
                 print "MAT FREE POGS float relative result", result/(norm(C).value*norm(X).value)
                 print "MAT FREE POGS float solve time", prob.solve_time
