@@ -9,8 +9,9 @@ import numpy as np
 
 
 np.random.seed(1)
-n = 599
-m = n
+n = 129
+K = 5
+m = K*n
 X = Variable(m, n)
 A = np.abs(np.random.randn(m, m)) + 1e-6
 B = np.abs(np.random.randn(n, n)) + 1e-6

@@ -30,13 +30,13 @@ with open("sylvester_pogs_times%s.csv" % script_num, "w") as f:
     for n in n_vals:
         for r in range(REPS):
             print("n=",n)
-            K = 10
+            K = 5
             m = K*n
             X = Variable(m, n)
             A = np.abs(np.random.randn(m, m)) + 1e-6
             B = np.abs(np.random.randn(n, n)) + 1e-6
             C = np.random.randn(m, n)
-            D = np.abs(np.random.randn(m, m)) + 1e-6
+            # D = np.abs(np.random.randn(m, m)) + 1e-6
 
             # Only solve one problem.
             if r != script_num:
@@ -99,17 +99,19 @@ with open("sylvester_pogs_times%s.csv" % script_num, "w") as f:
                 # print "evals", prob.A_evals + prob.AT_evals
                 # evals = prob.A_evals + prob.AT_evals
                 # solve_time = prob.solve_time
-            if True:
+            double_solve_time = 0
+            double_evals = 0
+            if False:
                 result = prob.solve(solver=MAT_FREE_POGS,
                                     adaptive_rho=False,
                                     verbose=True,
                                     max_iters=10000,
                                     equil_steps=1,
-                                    abs_tol=5e-5,
+                                    abs_tol=1e-4,
                                     rel_tol=1e-4,
                                     samples=200,
                                     double=True,
-                                    rho=K)
+                                    rho=2)
                 print "MAT FREE POGS double result", result
                 print "MAT FREE POGS double relative result", result/(norm(C).value*norm(X).value)
                 print "MAT FREE POGS double solve time", prob.solve_time
@@ -122,11 +124,11 @@ with open("sylvester_pogs_times%s.csv" % script_num, "w") as f:
                                     verbose=True,
                                     max_iters=10000,
                                     equil_steps=1,
-                                    abs_tol=5e-5,
+                                    abs_tol=1e-4,
                                     rel_tol=1e-4,
                                     samples=200,
                                     double=False,
-                                    rho=K)
+                                    rho=2)
                 print "MAT FREE POGS float result", result
                 print "MAT FREE POGS float relative result", result/(norm(C).value*norm(X).value)
                 print "MAT FREE POGS float solve time", prob.solve_time
