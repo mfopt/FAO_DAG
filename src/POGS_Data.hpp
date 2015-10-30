@@ -37,6 +37,7 @@ public:
      char* status;
 
      // Solver options.
+     double cg_rate;
      double rel_tol;
      double abs_tol;
      int max_iter;
@@ -199,6 +200,7 @@ public:
           pogs_data.SetRelTol(rel_tol);
           pogs_data.SetMaxIter(max_iter);
           pogs_data.SetUseExactTol(use_exact_tol);
+          pogs_data.SetProjTolPow(cg_rate);
           std::vector<T> c_vec(c, c + c_len);
           std::vector<T> b_vec(b, b + b_len);
           double t = timer<double>();
@@ -260,6 +262,7 @@ public:
           pogs_data.SetRelTol(rel_tol);
           pogs_data.SetMaxIter(max_iter);
           pogs_data.SetUseExactTol(use_exact_tol);
+          pogs_data.SetProjTolPow(cg_rate);
           std::vector<T> c_vec(c, c + c_len);
           std::vector<T> b_vec(b, b + b_len);
           double t = timer<double>();

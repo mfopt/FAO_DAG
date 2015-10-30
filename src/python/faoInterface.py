@@ -140,6 +140,8 @@ def mat_free_pogs_solve(py_dag, data, dims, solver_opts):
     adaptive_rho = solver_opts.get("adaptive_rho", True)
     use_exact_tol = solver_opts.get("use_exact_tol", True)
     double = solver_opts.get("double", True)
+    cg_rate = solver_opts.get("cg_rate", 2)
+
 
     if extra_verbose:
         print len(py_dag.nodes)
@@ -179,6 +181,7 @@ def mat_free_pogs_solve(py_dag, data, dims, solver_opts):
     pogs_data.samples = samples
     pogs_data.equil_steps = equil_steps
     pogs_data.rho = rho
+    pogs_data.cg_rate = cg_rate
 
     cones = python_cones_to_pogs_cones(dims)
 
@@ -226,6 +229,7 @@ def pogs_solve(data, dims, solver_opts):
     max_iter = solver_opts.get("max_iters", 2500)
     double = solver_opts.get("double", True)
     use_exact_tol = solver_opts.get("use_exact_tol", True)
+    cg_rate = solver_opts.get("cg_rate", 2)
 
     # start_node, end_node, edges = python_to_swig(py_dag, tmp)
     # dag = FAO_DAG.FAO_DAG(start_node, end_node, edges)
@@ -253,6 +257,7 @@ def pogs_solve(data, dims, solver_opts):
     pogs_data.max_iter = max_iter
     pogs_data.use_exact_tol = use_exact_tol
     pogs_data.rho = rho
+    pogs_data.cg_rate = cg_rate
 
     cones = python_cones_to_pogs_cones(dims)
 
