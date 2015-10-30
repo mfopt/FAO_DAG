@@ -9,8 +9,8 @@ import numpy as np
 
 
 np.random.seed(1)
-n = 10
-m = 10*n
+n = 599
+m = n
 X = Variable(m, n)
 A = np.abs(np.random.randn(m, m)) + 1e-6
 B = np.abs(np.random.randn(n, n)) + 1e-6
@@ -21,10 +21,10 @@ print "nnz = ", (m*n)**2
 
 Z = Variable(m, n)
 cost = trace(C.T*X)
-prob = Problem(Minimize(cost),
-                [X >= 0, Z*B <= 1, A*X == Z])
+# prob = Problem(Minimize(cost),
+#                 [X >= 0, Z*B <= 1, A*X == Z])
 
-print "ECOS obj", prob.solve(solver=ECOS, verbose=True)
+# print "ECOS obj", prob.solve(solver=ECOS, verbose=True)
 
 prob = Problem(Minimize(cost),
                 [X >= 0, A*X*B <= 1])
@@ -32,10 +32,10 @@ prob = Problem(Minimize(cost),
 #                             max_iters=10000, eps=1e-3)
 # print "SCS cost", cost.value
 
-prob.solve(solver=OLD_SCS_MAT_FREE, max_iters=2500, verbose=True,
-           equil_steps=1, samples=200, precond=True, stoch=True, eps=1e-3)
-print "OLD MAT FREE obj", prob.value
-print "OLD MAT FREE cost", cost.value
+# prob.solve(solver=OLD_SCS_MAT_FREE, max_iters=2500, verbose=True,
+#            equil_steps=1, samples=200, precond=True, stoch=True, eps=1e-3)
+# print "OLD MAT FREE obj", prob.value
+# print "OLD MAT FREE cost", cost.value
 
 prob.solve(solver=MAT_FREE_SCS, max_iters=5000, verbose=True,
            equil_steps=1, samples=200, precond=True, rand_seed=False, eps=1e-3)

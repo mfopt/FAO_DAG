@@ -10,8 +10,9 @@ import time
 
 
 np.random.seed(1)
-n = 20
-m = n
+n = 12
+K = 10
+m = K*n
 X = Variable(m, n)
 A = np.abs(np.random.randn(m, m)) + 1e-6
 B = np.abs(np.random.randn(n, n)) + 1e-6
@@ -55,16 +56,16 @@ if true_X is not None:
     denom = norm(true_X, 'fro')*norm(C, 'fro')
 
 # TODO profile.
-prob.solve(solver=MAT_FREE_POGS, verbose=False, extra_verbose=False, max_iters=2500,
-    samples=200, equil_steps=1, rho=1, double=True, abs_tol=1e-4, rel_tol=5e-4)
+prob.solve(solver=MAT_FREE_POGS, verbose=True, extra_verbose=False, max_iters=2500, adaptive_rho=False,
+    samples=200, equil_steps=1, rho=K, double=True, abs_tol=5e-5, rel_tol=1e-4)
 print "MAT FREE POGS double cost", cost.value
 print "MAT FREE POGS double solve time", prob.solve_time
 if true_X != None:
     print "MAT FREE POGS double relative error", cost.value/denom.value
     print "MAT FREE POGS double sltn error", norm(true_X - X, 'fro').value/norm(true_X).value
 
-prob.solve(solver=MAT_FREE_POGS, verbose=False, max_iters=2500,
-    samples=200, equil_steps=1, rho=1, double=False, abs_tol=1e-4, rel_tol=5e-4)
+prob.solve(solver=MAT_FREE_POGS, verbose=True, max_iters=2500, adaptive_rho=False,
+    samples=200, equil_steps=1, rho=K, double=False, abs_tol=5e-5, rel_tol=1e-4)
 print "MAT FREE POGS float cost", cost.value
 print "MAT FREE POGS float solve time", prob.solve_time
 if true_X is not None:
