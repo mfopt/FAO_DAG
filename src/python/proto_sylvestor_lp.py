@@ -10,7 +10,7 @@ import time
 
 
 np.random.seed(1)
-n = 15
+n = 13
 K = 5
 m = K*n
 X = Variable(m, n)
@@ -57,7 +57,7 @@ if true_X is not None:
 
 # TODO profile.
 prob.solve(solver=MAT_FREE_POGS, verbose=True, extra_verbose=False, max_iters=2500, adaptive_rho=False,
-    samples=200, equil_steps=1, rho=1, double=True, abs_tol=5e-5, rel_tol=1e-4)
+    samples=200, equil_steps=1, double=True, rho=K, abs_tol=5e-5, rel_tol=1e-5)
 print "MAT FREE POGS double cost", cost.value
 print "MAT FREE POGS double solve time", prob.solve_time
 if true_X != None:
@@ -65,7 +65,7 @@ if true_X != None:
     print "MAT FREE POGS double sltn error", norm(true_X - X, 'fro').value/norm(true_X).value
 
 prob.solve(solver=MAT_FREE_POGS, verbose=True, max_iters=2500, adaptive_rho=False,
-    samples=200, equil_steps=1, rho=1, double=False, abs_tol=5e-5, rel_tol=1e-4)
+    samples=200, equil_steps=1, double=False, rho=K, abs_tol=5e-5, rel_tol=1e-5)
 print "MAT FREE POGS float cost", cost.value
 print "MAT FREE POGS float solve time", prob.solve_time
 if true_X is not None:
