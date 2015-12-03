@@ -5,8 +5,9 @@ from numpy.distutils.system_info import get_info, BlasNotFoundError
 
 define_macros = []
 extra_link_args = []
-extra_compile_args = ['-std=c++11']
-include_dirs = [numpy.get_include(),'../','../../include/']
+extra_compile_args = ['-std=c++11', '-pg']
+include_dirs = [numpy.get_include(),'../','../../include/',
+                '../../include/scs/include/', '../../include/pogs_fork/src/include/']
 library_dirs = []
 libraries = ['fftw3', 'fftw3f', 'fftw3l', 'fftw3_threads',
             'fftw3f_threads', 'fftw3l_threads']
@@ -28,9 +29,9 @@ canon = Extension('_FAO_DAG',
 	include_dirs=include_dirs,
 	extra_compile_args=extra_compile_args,
 	extra_link_args=extra_link_args,
-    # extra_objects =['../../external/pogs/src/build/pogs.a'],
-    libraries=libraries,
-    library_dirs=library_dirs)
+    extra_objects =['../../include/pogs_fork/src/build/pogs.a'],
+    libraries=libraries + ['scsindir'],
+    library_dirs=library_dirs + ['../../include/scs/out'])
 
 setup(
 	name='FAO_DAG',

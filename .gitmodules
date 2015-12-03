@@ -1,0 +1,10 @@
+[submodule "include/scs"]
+	path = include/scs
+	url = git@github.com:SteveDiamond/scs.git
+[submodule "scs"]
+	branch = FAO
+[submodule "include/pogs_fork"]
+	path = include/pogs_fork
+	url = git@github.com:SteveDiamond/pogs.git
+[submodule "pogs_fork"]
+	branch = cone

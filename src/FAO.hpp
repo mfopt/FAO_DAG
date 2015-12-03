@@ -28,6 +28,7 @@
 #include "gsl/gsl_spmat.h"
 #include "gsl/gsl_spblas.h"
 #include <fftw3.h>
+#include "pogs_fork/src/include/timer.h"
 
 // /* ID for all coefficient matrices associated with linOps of CONSTANT_TYPE */
 // static const int CONSTANT_ID = -1;
@@ -159,26 +160,38 @@ public:
 };
 
 class NoOp : public FAO {
+	/* Zero out the output. */
+	void forward_eval() {
+	    memset(output_data.data, 0, output_data.size*sizeof(double));
+	}
+
+	/* Zero out the input. */
+	void adjoint_eval() {
+	    memset(input_data.data, 0, input_data.size*sizeof(double));
+	}
 };
 
 class DenseMatVecMul : public FAO {
 public:
-    gsl::matrix<double, CblasRowMajor> matrix;
+    gsl::matrix<double, CblasColMajor> matrix;
     // TODO should I store the transpose separately?
     // gsl::matrix<T, CblasRowMajor> matrix_trans;
 
     void set_matrix_data(double* data, int rows, int cols) {
-        matrix = gsl::matrix_init<double, CblasRowMajor>(rows, cols, data);
+        // Reverse rows and cols because data is transpose.
+        // Needed because SWIG alwasy passes in in row major order.
+        matrix = gsl::matrix_alloc<double, CblasColMajor>(cols, rows);
+        gsl::matrix_memcpy<double, CblasColMajor>(&matrix, data);
     }
 
     /* Standard dense matrix multiplication. */
     void forward_eval() {
-        return gsl::blas_gemv<double, CblasRowMajor>(CblasNoTrans, 1, &matrix,
+        return gsl::blas_gemv<double, CblasColMajor>(CblasNoTrans, 1, &matrix,
         	&input_data, 0, &output_data);
     }
 
     void adjoint_eval() {
-        return gsl::blas_gemv<double, CblasRowMajor>(CblasTrans, 1, &matrix,
+        return gsl::blas_gemv<double, CblasColMajor>(CblasTrans, 1, &matrix,
         	&output_data, 0, &input_data);
     }
 
@@ -187,26 +200,68 @@ public:
 class DenseMatMatMul : public DenseMatVecMul {
 public:
 
-    /* Standard dense matrix matrix multiplication. */
+    /* Standard dense matrix matrix multiplication AX = Y.
+       A in R^{M x K}, X in R^{K x N}, Y in R^{M x N}
+    */
     void forward_eval() {
         int M = static_cast<int>(output_sizes[0][0]);
-        int N = static_cast<int>(input_sizes[0][1]);
-        int K = static_cast<int>(input_sizes[0][0]);
-        cblas_dgemm(CblasColMajor, CblasTrans,
-                    CblasNoTrans, M, N,
-                    K, 1, matrix.data,
-                    K, input_data.data, K,
-                    0, output_data.data, M);
-    }
-
-    void adjoint_eval() {
-        int M = static_cast<int>(input_sizes[0][0]);
         int N = static_cast<int>(output_sizes[0][1]);
-        int K = static_cast<int>(output_sizes[0][0]);
+        int K = static_cast<int>(input_sizes[0][0]);
         cblas_dgemm(CblasColMajor, CblasNoTrans,
                     CblasNoTrans, M, N,
                     K, 1, matrix.data,
-                    M, output_data.data, K,
+                    M, input_data.data, K,
+                    0, output_data.data, M);
+
+    }
+
+    /* Standard dense matrix matrix multiplication A^TY = X.
+       A^T in R^{K x M}, Y in R^{M x N}, X in R^{K x N}
+    */
+    void adjoint_eval() {
+        int M = static_cast<int>(output_sizes[0][0]);
+        int N = static_cast<int>(output_sizes[0][1]);
+        int K = static_cast<int>(input_sizes[0][0]);
+        cblas_dgemm(CblasColMajor, CblasTrans,
+                    CblasNoTrans, K, N,
+                    M, 1, matrix.data,
+                    M, output_data.data, M,
+                    0, input_data.data, K);
+    }
+
+};
+
+class DenseMatMatRMul : public DenseMatVecMul {
+public:
+
+    /* Standard dense matrix matrix multiplication XA = Y.
+       X in R^{M x K}, A in R^{K x N}, Y in R^{M x N}
+    */
+    void forward_eval() {
+        int M = static_cast<int>(output_sizes[0][0]);
+        int N = static_cast<int>(output_sizes[0][1]);
+        int K = static_cast<int>(input_sizes[0][1]);
+        cblas_dgemm(CblasColMajor, CblasNoTrans,
+                    CblasNoTrans, M, N,
+                    K, 1, input_data.data,
+                    M, matrix.data, K,
+                    0, output_data.data, M);
+
+    }
+
+    /* Standard dense matrix matrix multiplication YA^T = X.
+       Y in R^{M x N}, A^T in R^{N x K}, X in R^{M x K}
+
+       We don't transpose A b/c actually in Row major order.
+    */
+    void adjoint_eval() {
+        int M = static_cast<int>(output_sizes[0][0]);
+        int N = static_cast<int>(output_sizes[0][1]);
+        int K = static_cast<int>(input_sizes[0][1]);
+        cblas_dgemm(CblasColMajor, CblasNoTrans,
+                    CblasTrans, M, K,
+                    N, 1, output_data.data,
+                    M, matrix.data, K,
                     0, input_data.data, M);
     }
 
@@ -343,6 +398,14 @@ class Split : public Vstack {
 };
 
 
+class Reshape : public FAO {
+public:
+    /* Operation is in-place. */
+    bool is_inplace() {
+        return true;
+    }
+};
+
 class Conv : public FAO {
 public:
 
@@ -357,6 +420,12 @@ public:
 	fftw_plan forward_ifft_plan;
 	fftw_plan adjoint_fft_plan;
 	fftw_plan adjoint_ifft_plan;
+
+    // Timing info.
+    int forward_evals = 0;
+    int adjoint_evals = 0;
+    double total_forward_r2c_time = 0;
+    double total_adjoint_r2c_time = 0;
 
 	void alloc_data() {
 		input_len = get_length(input_sizes);
@@ -384,16 +453,20 @@ public:
      	/* Initialize the plans for forward_eval. */
      	// TODO also FFTW_MEASURE for faster planning, worse performance.
      	forward_fft_plan = fftw_plan_dft_r2c_1d(padded_len, input_data.data,
-     		r2c_out, FFTW_PATIENT);
+     		r2c_out, FFTW_MEASURE);
      	forward_ifft_plan = fftw_plan_dft_c2r_1d(padded_len, r2c_out,
-     		output_data.data, FFTW_PATIENT);
+     		output_data.data, FFTW_MEASURE);
      	adjoint_fft_plan = fftw_plan_dft_r2c_1d(padded_len, output_data.data,
-     		r2c_out, FFTW_PATIENT);
+     		r2c_out, FFTW_MEASURE);
      	adjoint_ifft_plan = fftw_plan_dft_c2r_1d(padded_len, r2c_out,
-     		input_data.data, FFTW_PATIENT);
+     		input_data.data, FFTW_MEASURE);
     }
 
     void free_data() {
+        printf("n=%u, avg_forward_r2c=%e\n", input_len,
+            total_forward_r2c_time/forward_evals);
+        printf("n=%u, avg_adjoint_r2c=%e\n", input_len,
+            total_adjoint_r2c_time/adjoint_evals);
     	fftw_destroy_plan(forward_fft_plan);
     	fftw_destroy_plan(forward_ifft_plan);
     	fftw_destroy_plan(adjoint_fft_plan);
@@ -436,17 +509,37 @@ public:
 
 	/* Column convolution. */
     void forward_eval() {
+        forward_evals++;
+        double t = timer<double>();
     	zero_pad_input();
+        // printf("T_exec_zero_pad = %e\n", timer<double>() - t);
+        t = timer<double>();
     	fftw_execute(forward_fft_plan);
+        double r2c_time = timer<double>() - t;
+        total_forward_r2c_time += r2c_time;
+        // printf("T_exec_r2c = %e\n", r2c_time);
+        t = timer<double>();
     	multiply_fft(kernel_fft, r2c_out);
+        // printf("T_multiply_fft = %e\n", timer<double>() - t);
+        t = timer<double>();
     	fftw_execute(forward_ifft_plan);
+        // printf("T_exec_c2r = %e\n", timer<double>() - t);
     }
 
     /* Row convolution. */
     void adjoint_eval() {
+        adjoint_evals++;
+        double t = timer<double>();
     	fftw_execute(adjoint_fft_plan);
+        double r2c_time = timer<double>() - t;
+        total_adjoint_r2c_time += r2c_time;
+        // printf("T_exec_r2c = %e\n", r2c_time);
+        t = timer<double>();
     	multiply_fft(rev_kernel_fft, r2c_out);
+        // printf("T_multiply_fft = %e\n", timer<double>() - t);
+        t = timer<double>();
 		fftw_execute(adjoint_ifft_plan);
+        // printf("T_exec_c2r = %e\n", timer<double>() - t);
 		// TODO do this? zero_pad_input();
     }
 };
