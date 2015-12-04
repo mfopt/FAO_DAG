@@ -21,7 +21,7 @@ with open("testing123%s.csv" % script_num, "w") as f:
     np.random.seed(5)
     random.seed(5)
     n_vals = []
-    for n in np.hstack([np.logspace(2, 5, 20), np.logspace(5, 7, 5)[1:]]):
+    for n in np.hstack([np.logspace(2, 5, 20), np.logspace(5, 7, 14)[1:]]):
         n = int(n)
         if n % 2 == 1:
             n -= 1

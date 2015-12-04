@@ -416,7 +416,7 @@ type_map = {
         # "DIAG_MAT": FAO_DAG.DIAG_MAT,
         # "UPPER_TRI": FAO_DAG.UPPER_TRI,
         CONV: FAO_DAG.Convd,
-        # CONV2D: FAO_DAG.Conv2Dd,
+        CONV2D: FAO_DAG.Conv2Dd,
         # "HSTACK": FAO_DAG.HSTACK,
         VSTACK: FAO_DAG.Vstackd,
         SCALAR_MUL: FAO_DAG.ScalarMuld,

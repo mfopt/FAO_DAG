@@ -22,7 +22,7 @@ with open("sylvester_pogs_times%s.csv" % script_num, "w") as f:
 
     np.random.seed(5)
     random.seed(5)
-    n_vals = [int(n) for n in np.logspace(1, 3, 10)]
+    n_vals = [int(n) for n in np.logspace(1, 3, 20)]
     ecos_times = []
     scs_direct_times = []
     scs_indirect_times = []
@@ -103,12 +103,12 @@ with open("sylvester_pogs_times%s.csv" % script_num, "w") as f:
             double_evals = 0
             if False:
                 result = prob.solve(solver=MAT_FREE_POGS,
-                                    adaptive_rho=True,
+                                    adaptive_rho=False,
                                     verbose=True,
                                     max_iters=10000,
                                     equil_steps=1,
                                     abs_tol=1e-4,
-                                    rel_tol=1e-4,
+                                    rel_tol=1e-3,
                                     samples=200,
                                     double=True,
                                     rho=2)
@@ -120,12 +120,12 @@ with open("sylvester_pogs_times%s.csv" % script_num, "w") as f:
                 double_evals = prob.A_evals + prob.AT_evals
             if True:
                 result = prob.solve(solver=MAT_FREE_POGS,
-                                    adaptive_rho=True,
+                                    adaptive_rho=False,
                                     verbose=True,
                                     max_iters=10000,
                                     equil_steps=1,
                                     abs_tol=1e-4,
-                                    rel_tol=1e-4,
+                                    rel_tol=1e-3,
                                     samples=200,
                                     double=False,
                                     rho=2)

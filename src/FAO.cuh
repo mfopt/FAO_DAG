@@ -16,6 +16,7 @@
 #ifndef FAO_H
 #define FAO_H
 
+#include <math.h>
 #include <vector>
 #include <map>
 #include <cassert>
@@ -599,7 +600,10 @@ public:
 
     void alloc_data_base() {
         input_len = this->get_length(this->input_sizes);
-        padded_len = this->get_length(this->output_sizes);
+        // padded_len = this->get_length(this->output_sizes);
+        // padded_len = get_length(output_sizes);
+        padded_len = (size_t) pow(2, ceil( log2( this->get_length(this->output_sizes) ) ));
+        printf("padded_len = %u, len output = %u\n", padded_len, this->get_length(this->output_sizes));
         // R2C padded_len transform has this size output.
         cplx_len = 2*(padded_len/2 + 1);
         this->input_data = cml::vector_calloc<T>(padded_len);
@@ -886,14 +890,15 @@ public:
     // but we can get around this by reversing order of dimensions in plan.
     void alloc_data_base() {
         CUDA_CHECK_ERR();
-        input_rows = this->input_sizes[0][0];
-        input_cols = this->input_sizes[0][1];
+        input_rows = static_cast<size_t>(this->input_sizes[0][0]);
+        input_cols = static_cast<size_t>(this->input_sizes[0][1]);
         padded_rows = this->output_sizes[0][0];
         padded_cols = this->output_sizes[0][1];
         printf("input_rows = %d, input_cols = %d\n", input_rows, input_cols);
         printf("padded_rows = %d, padded_cols = %d\n", padded_rows, padded_cols);
         input_matrix = cml::matrix_calloc<T, CblasColMajor>(input_rows,
                                                             input_cols);
+        // Will get CUDA error here if input_rows and input_cols are too large.
         this->input_data = cml::vector_view_array<T>(input_matrix.data,
                                                      input_rows*input_cols);
         // Input and output can be same array, except FAO_DAG would
@@ -965,6 +970,138 @@ public:
 %template(Conv2DBasef) Conv2DBase<float>;
 #endif
 
+class Conv2Dd: public Conv2DBase<double> {
+public:
+    // Timing info.
+    int forward_evals = 0;
+    int adjoint_evals = 0;
+    double total_forward_r2c_time = 0;
+    double total_adjoint_r2c_time = 0;
+    double total_forward_mul_time = 0;
+    double total_adjoint_mul_time = 0;
+
+    void alloc_data() {
+        this->alloc_data_base();
+        CUDA_CHECK_ERR();
+        /* kernel_fft is DFT(padded kernel). */
+        /* Must copy because FFTW destroys input array. */
+        // TODO alignment of kernel_fft!
+        cml::matrix<double, CblasColMajor> output_start =
+            cml::matrix_submatrix<double, CblasColMajor>(&output_matrix,
+                0u, 0u, kernel_rows, kernel_cols);
+        cml::matrix_memcpy<double, CblasColMajor>(&output_start, &kernel);
+        cudaDeviceSynchronize();
+        CUDA_CHECK_ERR();
+        // Done with kernel.
+        matrix_free(&kernel);
+
+        cufftHandle plan;
+        cufftPlan2d(&plan, padded_cols, padded_rows, CUFFT_R2C);
+        cufftExecR2C(plan,
+            (cufftReal *) output_matrix.data,
+            (cufftComplex *) kernel_fft.data);
+        cufftDestroy(plan);
+
+        // cml::vector<double> kernel_fft_vec = cml::vector_view_array(kernel_fft.data,
+        //     cplx_rows*padded_cols);
+        // printf("-1. kernel_fft is nan = %i\n", cml::vector_any_isnan(&kernel_fft_vec));
+
+         /* Initialize the plans for forward_eval. */
+        cufftPlan2d(&forward_fft_plan, padded_cols, padded_rows, CUFFT_R2C);
+        cufftPlan2d(&forward_ifft_plan, padded_cols, padded_rows, CUFFT_C2R);
+        cufftPlan2d(&adjoint_fft_plan, padded_cols, padded_rows, CUFFT_R2C);
+        cufftPlan2d(&adjoint_ifft_plan, padded_cols, padded_rows, CUFFT_C2R);
+        cudaDeviceSynchronize();
+        CUDA_CHECK_ERR();
+    }
+
+    // For timing purposes.
+    void free_data() {
+        printf("n=%u, avg_forward_r2c=%e\n", padded_rows*padded_cols,
+            total_forward_r2c_time/forward_evals);
+        printf("n=%u, avg_adjoint_r2c=%e\n", padded_rows*padded_cols,
+            total_adjoint_r2c_time/adjoint_evals);
+        printf("n=%u, avg_forward_mul=%e\n", padded_rows*padded_cols,
+            total_forward_mul_time/forward_evals);
+        printf("n=%u, avg_adjoint_mul=%e\n", padded_rows*padded_cols,
+            total_adjoint_mul_time/adjoint_evals);
+        Conv2DBase<double>::free_data();
+    }
+
+    /* Column convolution. */
+    void forward_eval() {
+        forward_evals++;
+        double t = timer<double>();
+        this->zero_pad_and_copy_input();
+        cudaDeviceSynchronize();
+        // printf("1. input is nan = %i\n", cml::vector_any_isnan(&input_data));
+        // printf("1. output is nan = %i\n", cml::vector_any_isnan(&output_data));
+        // // printf("T_zero_pad = %e\n", timer<double>() - t);
+        t = timer<double>();
+        cufftExecR2C(forward_fft_plan,
+           (cufftReal *) this->output_data.data,
+           (cufftComplex *) r2c_out.data);
+        cudaDeviceSynchronize();
+        double r2c_time = timer<double>() - t;
+        total_forward_r2c_time += r2c_time;
+
+        // cml::vector<double> r2c_vec = cml::vector_view_array(r2c_out.data,
+        //     cplx_rows*padded_cols);
+        // cml::vector<double> kernel_fft_vec = cml::vector_view_array(kernel_fft.data,
+        //     cplx_rows*padded_cols);
+        // printf("2. kernel_fft is nan = %i\n", cml::vector_any_isnan(&kernel_fft_vec));
+        // printf("2. r2c_out is nan = %i\n", cml::vector_any_isnan(&r2c_vec));
+        // printf("2. output is nan = %i\n", cml::vector_any_isnan(&output_data));
+        // printf("T_exec_r2c = %e\n", r2c_time);
+        t = timer<double>();
+        this->multiply_fft(kernel_fft, r2c_out, true);
+        cudaDeviceSynchronize();
+        double mul_time = timer<double>() - t;
+        total_forward_mul_time += mul_time;
+        // printf("3. r2c_out is nan = %i\n", cml::vector_any_isnan(&r2c_vec));
+        // printf("T_multiply_fft = %e\n", mul_time);
+        t = timer<double>();
+        cufftExecC2R(forward_ifft_plan,
+           (cufftComplex *) r2c_out.data,
+           (cufftReal *) this->output_data.data);
+        cudaDeviceSynchronize();
+        CUDA_CHECK_ERR();
+        // printf("4. r2c_out is nan = %i\n", cml::vector_any_isnan(&r2c_vec));
+        // printf("4. output is nan = %i\n", cml::vector_any_isnan(&output_data));
+        // printf("T_exec_c2r = %e\n", timer<double>() - t);
+    }
+
+    /* Row convolution. */
+    void adjoint_eval() {
+        adjoint_evals++;
+        double t = timer<double>();
+        cufftExecR2C(adjoint_fft_plan,
+           (cufftReal *) output_data.data,
+           (cufftComplex *) r2c_out.data);
+        cudaDeviceSynchronize();
+        double r2c_time = timer<double>() - t;
+        total_adjoint_r2c_time += r2c_time;
+        // printf("T_exec_r2c = %e\n", r2c_time);
+        t = timer<double>();
+        this->multiply_fft(kernel_fft, r2c_out, false);
+        cudaDeviceSynchronize();
+        double mul_time = timer<double>() - t;
+        total_adjoint_mul_time += mul_time;
+        // printf("T_multiply_fft = %e\n", mul_time);
+        t = timer<double>();
+        cufftExecC2R(adjoint_ifft_plan,
+           (cufftComplex *) r2c_out.data,
+           (cufftReal *) output_data.data);
+        cudaDeviceSynchronize();
+        // printf("T_exec_c2r = %e\n", timer<double>() - t);
+        // Copy output submatrix to input.
+        cml::matrix_memcpy<double, CblasColMajor>(&input_matrix,
+                                                 &output_submatrix);
+        cudaDeviceSynchronize();
+        CUDA_CHECK_ERR();
+    }
+};
+
 class Conv2Df: public Conv2DBase<float> {
 public:
     // Timing info.
@@ -977,6 +1114,7 @@ public:
 
     void alloc_data() {
         this->alloc_data_base();
+        CUDA_CHECK_ERR();
         /* kernel_fft is DFT(padded kernel). */
         /* Must copy because FFTW destroys input array. */
         // TODO alignment of kernel_fft!

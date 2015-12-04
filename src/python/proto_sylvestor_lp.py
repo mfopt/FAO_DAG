@@ -45,13 +45,13 @@ prob = Problem(Minimize(cost),
 #                             max_iters=10000, eps=1e-3)
 # print "SCS cost", cost.value
 
-prob.solve(solver=OLD_SCS_MAT_FREE, max_iters=2500, verbose=False,
-           equil_steps=1, samples=200, precond=True, stoch=True, eps=1e-3)
-print "OLD MAT FREE obj", prob.value
-print "OLD MAT FREE cost", cost.value
-print "residual", resid.value
-print "OLD MAT FREE solve time", prob.solve_time
-print "OLD MAT FREE sltn error", norm(true_X - X, 'fro').value/norm(true_X).value
+# prob.solve(solver=OLD_SCS_MAT_FREE, max_iters=2500, verbose=False,
+#            equil_steps=1, samples=200, precond=True, stoch=True, eps=1e-3)
+# print "OLD MAT FREE obj", prob.value
+# print "OLD MAT FREE cost", cost.value
+# print "residual", resid.value
+# print "OLD MAT FREE solve time", prob.solve_time
+# print "OLD MAT FREE sltn error", norm(true_X - X, 'fro').value/norm(true_X).value
 # prob.solve(solver=MAT_FREE_SCS, max_iters=5000, verbose=False,
 #            equil_steps=1, samples=200, precond=True, rand_seed=False, eps=1e-3)
 # print "SCS MAT FREE obj", prob.value
@@ -62,7 +62,7 @@ if true_X is not None:
 
 # TODO profile.
 prob.solve(solver=MAT_FREE_POGS, verbose=True, extra_verbose=False, max_iters=2500, adaptive_rho=True,
-    samples=200, equil_steps=1, double=True, rho=2, abs_tol=1e-4, rel_tol=1e-4, cg_rate=2.0)
+    samples=200, equil_steps=1, double=True, rho=2, abs_tol=1e-4, rel_tol=1e-3, cg_rate=2.0)
 print "MAT FREE POGS double cost", cost.value
 print "residual", resid.value
 print "MAT FREE POGS double solve time", prob.solve_time
@@ -71,7 +71,7 @@ if true_X != None:
     print "MAT FREE POGS double sltn error", norm(true_X - X, 'fro').value/norm(true_X).value
 
 prob.solve(solver=MAT_FREE_POGS, verbose=True, max_iters=2500, adaptive_rho=True, rho=2,
-    samples=200, equil_steps=1, double=False, abs_tol=1e-4, rel_tol=1e-4, cg_rate=2.0)
+    samples=200, equil_steps=1, double=False, abs_tol=1e-4, rel_tol=1e-3, cg_rate=2.0)
 print "MAT FREE POGS float cost", cost.value
 print "residual", resid.value
 print "MAT FREE POGS float solve time", prob.solve_time

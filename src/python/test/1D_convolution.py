@@ -15,13 +15,13 @@ def gauss(n=11,sigma=1, scale=1, min_val=1):
     r = range(-int(n/2),int(n/2)+1)
     return [max(scale /(sigma * sqrt(2*pi)) * exp(-float(x)**2/(2*sigma**2)), min_val) for x in r]
 
-with open("lalalal%s.csv" % script_num, "w") as f:
+with open("test%s.csv" % script_num, "w") as f:
     f.write("n,mat_free_scs_time,mat_free_scs_evals,mat_free_pogs_time,mat_free_pogs_evals\n")
 
     np.random.seed(5)
     random.seed(5)
     n_vals = []
-    for n in [3162276, 1e7]:#np.hstack([np.logspace(2, 5, 20), np.logspace(5, 7, 5)[1:]]):
+    for n in np.hstack([np.logspace(2, 5, 20), np.logspace(5, 7, 14)[1:]]):
         n = int(n)
         if n % 2 == 1:
             n -= 1
@@ -108,7 +108,7 @@ with open("lalalal%s.csv" % script_num, "w") as f:
             print("true signal fit", fit.value)
             if True:
                 result = prob.solve(solver=MAT_FREE_SCS,
-                                    verbose=False,
+                                    verbose=True,
                                     max_iters=10000,
                                     equil_steps=1,
                                     eps=1e-3,
