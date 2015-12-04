@@ -165,7 +165,7 @@ with open("testing123%s.csv" % script_num, "w") as f:
                                     abs_tol=1e-4,
                                     rel_tol=1e-3,
                                     samples=200,
-                                    double=True,
+                                    double=False,
                                     use_exact_tol=True)
                 print "MAT FREE POGS result", result
                 print "MAT FREE POGS solve time", prob.solve_time

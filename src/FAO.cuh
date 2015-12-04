@@ -600,10 +600,9 @@ public:
 
     void alloc_data_base() {
         input_len = this->get_length(this->input_sizes);
-        // padded_len = this->get_length(this->output_sizes);
-        // padded_len = get_length(output_sizes);
-        padded_len = (size_t) pow(2, ceil( log2((double) this->get_length(this->output_sizes) ) ));
-        printf("padded_len = %u, len output = %u\n", padded_len, this->get_length(this->output_sizes));
+        padded_len = this->get_length(this->output_sizes);
+        // padded_len = (size_t) pow(2, ceil( log2((double) this->get_length(this->output_sizes) ) ));
+        // printf("padded_len = %u, len output = %u\n", padded_len, this->get_length(this->output_sizes));
         // R2C padded_len transform has this size output.
         cplx_len = 2*(padded_len/2 + 1);
         this->input_data = cml::vector_calloc<T>(padded_len);
