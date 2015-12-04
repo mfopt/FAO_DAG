@@ -16,6 +16,7 @@
 #ifndef FAO_H
 #define FAO_H
 
+#include <math.h>
 #include <vector>
 #include <map>
 #include <cassert>
@@ -429,7 +430,9 @@ public:
 
 	void alloc_data() {
 		input_len = get_length(input_sizes);
-        padded_len = get_length(output_sizes);
+        // padded_len = get_length(output_sizes);
+        padded_len = (size_t) pow(2, ceil( log2( get_length(output_sizes) ) ));
+        printf("padded_len = %u, len output = %u\n", padded_len, get_length(output_sizes));
         // TODO could use fftw_alloc here.
         input_data = gsl::vector_calloc<double>(padded_len);
        	output_data = gsl::vector_calloc<double>(padded_len);
