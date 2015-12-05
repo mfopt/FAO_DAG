@@ -4,6 +4,7 @@ The simplest way to use matrix-free CVXPY and matrix-free cone solvers is to clo
 
 It is possible to use matrix-free CVXPY with a faster version of matrix-free SCS.
 Simply follow these instructions:
+
 1. Switch to the ``pogs`` branch of matrix-free CVXPY and reinstall the package.
 2. Clone this repository.
 3. Run ``git submodule init`` and ``git submodule update``.
@@ -19,6 +20,7 @@ linear functions by setting the solver option ``solver=OLD_SCS_MAT_FREE``.
 
 It is also possible to install the matrix-free POGS solver, which
 runs on a GPU. Follow these instructions:
+
 1. Switch to the ``pogs`` branch of matrix-free CVXPY and reinstall the package.
 2. Clone this repository and run ``git checkout pogs_gpu``.
 3. Run ``git submodule init`` and ``git submodule update``.
