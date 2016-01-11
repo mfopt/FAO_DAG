@@ -38,6 +38,10 @@ with open("sylvester_pogs_times%s.csv" % script_num, "w") as f:
             C = np.random.randn(m, n)
             # D = np.abs(np.random.randn(m, m)) + 1e-6
 
+            # Bound condition number.
+            A = A/np.linalg.norm(A) + np.eye(m)
+            B = B/np.linalg.norm(B) + np.eye(n)
+
             # Only solve one problem.
             if r != script_num:
                 continue
